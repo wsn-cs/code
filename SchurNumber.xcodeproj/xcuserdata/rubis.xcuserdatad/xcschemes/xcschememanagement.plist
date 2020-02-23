@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>SchemeUserState</key>
+	<dict>
+		<key>SchurNumber.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>0</integer>
+		</dict>
+		<key>schurNumberGeometric.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
+		<key>schurNumberIterative.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>schurNumberMonteCarlo.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+		<key>schurNumberRecursive.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>4</integer>
+		</dict>
+		<key>schurNumberSymmetric.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>B20C63F822281F4A00E7107A</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B2A5BAC222439EDA00300BC3</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B2BAF2532393A46A00481D08</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B2C8F8872221A92B00C0457C</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>B2FB3AE5229FFDC3009EE623</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+	</dict>
+</dict>
+</plist>
