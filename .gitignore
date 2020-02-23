@@ -38,7 +38,7 @@ DerivedData/
 **/xcshareddata/WorkspaceSettings.xcsettings
 
 ## Files that are local
-./schurNumberGeometric/*
-./schurNumberMonteCarlo/*
+schurNumberGeometric/
+schurNumberMonteCarlo/
 
 # End of https://www.gitignore.io/api/xcode
