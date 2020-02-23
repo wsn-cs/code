@@ -37,4 +37,8 @@ DerivedData/
 ### Xcode Patch ###
 **/xcshareddata/WorkspaceSettings.xcsettings
 
+## Files that are local
+./schurNumberGeometric/*
+./schurNumberMonteCarlo/*
+
 # End of https://www.gitignore.io/api/xcode
