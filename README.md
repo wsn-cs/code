@@ -6,6 +6,9 @@ dans le cadre de leur projet de 2A.
 ## Membres
 
 Richard Abou Chaaya
+
 Gabriel Merlin
+
 Arpad Rimmel
+
 Joanna Tomasik
