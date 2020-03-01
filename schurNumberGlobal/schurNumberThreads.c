@@ -81,7 +81,7 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
     
     *partitionstruc_array_ptr = work_partitionstruc_array;
     
-    schurNumberPrintPartitions(&action_s);
+    //schurNumberPrintPartitions(&action_s);
     schurNumberActionDealloc(&action_s);
     
     return count;
@@ -130,10 +130,10 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
         // Lance la procédure
         schur_number_partition_t *partitionstruc = &(partitionstruc_array[i]);
         
-        pthread_mutex_lock(mutex);
-        printf("Indice %li ", i);
-        schurNumberPrintPartition(partitionstruc->pmax, partitionstruc->limballoc * mp_bits_per_limb, partitionstruc->partitioninvert);
-        pthread_mutex_unlock(mutex);
+//        pthread_mutex_lock(mutex);
+//        printf("Indice %li ", i);
+//        schurNumberPrintPartition(partitionstruc->pmax, partitionstruc->limballoc * mp_bits_per_limb, partitionstruc->partitioninvert);
+//        pthread_mutex_unlock(mutex);
         
         unsigned long n;
         unsigned long nalloc = partitionstruc->limballoc * mp_bits_per_limb;

@@ -50,8 +50,6 @@ void usage(char *cmdname) {
            basename(cmdname));
 }
 
-#ifndef test
-
 int main(int argc, const char * argv[]) {
     char c;
     char timeOption = 0;
@@ -291,39 +289,11 @@ int main(int argc, const char * argv[]) {
         printf("Number of maximal sized partitions: %lu\n", action_s.count_max);
     }
     
+    printf("Nombre de Schur S(%lu) ≥ %lu\n", p, action_s.nmax);
+    
     // Nettoyage
     schur_number_partition_dealloc(&partition_s);
     schurNumberActionDealloc(&action_s);
     
     return 0;
 }
-
-#else
-
-int main(int argc, const char * argv[]) {
-    mp_limb_t limbs[2] = {0, 0};
-    
-    while (*limbs < 15) {
-        (*limbs)++;
-        unsigned long pos = mpn_rscan1(limbs, 128);
-        printf("%lu : %lu\n", *limbs, pos);
-    }
-    
-    for (unsigned long i=5; i<64; i++) {
-        (*limbs) <<= 1;
-        unsigned long pos = mpn_rscan1(limbs, 128);
-        printf("%lu : %lu\n", *limbs, pos);
-    }
-    
-    limbs[1] = 5;
-    
-    for (unsigned long i=3; i<64; i++) {
-        limbs[1] <<= 1;
-        unsigned long pos = mpn_rscan1(limbs, 128);
-        printf("%lu : %lu\n", *limbs, pos);
-    }
-    
-    return 0;
-}
-
-#endif
