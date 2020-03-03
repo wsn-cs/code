@@ -60,7 +60,6 @@ int main(int argc, const char * argv[]) {
     char method = 0;
     char print_range = 0;
     unsigned long *schurNumbers;
-    mpz_t iternum;
     clock_t time0;
     clock_t time1;
     
@@ -127,7 +126,6 @@ int main(int argc, const char * argv[]) {
     
     schurNumbers = calloc(p, sizeof(unsigned long));
     //partitionNumbers = calloc(p, sizeof(unsigned long));
-    mpz_init_set_ui(iternum, 0);
     
     // Initialisation de l'action
     schur_number_action_t action_s;
