@@ -11,10 +11,13 @@
 
 #include <pthread.h>
 #include <unistd.h>
+#include <unistd.h>
 #include "schurNumberIO.h"
 #include "schurNumberPartitionStruc.h"
 
-#define NUM_THREADS _SC_NPROCESSORS_CONF
+#ifndef NUM_THREADS
+#define NUM_THREADS 4
+#endif
 
 typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit, mp_limb_t **constraint_partition, mp_size_t constraint_size);
 
