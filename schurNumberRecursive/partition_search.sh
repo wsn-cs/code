@@ -20,6 +20,5 @@ begin_set2='"'"1 2 3 15 16 17 44 45 46 58 59 60"'"'
 begin_set3='"'"5 6 7 8 9 10 11 12 13 48 49 50 51 52 53 54 55 56"'"'
 begin_set4='"'"18 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 43"'"'
 
-echo $cmd1 -a -p b 5 $constraint_set1 $constraint_set2 $constraint_set3 $constraint_set4 $constraint_set5 $begin_set1 $begin_set2 $begin_set3 $begin_set4
 exec $cmd1 -a -p b 5 $constraint_set1 $constraint_set2 $constraint_set3 $constraint_set4 $constraint_set5 $begin_set1 $begin_set2 $begin_set3 $begin_set4
 #exec $cmd2 -m w -a -p b 5 $constraint_set1 $constraint_set2 $constraint_set3 $constraint_set4 $constraint_set5
