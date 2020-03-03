@@ -13,7 +13,6 @@
 #include <unistd.h>
 #include "schurNumberIO.h"
 #include "schurNumberPartitionStruc.h"
-#include "schurNumberMethods.h"
 
 #define NUM_THREADS _SC_NPROCESSORS_CONF
 
