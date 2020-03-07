@@ -125,8 +125,12 @@ void schurNumberActionDealloc(schur_number_action_t *action) {
     fclose(action->limbsize_stream);
     fclose(action->partition_stream);
     
-    free(action->limbsize_buffer);
-    free(action->partition_buffer);
+    if (action->limbsize_buffer) {
+        free(action->limbsize_buffer);
+    }
+    if (action->partition_buffer) {
+        free(action->partition_buffer);
+    }
     
     if (action->n_buffers > 0) {
         free(action->count_a);
@@ -224,7 +228,8 @@ void schurNumberActionGatherCopy(schur_number_action_t *action_r, schur_number_a
 }
 
 void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number_action_t *actions_s, size_t n_actions) {
-    /*Réunit les n_actions actions_s dans l'unique action_r, sans copier les multiples tampons dans celui de action_r.*/
+    /*Réunit les n_actions actions_s dans l'unique action_r, sans copier les multiples tampons dans celui de action_r.
+     Les tampons des actions_s sont mis à NULL.*/
     unsigned long nmax = action_r->nmax;
     unsigned long iter_num = action_r->iter_num;
     size_t count_all = action_r->count_all;
@@ -312,6 +317,9 @@ void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number
             limbsize_size_a++;
             partition_buffer_a++;
             partition_size_a++;
+            
+            action_s->limbsize_buffer = NULL;
+            action_s->partition_buffer = NULL;
         }
     }
     
@@ -321,7 +329,29 @@ void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number
             rewind(limbsize_stream);
             rewind(partition_stream);
             count = 0;
+            action_r->n_buffers = 0;
         }
+        
+        size_t i0 = action_r->n_buffers;
+        size_t n_buffers = i0 + n_bests_action;
+        
+        size_t *count_a = realloc(action_r->count_a, n_buffers);
+        char **limbsize_buffer_a = realloc(action_r->limbsize_buffer_a, n_buffers);
+        size_t *limbsize_size_a = realloc(action_r->limbsize_size_a, n_buffers);
+        char **partition_buffer_a = realloc(action_r->partition_buffer_a, n_buffers);
+        size_t *partition_size_a = realloc(action_r->partition_size_a, n_buffers);
+        
+        action_r->count_a = count_a;
+        action_r->limbsize_buffer_a = limbsize_buffer_a;
+        action_r->limbsize_size_a = limbsize_size_a;
+        action_r->partition_buffer_a = partition_buffer_a;
+        action_r->partition_size_a = partition_size_a;
+        
+        count_a += i0;
+        limbsize_buffer_a += i0;
+        limbsize_size_a += i0;
+        partition_buffer_a += i0;
+        partition_size_a += i0;
         
         for (unsigned long i = 0; i < n_actions; i++) {
             schur_number_action_t *action_s = &actions_s[i];
@@ -330,11 +360,21 @@ void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number
                 fflush(action_s->limbsize_stream);
                 fflush(action_s->partition_stream);
                 
-                fwrite(action_s->limbsize_buffer, 1, action_s->limbsize_size, limbsize_stream);
-                fwrite(action_s->partition_buffer, 1, action_s->partition_size, partition_stream);
+                *count_a = action_s->count;
+                *limbsize_buffer_a = action_s->limbsize_buffer;
+                *limbsize_size_a = action_s->limbsize_size;
+                *partition_buffer_a = action_s->partition_buffer;
+                *partition_size_a = action_s->partition_size;
                 
-                count += action_s->count;
+                count_a++;
+                limbsize_buffer_a++;
+                limbsize_size_a++;
+                partition_buffer_a++;
+                partition_size_a++;
             }
+            
+            action_s->limbsize_buffer = NULL;
+            action_s->partition_buffer = NULL;
         }
     }
     
