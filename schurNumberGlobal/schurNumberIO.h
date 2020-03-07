@@ -34,6 +34,7 @@ struct schurNumberIOAction {
     void (*func)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
     
     size_t n_buffers;               // Nombre de tampons issus d'un éventuel regroupement
+    size_t *count_a;                // Tableau contenant le nombre de partitions contenues dans chaque tampon
     char **limbsize_buffer_a;
     size_t *limbsize_size_a;
     char **partition_buffer_a;      // Tableau de n_buffers tampons contenant les partitions

@@ -443,19 +443,16 @@ void schurNumberSaveAllPartition(mp_limb_t **partition, unsigned long n, struct 
     }
 }
 
-size_t schurNumberPrintPartitions(struct schurNumberIOAction *action) {
-    /*Affiche toutes les partitions.*/
-    unsigned long p = action->p;
-    size_t count = action->count;
+size_t schurNumberPrintPartitionBuffer(unsigned long p, mp_size_t *limbsize_buffer, mp_limb_t *partition_buffer, size_t count) {
+    /*Affiche dans stdout les count partitions à p ensembles contenues dans partition_buffer, et de taille en limbes précisée dans limbsize_buffer.*/
+    
+    mp_size_t *limbsize_ptr = limbsize_buffer;
+    mp_limb_t *set_ptr = partition_buffer;
     mp_limb_t **partition = calloc(sizeof(mp_limb_t *), p);
     
-    fflush(action->limbsize_stream);
-    fflush(action->partition_stream);
+    size_t k;
     
-    mp_size_t *limbsize_ptr = action->limbsize_buffer;
-    mp_limb_t *set_ptr = action->partition_buffer;
-    
-    for (unsigned long k = 0; k < count; k++) {
+    for (k = 0; k < count; k++) {
         
         mp_size_t limbsize = *limbsize_ptr;
         
@@ -470,5 +467,21 @@ size_t schurNumberPrintPartitions(struct schurNumberIOAction *action) {
     
     free(partition);
     
-    return action->count;
+    return k;
+}
+
+size_t schurNumberPrintPartitions(struct schurNumberIOAction *action) {
+    /*Affiche toutes les partitions présentes dans action.*/
+    unsigned long p = action->p;
+    
+    fflush(action->limbsize_stream);
+    fflush(action->partition_stream);
+    
+    size_t total_count = schurNumberPrintPartitionBuffer(p, action->limbsize_buffer, action->partition_buffer, action->count);
+    
+    for (size_t k = 0; k < action->n_buffers; k++) {
+        total_count += schurNumberPrintPartitionBuffer(p, action->limbsize_buffer_a[k], action->partition_buffer_a[k], action->count_a[k]);
+    }
+    
+    return total_count;
 }
