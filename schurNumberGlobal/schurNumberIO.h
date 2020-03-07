@@ -16,7 +16,7 @@
 struct schurNumberIOAction {
     unsigned long p;        // Nombre d'ensembles par partition
     
-    unsigned long nmax;     // Taille maximale des partitions
+    unsigned long nmax;     // Plus grande taille des partitions
     unsigned long iter_num; // Nombre d'itérations
     size_t count_max;       // Nombre de partitions de taille maximales
     size_t count_all;       // Nombre de partitions non prolongeables

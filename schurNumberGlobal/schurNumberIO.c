@@ -113,6 +113,7 @@ void schurNumberActionAlloc(schur_number_action_t *action, unsigned long p, void
     action->func = func;
     
     action->n_buffers = 0;
+    action->count_a = NULL;
     action->limbsize_buffer_a = NULL;
     action->limbsize_size_a = NULL;
     action->partition_buffer_a = NULL;
@@ -128,6 +129,7 @@ void schurNumberActionDealloc(schur_number_action_t *action) {
     free(action->partition_buffer);
     
     if (action->n_buffers > 0) {
+        free(action->count_a);
         free(action->limbsize_buffer_a);
         free(action->limbsize_size_a);
         free(action->partition_buffer_a);
@@ -138,9 +140,9 @@ void schurNumberActionDealloc(schur_number_action_t *action) {
 void schurNumberActionGatherCopy(schur_number_action_t *action_r, schur_number_action_t *actions_s, size_t n_actions) {
     /*Réunit les n_actions actions_s dans l'unique action_r, en copiant les multiples tampons dans celui de action_r.*/
     unsigned long nmax = action_r->nmax;
+    unsigned long iter_num = action_r->iter_num;
     size_t count_all = action_r->count_all;
     size_t count_max = action_r->count_max;
-    unsigned long iter_num = action_r->iter_num;
     size_t count = action_r->count;
     FILE * limbsize_stream = action_r->limbsize_stream;
     FILE * partition_stream = action_r->partition_stream;
@@ -224,13 +226,15 @@ void schurNumberActionGatherCopy(schur_number_action_t *action_r, schur_number_a
 void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number_action_t *actions_s, size_t n_actions) {
     /*Réunit les n_actions actions_s dans l'unique action_r, sans copier les multiples tampons dans celui de action_r.*/
     unsigned long nmax = action_r->nmax;
+    unsigned long iter_num = action_r->iter_num;
     size_t count_all = action_r->count_all;
     size_t count_max = action_r->count_max;
-    unsigned long iter_num = action_r->iter_num;
     size_t count = action_r->count;
     FILE * limbsize_stream = action_r->limbsize_stream;
     FILE * partition_stream = action_r->partition_stream;
     void (*func)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) = action_r->func;
+    
+    size_t n_bests_action = 1;      // Nombre d'actions ayant atteint nmax
     
     for (unsigned long i = 0; i < n_actions; i++) {
         schur_number_action_t *action_s = &actions_s[i];
@@ -238,10 +242,12 @@ void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number
         if (action_s->nmax > nmax) {
             nmax = action_s->nmax;
             count_max = 0;
+            n_bests_action = 0;
         }
         
         if (action_s->nmax == nmax) {
             count_max += action_s->count_max;
+            n_bests_action++;
         }
         
         count_all += action_s->count_all;
@@ -271,16 +277,19 @@ void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number
         size_t i0 = action_r->n_buffers;
         size_t n_buffers = i0 + n_actions;
         
+        size_t *count_a = realloc(action_r->count_a, n_buffers);
         char **limbsize_buffer_a = realloc(action_r->limbsize_buffer_a, n_buffers);
         size_t *limbsize_size_a = realloc(action_r->limbsize_size_a, n_buffers);
         char **partition_buffer_a = realloc(action_r->partition_buffer_a, n_buffers);
         size_t *partition_size_a = realloc(action_r->partition_size_a, n_buffers);
         
+        action_r->count_a = count_a;
         action_r->limbsize_buffer_a = limbsize_buffer_a;
         action_r->limbsize_size_a = limbsize_size_a;
         action_r->partition_buffer_a = partition_buffer_a;
         action_r->partition_size_a = partition_size_a;
         
+        count_a += i0;
         limbsize_buffer_a += i0;
         limbsize_size_a += i0;
         partition_buffer_a += i0;
@@ -292,11 +301,13 @@ void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number
             fflush(action_s->limbsize_stream);
             fflush(action_s->partition_stream);
             
+            *count_a = action_s->count;
             *limbsize_buffer_a = action_s->limbsize_buffer;
             *limbsize_size_a = action_s->limbsize_size;
             *partition_buffer_a = action_s->partition_buffer;
             *partition_size_a = action_s->partition_size;
             
+            count_a++;
             limbsize_buffer_a++;
             limbsize_size_a++;
             partition_buffer_a++;
