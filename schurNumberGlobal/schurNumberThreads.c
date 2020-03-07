@@ -148,7 +148,17 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
         pthread_mutex_lock(mutex);
         i = *current_index_ptr;
         *current_index_ptr = i + 1;
+        unsigned long nbest_global = *(arg->nbest_ptr);
+        if (nbest_global < nbest) {
+            nbest_global = nbest;
+            *(arg->nbest_ptr) = nbest_global;
+        }
         pthread_mutex_unlock(mutex);
+        
+        if (nbest < nbest_global) {
+            schur_number_action_t *action = arg->action;
+            action->func(NULL, nbest_global, action);
+        }
     }
     
     if (arg->constraint_partition) {
@@ -160,8 +170,6 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
         
         free(constraint_partition);
     }
-    
-    //*nbest_ptr = nbest;
 }
 
 unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc, schur_number_method_t methodfunc, schur_number_action_t *action, mp_limb_t **constraint_partition, mp_size_t constraint_size, char load_balancing_stat) {
@@ -178,7 +186,7 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
     // Création des partitions initiales.
     size_t count = schurNumberPartitionPool(partitionstruc, &partitionstruc_array, methodfunc, constraint_partition, constraint_size); // Nombre de partitions dans partitionstruc_array
     size_t current_index = 0;                                                                   // Indice de la partition à traiter
-    unsigned long nmax = 0;
+    unsigned long nbest = 0;
     
     // Création de la mutex associée
     pthread_mutex_t mutex_s;
@@ -188,7 +196,7 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
         // Création de l'argument à appeler
         schur_number_task_arg_t *arg = &(arg_s_array[i]);
         arg->p = p;
-        arg->nmax_ptr = &nmax;
+        arg->nbest_ptr = &nbest;
         arg->count = count;
         arg->current_index_ptr = &current_index;
         arg->partitionstruc_array = partitionstruc_array;
@@ -206,7 +214,7 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
     // Création de l'argument à appeler
     schur_number_task_arg_t *arg = &(arg_s_array[NUM_THREADS - 1]);
     arg->p = p;
-    arg->nmax_ptr = &nmax;
+    arg->nbest_ptr = &nbest;
     arg->count = count;
     arg->current_index_ptr = &current_index;
     arg->partitionstruc_array = partitionstruc_array;

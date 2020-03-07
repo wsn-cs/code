@@ -387,7 +387,9 @@ void schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long n, struct
     FILE *limbsize_stream = action->limbsize_stream;
     FILE *partition_stream = action->partition_stream;
     
-    action->count_all++;
+    if (partition) {
+        action->count_all++;
+    }
     
     if (n > action->nmax) {
         /*Vider partitions*/
@@ -395,11 +397,10 @@ void schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long n, struct
         rewind(partition_stream);
         action->nmax = n;
         action->count = 0;
-        
-        //printf("nmax : %lu\n", n);
+        action->count_max = 0;
     }
     
-    if (n == action->nmax) {
+    if (n == action->nmax && partition) {
         /*Ajouter la partition.*/
         mp_size_t limbsize = ((unsigned long)n>>6) + 1;
 
@@ -422,23 +423,24 @@ void schurNumberSaveAllPartition(mp_limb_t **partition, unsigned long n, struct 
         action->count_max = 0;
     }
     
-    if (n == action->nmax) {
-        action->count_max ++;
+    if (partition) {
+        unsigned long  p = action->p;
+        FILE *limbsize_stream = action->limbsize_stream;
+        FILE *partition_stream = action->partition_stream;
+        mp_size_t limbsize = ((action->nmax)>>6) + 1;
+        
+        fwrite(&limbsize, sizeof(mp_size_t), 1, limbsize_stream);
+        
+        for (unsigned long j = 0; j < p; j++) {
+            fwrite(partition[j], sizeof(mp_limb_t), limbsize, partition_stream);
+        }
+        
+        action->count ++;
+        if (n == action->nmax) {
+            action->count_max ++;
+        }
+        action->count_all = action->count;
     }
-    
-    unsigned long  p = action->p;
-    FILE *limbsize_stream = action->limbsize_stream;
-    FILE *partition_stream = action->partition_stream;
-    mp_size_t limbsize = ((action->nmax)>>6) + 1;
-    
-    fwrite(&limbsize, sizeof(mp_size_t), 1, limbsize_stream);
-    
-    for (unsigned long j = 0; j < p; j++) {
-        fwrite(partition[j], sizeof(mp_limb_t), limbsize, partition_stream);
-    }
-    
-    action->count ++;
-    action->count_all = action->count;
 }
 
 size_t schurNumberPrintPartitions(struct schurNumberIOAction *action) {

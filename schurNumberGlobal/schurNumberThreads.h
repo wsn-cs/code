@@ -23,7 +23,7 @@ typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partiti
 
 struct schur_number_task_arg_struc {
     unsigned long p;            // Nombre de huches allouées
-    unsigned long *nmax_ptr;    // Pointeur vers la taille de la meilleure partition trouvée
+    unsigned long *nbest_ptr;   // Pointeur vers la taille de la meilleure partition trouvée
     
     size_t count;               // Nombre de partitions initiales
     size_t *current_index_ptr;  // Indice de la partition initiale à sélectionner
