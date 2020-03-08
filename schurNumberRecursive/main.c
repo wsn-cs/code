@@ -38,7 +38,7 @@ void usage(char *cmdname) {
             "\t-p (a|b|num): Affichage de certaines partitions trouvées\n"\
             "\t\ta: toutes les partitions non prolongeables\n"\
             "\t\tb: toutes les partitions de taille maximale\n"\
-            "\t\tnum: au plus 2*num partitions de taille maximale\n",
+            "\t\tnum: au plus num partitions de taille maximale pour chaque thread\n",
             basename(cmdname));
 }
 

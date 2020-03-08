@@ -175,35 +175,7 @@ void schurNumberActionGatherCopy(schur_number_action_t *action_r, schur_number_a
         }
     }
     
-    if (func == schurNumberSaveSomePartition) {
-        
-        if (action_r->nmax < nmax) {
-            rewind(limbsize_stream);
-            rewind(partition_stream);
-            count = 0;
-        }
-        
-        size_t count_limit = action_r->count_limit;
-        unsigned long i = 0;
-        
-        while (count < count_limit && i < n_actions) {
-            schur_number_action_t *action_s = &actions_s[i];
-            
-            if (action_s->nmax == nmax) {
-                fflush(action_s->limbsize_stream);
-                fflush(action_s->partition_stream);
-                
-                fwrite(action_s->limbsize_buffer, 1, action_s->limbsize_size, limbsize_stream);
-                fwrite(action_s->partition_buffer, 1, action_s->partition_size, partition_stream);
-                
-                count += action_s->count;
-            }
-            
-            i++;
-        }
-    }
-    
-    if (func == schurNumberSaveBestPartition) {
+    if (func == schurNumberSaveBestPartition || func == schurNumberSaveSomePartition) {
         
         if (action_r->nmax < nmax) {
             rewind(limbsize_stream);
