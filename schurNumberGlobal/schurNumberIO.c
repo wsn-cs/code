@@ -198,6 +198,8 @@ void schurNumberActionGatherCopy(schur_number_action_t *action_r, schur_number_a
                 
                 count += action_s->count;
             }
+            
+            i++;
         }
     }
     
@@ -431,18 +433,20 @@ void schurNumberSaveSomePartition(mp_limb_t **partition, unsigned long n, struct
         action->count_max = 0;
     }
     
-    if (n == action->nmax && partition && action->count < action->count_limit) {
-        /*Ajouter la partition.*/
-        mp_size_t limbsize = ((unsigned long)n>>6) + 1;
-        
-        fwrite(&limbsize, sizeof(mp_size_t), 1, limbsize_stream);
-        
-        for (unsigned long j = 0; j < p; j++) {
-            fwrite(partition[j], sizeof(mp_limb_t), limbsize, partition_stream);
+    if (n == action->nmax && partition) {
+        if (action->count < action->count_limit) {
+            /*Ajouter la partition.*/
+            mp_size_t limbsize = ((unsigned long)n>>6) + 1;
+            
+            fwrite(&limbsize, sizeof(mp_size_t), 1, limbsize_stream);
+            
+            for (unsigned long j = 0; j < p; j++) {
+                fwrite(partition[j], sizeof(mp_limb_t), limbsize, partition_stream);
+            }
+            
+            action->count ++;
         }
-        
-        action->count ++;
-        action->count_max = action->count;
+        action->count_max ++;
     }
 }
 

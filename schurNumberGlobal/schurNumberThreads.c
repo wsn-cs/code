@@ -201,6 +201,7 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
         arg->current_index_ptr = &current_index;
         arg->partitionstruc_array = partitionstruc_array;
         schurNumberActionAlloc(&actions[i], p, action->func);
+        actions[i].count_limit = action->count_limit;
         arg->action = &actions[i];
         arg->constraint_size = constraint_size;
         arg->constraint_partition = constraint_partition;
@@ -244,12 +245,12 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
         printf("Thread %u : %lu tests.\n", NUM_THREADS - 1, action->iter_num);
     }
     
-    //schurNumberActionGatherCopy(action, actions, NUM_THREADS - 1);
-    schurNumberActionGatherNoCopy(action, actions, NUM_THREADS - 1);
+    schurNumberActionGatherCopy(action, actions, NUM_THREADS - 1);
+    //schurNumberActionGatherNoCopy(action, actions, NUM_THREADS - 1);
     
-    /*for (unsigned int i = 0; i < NUM_THREADS - 1; i++) {
+    for (unsigned int i = 0; i < NUM_THREADS - 1; i++) {
         schurNumberActionDealloc(&actions[i]);
-    }*/
+    }
     
     // Nettoyage
     schurNumberPartitionPoolDealloc(&partitionstruc_array, count);

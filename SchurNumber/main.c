@@ -126,6 +126,7 @@ int main(int argc, const char * argv[]) {
     if (print_range) {
         if (isdigit(*print_range)) {
             part_count_limit = atol(print_range);
+            actionfunc = schurNumberSaveSomePartition;
         } else {
             switch (*print_range) {
                 case 'a':
