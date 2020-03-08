@@ -26,4 +26,6 @@ unsigned long schurNumberExhaustive(schur_number_partition_t *partitionstruc, sc
 
 unsigned long schurNumberWeakBranchBound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
 
+unsigned long schurNumberBranchBound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
+
 #endif /* schurNumberMethods_h */

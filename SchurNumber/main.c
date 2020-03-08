@@ -195,6 +195,14 @@ int main(int argc, const char * argv[]) {
             methodfunc = schurNumberExhaustive;
             break;
             
+        case '2':
+            methodfunc = schurNumberBranchBound;
+            break;
+            
+        case '3':
+            methodfunc = schurNumberWeakExhaustive;
+            break;
+            
         case '4':
             methodfunc = schurNumberWeakBranchBound;
             break;

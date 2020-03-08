@@ -25,7 +25,7 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
     char has_to_be_freed = 0;
     char has_improved = 1;
     
-    while (count < 2 * NUM_THREADS && has_improved) {
+    while (count <= 2 * NUM_THREADS && has_improved) {
         // Recherche des partitions
         for (unsigned long i = 0; i < count; i++) {
             methodfunc(&(work_partitionstruc_array[i]), &action_s, n + 4, constraint_partition, constraint_size);
