@@ -25,16 +25,20 @@ typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partiti
 
 void usage(char *cmdname) {
     fprintf(stderr,
-            "usage: %s [-abcehtu] [-p (1|a|b)] [-m method] set_number constraint_partition [begin_partition]\n"\
-            "\t-a: Equivalent to -bucet\n"\
-            "\t-b: Print number of partitions of maximal size\n"\
-            "\t-u: Print number of partitions which are not prolongeable\n"\
-            "\t-c: Print total number of tested partitions\n"\
-            "\t-e: Print number of tested partitions for each thread\n"\
-            "\t-m method: Select a method\n"\
-            "\t-t: Print execution's time\n"\
-            "\t-h: Print usage message\n"\
-            "\t-p (1|a|b): Show 1 best partition, all not prolongeable partitions or only best found partitions\n",
+            "usage: %s [-abcehtu] [-p (a|b|num)] [-m method] set_number constraint_partition [begin_partition]\n"\
+            "\t-a: Equivalent à -bucet\n"\
+            "\t-b: Affichage du nombre de partitions de taille maximale\n"\
+            "\t-u: Affichage du nombre de partitions non prolongeables\n"\
+            "\t-c: Affichage du nombre total de partitions testées\n"\
+            "\t-e: Affichage du nombre de partitions testées pour chaque thread\n"\
+            "\t-m method: Selection d'une méthode\n"\
+            "\t\t1: Recherche totalement exhaustive (par défaut)\n"\
+            "\t-t: Affichage du temps d'exécution\n"\
+            "\t-h: Affichage de la syntaxe\n"\
+            "\t-p (a|b|num): Affichage de certaines partitions trouvées\n"\
+            "\t\ta: toutes les partitions non prolongeables\n"\
+            "\t\tb: toutes les partitions de taille maximale\n"\
+            "\t\tnum: au plus 2*num partitions de taille maximale\n",
             basename(cmdname));
 }
 
@@ -223,19 +227,19 @@ int main(int argc, const char * argv[]) {
     }
     
     if (timeOption) {
-        printf("Time: %lu CPU_time = %f seconds \n", time1 - time0, ((double)(time1 - time0)) / CLOCKS_PER_SEC);
+        printf("Durée: %lu CPU_time = %f seconds \n", time1 - time0, ((double)(time1 - time0)) / CLOCKS_PER_SEC);
     }
     
     if (testedPartitionNumberOption) {
-        printf("Number of tested partitions: %lu\n", action_s.iter_num);
+        printf("Nombre de partitions testées: %lu\n", action_s.iter_num);
     }
     
     if (unprolongeableSfPartitionNumbersOption) {
-        printf("Number of unprolongeable partitions: %lu\n", action_s.count_all);
+        printf("Nombre de partitions non prolongeables: %lu\n", action_s.count_all);
     }
     
     if (bestPartitionNumbersOption) {
-        printf("Number of maximal sized partitions: %lu\n", action_s.count_max);
+        printf("Nombre de partitions de taille maximale: %lu\n", action_s.count_max);
     }
     
     printf("Taille maximale : %lu\n", action_s.nmax);
