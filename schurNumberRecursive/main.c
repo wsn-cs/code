@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <libgen.h>
+#include <ctype.h>
 
 #include "schurNumberConstrainedBuild.h"
 #include "../schurNumberGlobal/schurNumberIO.h"
@@ -129,6 +130,7 @@ int main(int argc, const char * argv[]) {
     if (print_range) {
         if (isdigit(*print_range)) {
             part_count_limit = atol(print_range);
+            actionfunc = schurNumberSaveSomePartition;
         } else {
             switch (*print_range) {
                 case 'a':

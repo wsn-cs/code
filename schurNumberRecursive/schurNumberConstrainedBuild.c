@@ -117,5 +117,5 @@ unsigned long schurNumberConstrainedBuild(schur_number_partition_t *partitionstr
     
     action->iter_num = iter_num;
     
-    return nbest;
+    return nbest - 1;
 }
