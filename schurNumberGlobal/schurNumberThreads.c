@@ -244,11 +244,12 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
         printf("Thread %u : %lu tests.\n", NUM_THREADS - 1, action->iter_num);
     }
     
-    schurNumberActionGatherCopy(action, actions, NUM_THREADS - 1);
+    //schurNumberActionGatherCopy(action, actions, NUM_THREADS - 1);
+    schurNumberActionGatherNoCopy(action, actions, NUM_THREADS - 1);
     
-    for (unsigned int i = 0; i < NUM_THREADS - 1; i++) {
+    /*for (unsigned int i = 0; i < NUM_THREADS - 1; i++) {
         schurNumberActionDealloc(&actions[i]);
-    }
+    }*/
     
     // Nettoyage
     schurNumberPartitionPoolDealloc(&partitionstruc_array, count);

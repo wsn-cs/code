@@ -9,16 +9,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <libgen.h>
-
-/*
-#include "schurNumberIterative.c"
-#include "schurNumberImprovedIterative.c"
-#include "shur_number_bound.c"
-#include "schur_number_unstack_bound.c"
-#include "schur_number_unstack_memory.c"
-//#include "schur_number_unorganized_memory.c"
-#include "schurNumberWithPrint.c"
-#include "schurNumberWeakImprovedIterative.c"*/
+#include <ctype.h>
 
 #include "schurNumberMethods.h"
 #include "../schurNumberGlobal/schurNumberIO.h"
@@ -58,7 +49,7 @@ int main(int argc, const char * argv[]) {
     char testedPartitionNumberOption = 0;
     char threadPartitionNumberOption = 0;
     char method = 0;
-    char print_range = 0;
+    char *print_range = NULL;
     unsigned long *schurNumbers;
     clock_t time0;
     clock_t time1;
@@ -103,7 +94,7 @@ int main(int argc, const char * argv[]) {
                 break;
             
             case 'p':
-                print_range = optarg[0];
+                asprintf(&print_range, "%s", optarg);
                 break;
                 
             default:
@@ -130,24 +121,33 @@ int main(int argc, const char * argv[]) {
     // Initialisation de l'action
     schur_number_action_t action_s;
     void (*actionfunc)(mp_limb_t **, unsigned long, struct schurNumberIOAction *);
-    switch (print_range) {
-        case '1':
-            actionfunc = schurNumberSaveOnePartition;
-            break;
-            
-        case 'a':
-            actionfunc = schurNumberSaveAllPartition;
-            break;
-            
-        case 'b':
-            actionfunc = schurNumberSaveBestPartition;
-            break;
-            
-        default:
-            actionfunc = schurNumberDefaultAction;
-            break;
+    size_t part_count_limit = 0;
+    
+    if (print_range) {
+        if (isdigit(*print_range)) {
+            part_count_limit = atol(print_range);
+        } else {
+            switch (*print_range) {
+                case 'a':
+                    actionfunc = schurNumberSaveAllPartition;
+                    break;
+                    
+                case 'b':
+                    actionfunc = schurNumberSaveBestPartition;
+                    break;
+                    
+                default:
+                    actionfunc = schurNumberDefaultAction;
+                    break;
+            }
+        }
+        free(print_range);
+    } else {
+        actionfunc = schurNumberDefaultAction;
     }
+    
     schurNumberActionAlloc(&action_s, p, actionfunc);
+    action_s.count_limit = part_count_limit;
     
     // Allocation de la partition
     schur_number_partition_t partition_s;
@@ -189,54 +189,6 @@ int main(int argc, const char * argv[]) {
     
     // Sélection de la méthode
     schur_number_method_t methodfunc;
-    /*switch (method) {
-        case '1':
-            //schurNumberIterative1(p, schurNumbers, iternum);
-            methodfunc = schurNumberIterative22;
-            break;
-        
-        case '2':
-            methodfunc = schurNumberIterative2;
-            break;
-        
-        case '3':
-            methodfunc = schurNumberIterWithUnstack;
-            //schurNumberIterative21(p, schurNumbers, iternum);
-            break;
-        
-        case '4':
-            //schurNumberIterBound(p, schurNumbers, iternum);
-            break;
-            
-        case '5':
-            methodfunc = schurNumberIterBound2;
-            break;
-            
-        case '6':
-            methodfunc = schurNumberIterBoundUnstack;
-            break;
-            
-        case '7':
-            methodfunc = schurNumberIterBoundUnstack2;
-            break;
-            
-        case '8':
-            methodfunc = schurNumberIterUnstackMemory;
-            break;
-        
-        case 'p':
-            methodfunc = schurNumberIterWithPrint;
-            break;
-            
-        case 'w':
-            methodfunc = schurNumberWeakExhaustive;
-            break;
-            
-        default:
-            //methodfunc = schurNumberIterative;
-            methodfunc = schurNumberExhaustive;
-            break;
-    }*/
     switch (method) {
         case '1':
             methodfunc = schurNumberExhaustive;

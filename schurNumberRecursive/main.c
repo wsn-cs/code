@@ -45,7 +45,7 @@ int main(int argc, const char * argv[]) {
     char testedPartitionNumberOption = 0;
     char threadPartitionNumberOption = 0;
     char method = 0;
-    char print_range = 0;
+    char *print_range = NULL;
     clock_t time0;
     clock_t time1;
     
@@ -89,7 +89,7 @@ int main(int argc, const char * argv[]) {
                 break;
                 
             case 'p':
-                print_range = optarg[0];
+                asprintf(&print_range, "%s", optarg);
                 break;
                 
             default:
@@ -124,24 +124,33 @@ int main(int argc, const char * argv[]) {
     // Initialisation de l'action
     schur_number_action_t action_s;
     void (*actionfunc)(mp_limb_t **, unsigned long, struct schurNumberIOAction *);
-    switch (print_range) {
-        case '1':
-            actionfunc = schurNumberSaveOnePartition;
-            break;
-            
-        case 'a':
-            actionfunc = schurNumberSaveAllPartition;
-            break;
-            
-        case 'b':
-            actionfunc = schurNumberSaveBestPartition;
-            break;
-            
-        default:
-            actionfunc = schurNumberDefaultAction;
-            break;
+    size_t part_count_limit = 0;
+    
+    if (print_range) {
+        if (isdigit(*print_range)) {
+            part_count_limit = atol(print_range);
+        } else {
+            switch (*print_range) {
+                case 'a':
+                    actionfunc = schurNumberSaveAllPartition;
+                    break;
+                    
+                case 'b':
+                    actionfunc = schurNumberSaveBestPartition;
+                    break;
+                    
+                default:
+                    actionfunc = schurNumberDefaultAction;
+                    break;
+            }
+        }
+        free(print_range);
+    } else {
+        actionfunc = schurNumberDefaultAction;
     }
+    
     schurNumberActionAlloc(&action_s, p, actionfunc);
+    action_s.count_limit = part_count_limit;
     
     // Allocation de la partition de contrainte
     mp_limb_t **constraint_partition = calloc(sizeof(mp_limb_t *), p);

@@ -22,6 +22,7 @@ struct schurNumberIOAction {
     size_t count_all;       // Nombre de partitions non prolongeables
     
     size_t count;           // Nombre de partitions contenues dans le tampon
+    size_t count_limit;     // Nombre limite de partitions pouvant être contenues dans le tampon
     
     char *limbsize_buffer;      // Tampon contenant les nombres de limbes par ensembles de la partition
     size_t limbsize_size;       // Taille du tampon en octet
@@ -59,7 +60,7 @@ void schurNumberActionGatherCopy(schur_number_action_t *r_action, schur_number_a
 void schurNumberActionGatherNoCopy(schur_number_action_t *r_action, schur_number_action_t *actions, size_t n_actions);
 
 void schurNumberDefaultAction(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
-void schurNumberSaveOnePartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+void schurNumberSaveSomePartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 void schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 void schurNumberSaveAllPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 size_t schurNumberPrintPartitions(struct schurNumberIOAction *action);
