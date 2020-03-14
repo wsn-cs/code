@@ -12,7 +12,6 @@
 #include <ctype.h>
 
 #include "schurNumberConstrainedBuild.h"
-#include "../schurNumberGlobal/schurNumberIO.h"
 #include "../schurNumberGlobal/schurNumberThreads.h"
 
 #ifdef schurNumberThreads_h

@@ -18,7 +18,11 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
     unsigned long nalloc = limballoc * mp_bits_per_limb;
     
     schur_number_action_t action_s;
+    #ifdef schurNumberConstrainedBuild_h
+    schurNumberActionAlloc(&action_s, p, schurNumberConstrainedBuild);
+    #else
     schurNumberActionAlloc(&action_s, p, schurNumberSaveBestPartition);
+    #endif
     
     size_t count = 1;
     schur_number_partition_t *work_partitionstruc_array = beginpartitionstruc;
