@@ -134,11 +134,6 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
         // Lance la procédure
         schur_number_partition_t *partitionstruc = &(partitionstruc_array[i]);
         
-//        pthread_mutex_lock(mutex);
-//        printf("Indice %li ", i);
-//        schurNumberPrintPartition(partitionstruc->pmax, partitionstruc->limballoc * mp_bits_per_limb, partitionstruc->partitioninvert);
-//        pthread_mutex_unlock(mutex);
-        
         unsigned long n;
         unsigned long nalloc = partitionstruc->limballoc * mp_bits_per_limb;
         
@@ -156,6 +151,7 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
         if (nbest_global < nbest) {
             nbest_global = nbest;
             *(arg->nbest_ptr) = nbest_global;
+            schurNumberPrintPartitions(arg->action);
         }
         pthread_mutex_unlock(mutex);
         

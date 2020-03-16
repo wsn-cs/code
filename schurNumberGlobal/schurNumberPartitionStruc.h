@@ -18,6 +18,8 @@
 
 #define GET_POINT(set, x) (set[(x) / mp_bits_per_limb] & ((unsigned long)1 << ((x) % mp_bits_per_limb)))
 
+#define PARTITION_2_LIMBSIZE(p) ((4 << (2 * (p))) >> 6 + 1)
+
 struct schur_number_partition_struc {
     unsigned long p;     // Nombre de huches non vides
     unsigned long pmax;  // Nombre de huches allouées
