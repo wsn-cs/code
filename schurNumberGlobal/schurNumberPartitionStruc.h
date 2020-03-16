@@ -18,7 +18,7 @@
 
 #define GET_POINT(set, x) (set[(x) / mp_bits_per_limb] & ((unsigned long)1 << ((x) % mp_bits_per_limb)))
 
-#define PARTITION_2_LIMBSIZE(p) ((4 << (2 * (p))) >> 6 + 1)
+#define PARTITION_2_LIMBSIZE(p) (((4 << (2 * (p))) >> 6) + 1)
 
 struct schur_number_partition_struc {
     unsigned long p;     // Nombre de huches non vides
@@ -37,5 +37,8 @@ typedef struct schur_number_partition_struc schur_number_partition_t;
 void schur_number_partition_alloc(schur_number_partition_t *partitionstruc, mp_size_t limballoc, unsigned long p);
 
 void schur_number_partition_dealloc(schur_number_partition_t *partitionstruc);
+
+void schur_number_translation(mp_limb_t *r_set, mp_limb_t *set, mp_size_t limbsize, unsigned long nrem) __attribute__((__always_inline__)) ;
+void schur_number_ntranslation(mp_limb_t *r_set, mp_limb_t *set, mp_size_t limbsize, unsigned long nrem) __attribute__((__always_inline__)) ;
 
 #endif /* schurNumberPartitionStruc_h */
