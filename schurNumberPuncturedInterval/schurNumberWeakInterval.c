@@ -77,7 +77,7 @@ void schurNumberRestrictedSumset(mp_limb_t *r_set, mp_limb_t *set, mp_size_t lim
     free(work2);
 }
 
-unsigned long schurNumberPuncturedInterval(schur_number_partition_t *partitionstruc, struct schurNumberIOAction *action, unsigned long nlimit, mp_limb_t **constraint_partition, mp_size_t constraint_size) {
+unsigned long schurNumberPuncturedInterval(schur_number_partition_t *partitionstruc, struct schurNumberIOAction *action, unsigned long nlimit, mp_limb_t **constraint_partition, mp_size_t constraint_size, unsigned long depth) {
     /* Cette fonction génère des intervalles percés à partir de la partition de contrainte fournie. Elle lui adjoint un nouvel ensemble et tente de
      l'agrandir jusqu'à ce que les sommes restreintes soient telles qu'elles forment un intervalle de longueur très grande.*/
     
@@ -102,21 +102,20 @@ unsigned long schurNumberPuncturedInterval(schur_number_partition_t *partitionst
     unsigned char is_new_branch = 1;
     
     // Initialisation du tableau contenant la pile des sommes restreintes de l'ensemble p
-    unsigned long d = 9;                            // Profondeur de la partition de contrainte
     mp_size_t sumlimballoc = 2 * limballoc;     // Nombre de limbes alloués à chaque somme de l'ensemble p
-    mp_limb_t *sumsets = calloc(sizeof(mp_limb_t) * sumlimballoc, 3 * d);   // Tableau contenant la pile des sommes des ensembles p
+    mp_limb_t *sumsets = calloc(sizeof(mp_limb_t) * sumlimballoc, 3 * depth);   // Tableau contenant la pile des sommes des ensembles p
     mp_limb_t *sumset = sumsets;                // Somme restreinte de l'ensemble p, sommet de la pile sumsets
+    //unsigned long *nlimits = calloc(sizeof(unsigned long), 3 * d);
+    //*nlimits = nlimit;
     
     // Construction des sommes de constraint_partition
-    schurNumberPrintPartition(p-1, d, constraint_partition);
     mp_limb_t **constraint_partition_sum = calloc(sizeof(mp_limb_t *), p - 1);
     
     for (unsigned long j = 0; j < p - 1; j++) {
         mp_limb_t *work0 = calloc(sizeof(mp_limb_t), 2 * constraint_size);
-        schurNumberRestrictedSumset(work0, constraint_partition[j], constraint_size, d);
+        schurNumberRestrictedSumset(work0, constraint_partition[j], constraint_size, depth);
         constraint_partition_sum[j] = work0;
     }
-    schurNumberPrintPartition(p-1, 2*d, constraint_partition_sum);
     
     unsigned long iter_num = action->iter_num;  // Nombre d'itérations
     
@@ -129,8 +128,8 @@ unsigned long schurNumberPuncturedInterval(schur_number_partition_t *partitionst
             if (i == p-1) {
                 // Regarder si n appartient à sumset
 
-                if (n > d) {
-                    notSumFree = !!GET_POINT(sumset, n - d);
+                if (n > depth) {
+                    notSumFree = !!GET_POINT(sumset, n - depth);
                 } else {
                     notSumFree = 0;
                 }
@@ -168,6 +167,7 @@ unsigned long schurNumberPuncturedInterval(schur_number_partition_t *partitionst
             
             if (i == p-1) {
                 sumset -= sumlimballoc;
+                //nlimit = nlimits[n];
             }
             
             DELETE_POINT(partition[i], n);
@@ -187,6 +187,33 @@ unsigned long schurNumberPuncturedInterval(schur_number_partition_t *partitionst
                 // Réaliser l'union de sumset avec work1
                 mpn_ior_n(sumset + sumlimballoc, sumset, work1, sumlimballoc);
                 sumset += sumlimballoc;
+                
+                // Déterminer la longueur du plus grand intervalle de sumset
+                /*mpn_lshift(work1, sumset, sumlimballoc, 1);
+                mpn_and_n(work1, sumset, work1, sumlimballoc);  // Les bits mis correspondent aux bornes des intervalles
+                
+                mp_bitcnt_t pos2 = 0;
+                mp_bitcnt_t pos_max = 0;
+                mp_bitcnt_t len_max = 0;
+                
+                while (!mpn_zero_p(work1, sumlimballoc)) {
+                    mp_bitcnt_t pos1 = mpn_scan1(work1, pos2);
+                    DELETE_POINT(work1, pos1);
+                    pos2 = mpn_scan1(work1, pos1);
+                    DELETE_POINT(work1, pos2);
+                    mp_bitcnt_t len = pos2 - pos1;
+                    if (len > len_max) {
+                        len_max = len;
+                        pos_max = pos1;
+                    }
+                }
+                
+                if (len_max >= d) {
+                    nlimit = pos_max + d;
+                    nlimits[n] = nlimit;
+                } else {
+                    nlimits[n] = nlimit;
+                }*/
             }
             
             ADD_POINT(partition[i], n);

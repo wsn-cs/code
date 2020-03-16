@@ -15,14 +15,14 @@
 //#include "../schurNumberGlobal/schurNumberThreads.h"
 
 #ifdef schurNumberThreads_h
-#define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit, load_balancing_opt) schurNumberThreadsLaunch(partitionstruc, methodfunc, action, constraint_partition, constraint_size, load_balancing_opt)
+#define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit, depth, load_balancing_opt) schurNumberThreadsLaunch(partitionstruc, methodfunc, action, constraint_partition, constraint_size, load_balancing_opt)
 #else
-#define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit, load_balancing_opt) methodfunc(partitionstruc, action, nlimit, constraint_partition, constraint_size)
+#define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit, depth, load_balancing_opt) methodfunc(partitionstruc, action, nlimit, constraint_partition, constraint_size, depth)
 #endif
 
-typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit, mp_limb_t **constraint_partition, mp_size_t constraint_size);
+typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit, mp_limb_t **constraint_partition, mp_size_t constraint_size, unsigned long depth);
 
-void usage(char *cmdname) {
+void usage(const char *cmdname) {
     fprintf(stderr,
             "usage: %s [-abcehtu] [-p (a|b|num)] [-m method] set_number constraint_partition [begin_partition]\n"\
             "\t-a: Equivalent à -bucet\n"\
@@ -160,7 +160,9 @@ int main(int argc, const char * argv[]) {
     // Allocation de la partition de contrainte
     mp_limb_t **constraint_partition = calloc(sizeof(mp_limb_t *), p);
     
-    mp_size_t constraint_size = (schurNumberGetPartition(p, arg_ptr, constraint_partition, NULL, 1) >> 6) + 1;
+    unsigned long depth = schurNumberGetPartition(p, arg_ptr, constraint_partition, NULL, 1);
+    mp_size_t constraint_size = (depth >> 6) + 1;
+    depth++;
     
     arg_ptr += p;
     argc2 -= p;
@@ -217,7 +219,7 @@ int main(int argc, const char * argv[]) {
     
     // Lancement du code
     time0 = clock();
-    schurNumberLaunch(methodfunc, &partition_s, &action_s, constraint_partition, constraint_size, mp_bits_per_limb * limballoc, threadPartitionNumberOption);
+    schurNumberLaunch(methodfunc, &partition_s, &action_s, constraint_partition, constraint_size, mp_bits_per_limb * limballoc, depth, threadPartitionNumberOption);
     time1 = clock();
     
     // Affichage des résultats
