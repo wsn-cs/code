@@ -153,7 +153,7 @@ int main(int argc, const char * argv[]) {
     // Allocation de la partition
     schur_number_partition_t partition_s;
     
-    mp_size_t limballoc = ((4 << p)>>6) + 1;
+    mp_size_t limballoc = PARTITION_2_LIMBSIZE(p);
     schur_number_partition_alloc(&partition_s, limballoc, p);
     
     if (optind + 1 < argc) {
