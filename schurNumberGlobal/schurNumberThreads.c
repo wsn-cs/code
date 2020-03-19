@@ -151,7 +151,6 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
         if (nbest_global < nbest) {
             nbest_global = nbest;
             *(arg->nbest_ptr) = nbest_global;
-            schurNumberPrintPartitions(arg->action);
         }
         pthread_mutex_unlock(mutex);
         

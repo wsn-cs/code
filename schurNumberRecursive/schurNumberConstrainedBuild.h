@@ -9,7 +9,6 @@
 #ifndef schurNumberConstrainedBuild_h
 #define schurNumberConstrainedBuild_h
 
-#include <stdio.h>
 #include "../schurNumberGlobal/schurNumberIO.h"
 #include "../schurNumberGlobal/schurNumberPartitionStruc.h"
 
