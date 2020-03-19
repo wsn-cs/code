@@ -105,7 +105,7 @@ unsigned long schurNumberPuncturedInterval(schur_number_partition_t *partitionst
     mp_size_t sumlimballoc = 2 * limballoc;     // Nombre de limbes alloués à chaque somme de l'ensemble p
     mp_limb_t *sumsets = calloc(sizeof(mp_limb_t) * sumlimballoc, 3 * depth);   // Tableau contenant la pile des sommes des ensembles p
     mp_limb_t *sumset = sumsets;                // Somme restreinte de l'ensemble p, sommet de la pile sumsets
-    //unsigned long *nlimits = calloc(sizeof(unsigned long), 3 * d);
+    //unsigned long *nlimits = calloc(sizeof(unsigned long), 3 * depth);
     //*nlimits = nlimit;
     
     // Construction des sommes de constraint_partition
@@ -135,15 +135,32 @@ unsigned long schurNumberPuncturedInterval(schur_number_partition_t *partitionst
                 }
                 
             } else {
-                // Regarder si n + d appartient à constraint_partition[i] + constraint_partition[i]
-                notSumFree = !!GET_POINT(constraint_partition_sum[i], n);
+                // Vérifier si un élément compris entre n + 1 et n + depth - 1 peut être placé dans l'ensemble p
+                // Si ce n'est pas le cas, plus aucun élément ne sera ajouté à p
                 
-                // Calcul de work1 = (n+1) - partition[i] = partitioninvert[i] - (nsize - n)
-                schur_number_ntranslation(work1, partitioninvert[i] + (limballoc - limbsize), limbsize, nsize - n);
+                unsigned long x = 1;
+                if (n + 1 > depth) {
+                    while (x < 18 && GET_POINT(sumset, n + x - depth)) {
+                        x++;
+                    }
+                }
                 
-                // Intersection
-                mpn_and_n(work2, work1, constraint_partition[i], constraint_size);
-                notSumFree |= !mpn_zero_p(work2, constraint_size);
+                if (x >= 18) {
+                    // Ce n'est pas le cas, donc plus aucun élément ne sera ajouté à p
+                    i = 0;
+                    notSumFree = 1;
+                } else {
+                    // Regarder si n + depth appartient à constraint_partition[i] + constraint_partition[i]
+                    notSumFree = !!GET_POINT(constraint_partition_sum[i], n);
+                    
+                    // Calcul de work1 = (n+1) - partition[i] = partitioninvert[i] - (nsize - n)
+                    schur_number_ntranslation(work1, partitioninvert[i] + (limballoc - limbsize), limbsize, nsize - n);
+                    
+                    // Intersection
+                    mpn_and_n(work2, work1, constraint_partition[i], constraint_size);
+                    notSumFree |= !mpn_zero_p(work2, constraint_size);
+                }
+                
             }
         }
         
@@ -154,6 +171,9 @@ unsigned long schurNumberPuncturedInterval(schur_number_partition_t *partitionst
                 action->func(partition, n-1, action);
                 if (n > nbest) {
                     nbest = n;
+                    schurNumberPrintPartition(p, nbest, partition);
+                    printf("\n");
+                    schurNumberPrintSet(nbest, sumset);
                 }
             }
             is_new_branch = 0;
@@ -189,14 +209,16 @@ unsigned long schurNumberPuncturedInterval(schur_number_partition_t *partitionst
                 sumset += sumlimballoc;
                 
                 // Déterminer la longueur du plus grand intervalle de sumset
-                /*mpn_lshift(work1, sumset, sumlimballoc, 1);
-                mpn_and_n(work1, sumset, work1, sumlimballoc);  // Les bits mis correspondent aux bornes des intervalles
+                //schurNumberPrintSet(2*n, sumset);
+                mpn_lshift(work1, sumset, sumlimballoc, 1);
+                mpn_xor_n(work1, sumset, work1, sumlimballoc);  // Les bits mis correspondent aux bornes des intervalles
+                //schurNumberPrintSet(2*n, work1);
                 
-                mp_bitcnt_t pos2 = 0;
+                /*mp_bitcnt_t pos2 = 0;
                 mp_bitcnt_t pos_max = 0;
                 mp_bitcnt_t len_max = 0;
                 
-                while (!mpn_zero_p(work1, sumlimballoc)) {
+                while (!mpn_zero_p(work1, sumlimballoc) && len_max < depth) {
                     mp_bitcnt_t pos1 = mpn_scan1(work1, pos2);
                     DELETE_POINT(work1, pos1);
                     pos2 = mpn_scan1(work1, pos1);
@@ -208,8 +230,8 @@ unsigned long schurNumberPuncturedInterval(schur_number_partition_t *partitionst
                     }
                 }
                 
-                if (len_max >= d) {
-                    nlimit = pos_max + d;
+                if (len_max >= depth) {
+                    nlimit = pos_max + depth - 1;
                     nlimits[n] = nlimit;
                 } else {
                     nlimits[n] = nlimit;
@@ -239,6 +261,8 @@ unsigned long schurNumberPuncturedInterval(schur_number_partition_t *partitionst
         free(constraint_partition_sum[j]);
     }
     free(constraint_partition_sum);
+    
+    //free(nlimits);
     
     action->iter_num = iter_num;
     
