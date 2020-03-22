@@ -12,11 +12,11 @@
 #include <stdlib.h>
 #include <gmp.h>
 
-#define ADD_POINT(set, x) set[(x) / mp_bits_per_limb] |= ((unsigned long)1 << ((x) % mp_bits_per_limb))
+#define ADD_POINT(set, x) (set)[(x) / mp_bits_per_limb] |= ((unsigned long)1 << ((x) % mp_bits_per_limb))
 
-#define DELETE_POINT(set, x) set[(x) / mp_bits_per_limb] ^= ((unsigned long)1 << ((x) % mp_bits_per_limb))
+#define DELETE_POINT(set, x) (set)[(x) / mp_bits_per_limb] ^= ((unsigned long)1 << ((x) % mp_bits_per_limb))
 
-#define GET_POINT(set, x) (set[(x) / mp_bits_per_limb] & ((unsigned long)1 << ((x) % mp_bits_per_limb)))
+#define GET_POINT(set, x) ((set)[(x) / mp_bits_per_limb] & ((unsigned long)1 << ((x) % mp_bits_per_limb)))
 
 #define PARTITION_2_LIMBSIZE(p) (((4 << (2 * (p))) >> 6) + 1)
 
