@@ -373,14 +373,16 @@ void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number
 void schurNumberDefaultAction(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
     /*Met seulement à jour les indicateurs statistiques.*/
     
-    action->count_all++;
+    if (partition) {
+        action->count_all++;
+    }
     
     if (n > action->nmax) {
         action->nmax = n;
         action->count_max = 0;
     }
     
-    if (n == action->nmax) {
+    if (n == action->nmax && partition) {
         action->count_max++;
     }
 }
