@@ -200,10 +200,14 @@ int main(int argc, const char * argv[]) {
             break;
             
         case '3':
-            methodfunc = schurNumberWeakExhaustive;
+            methodfunc = schurNumberStackedBranchBound;
             break;
             
         case '4':
+            methodfunc = schurNumberWeakExhaustive;
+            break;
+            
+        case '5':
             methodfunc = schurNumberWeakBranchBound;
             break;
             

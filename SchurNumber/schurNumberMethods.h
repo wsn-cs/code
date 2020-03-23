@@ -28,4 +28,6 @@ unsigned long schurNumberWeakBranchBound(schur_number_partition_t *partitionstru
 
 unsigned long schurNumberBranchBound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
 
+unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
+
 #endif /* schurNumberMethods_h */
