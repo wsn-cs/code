@@ -228,18 +228,13 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
     schurNumberThreadTask(arg);
     
     // Regroupement
-    //schurNumberPrintPartitions(arg->action);
-    
     for (unsigned int i = 0; i < NUM_THREADS - 1; i++) {
         pthread_join(threads[i], NULL);
         if (load_balancing_stat) {
             printf("Thread %u : %lu tests.\n", i, actions[i].iter_num);
         }
-        //printf("%li ", arg_s_array[i].action->count);
-        //schurNumberPrintPartitions(&actions[i]);
-        //schurNumberActionDealloc(&actions[i]);
     }
-    //printf("%li\n", arg_s_array[NUM_THREADS - 1].action->count);
+    
     if (load_balancing_stat) {
         printf("Thread %u : %lu tests.\n", NUM_THREADS - 1, action->iter_num);
     }
