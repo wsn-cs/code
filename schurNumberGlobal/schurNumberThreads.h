@@ -12,7 +12,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <unistd.h>
-#include "schurNumberIO.h"
+#include "schurNumberIOAction.h"
 #include "schurNumberPartitionStruc.h"
 
 #ifndef NUM_THREADS

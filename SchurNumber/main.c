@@ -12,7 +12,7 @@
 #include <ctype.h>
 
 #include "schurNumberMethods.h"
-#include "../schurNumberGlobal/schurNumberIO.h"
+#include "../schurNumberGlobal/schurNumberIOAction.h"
 #include "../schurNumberGlobal/schurNumberThreads.h"
 
 #ifdef schurNumberThreads_h
