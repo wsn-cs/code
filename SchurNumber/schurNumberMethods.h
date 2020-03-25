@@ -15,7 +15,7 @@ Elles sont construites selon le schéma suivant:
 #define schurNumberMethods_h
 
 #include "../schurNumberGlobal/schurNumberPartitionStruc.h"
-#include "../schurNumberGlobal/schurNumberIO.h"
+#include "../schurNumberGlobal/schurNumberIOAction.h"
 
 mp_bitcnt_t mpn_rscan1 (mp_srcptr up, mp_bitcnt_t starting_bit);
 
