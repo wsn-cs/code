@@ -222,7 +222,7 @@ int main(int argc, const char * argv[]) {
     
     // Création de la sauvegarde temporaire
     schur_number_intermediate_save_t save_str;
-    schurNumberSaveInit(&save_str, p, 0, partition_s.n);
+    schurNumberSaveAlloc(&save_str, p, partition_s.n);
     action_s.save = &save_str;
     
     // Lancement du code
