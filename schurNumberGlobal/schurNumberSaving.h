@@ -39,7 +39,7 @@ typedef struct schur_number_intermediate_save_struc schur_number_intermediate_sa
 void schurNumberSaveInit(schur_number_intermediate_save_t *save, unsigned long p, size_t part_pool_count, unsigned long n0);
 void schurNumberSaveDealloc(schur_number_intermediate_save_t *save);
 
-unsigned long schurNumberSaveUpgrade(schur_number_intermediate_save_t *save, unsigned long nbest, mp_limb_t **partition);
+unsigned long schurNumberSaveUpgrade(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition);
 
 void schurNumberSaveToFile(schur_number_intermediate_save_t *save);
 

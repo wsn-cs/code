@@ -73,23 +73,23 @@ unsigned long schurNumberGetPartition(unsigned long p, char **str, mp_limb_t **p
     return n;
 }
 
-void schurNumberPrintSet(unsigned long n, mp_limb_t *set) {
+void schurNumberPrintSet(int fd, unsigned long n, mp_limb_t *set) {
     /*Affiche le contenu de l'ensemble d'entiers set inclus dans l'intervalle [1, n].*/
     
     for (unsigned long i = 1; i <= n; i++) {
         if (GET_POINT(set, i)) {
-            printf(" %lu", i);
+            dprintf(fd, " %lu", i);
         }
     }
 }
 
-void schurNumberPrintPartition(unsigned long p, unsigned long n, mp_limb_t **partition) {
-    /*Affiche une partition à p ensembles de [1, n].*/
-
-    printf("Partition:\n");
+void schur_number_dprint_partition(int fd, unsigned long p, unsigned long n, mp_limb_t **partition) {
+    /*Affiche une partition à p ensembles de [1, n] dans le fichier spécifié par fd.*/
+    dprintf(fd, "Partition:\n");
+    
     for (unsigned long i=0; i<p; i++) {
-        printf("\t");
-        schurNumberPrintSet(n, partition[i]);
-        printf("\n");
+        dprintf(fd, "\t");
+        schurNumberPrintSet(fd, n, partition[i]);
+        dprintf(fd, "\n");
     }
 }

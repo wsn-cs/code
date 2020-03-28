@@ -118,27 +118,31 @@ unsigned long schurNumberEstimatedRemainingIteration(unsigned long p, mp_limb_t 
     return iternum_estimated;
 }
 
-unsigned long schurNumberSaveUpgrade(schur_number_intermediate_save_t *save, unsigned long nbest, mp_limb_t **partition) {
-    /* Met à jour la meilleure partition trouvée si il y a lieu. */
+unsigned long schurNumberSaveUpgrade(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition) {
+    /* Met à jour la meilleure partition trouvée si il y a lieu.
+     La fonction renvoie le nbest mis à jour, ce qui permet une éventuelle synchronisation entre threads. */
     
     pthread_mutex_lock(&save->mutex_s);
     
-    if (nbest > save->nbest) {
+    unsigned long nbest = save->nbest;
+    
+    if (n > nbest) {
         unsigned long p = save->p;
         
-        mp_size_t limbsize = INTEGER_2_LIMBSIZE(nbest);
+        mp_size_t limbsize = INTEGER_2_LIMBSIZE(n);
         
         for (unsigned long i = 0; i < p; i++) {
             mpn_copyd(save->best_partition[i], partition[i], limbsize);
         }
         
+        nbest = n;
         save->nbest = nbest;
         save->toprint = 1;
     }
     
     pthread_mutex_unlock(&save->mutex_s);
     
-    return save->nbest;
+    return nbest;
 }
 
 void schurNumberSaveToFile(schur_number_intermediate_save_t *save) {
@@ -148,12 +152,12 @@ void schurNumberSaveToFile(schur_number_intermediate_save_t *save) {
     
     int fd = save->fd;
     
-    dprintf(fd, "Nombre de partitions initiales restant : %lu\nNombre d'itérations restant estimées : %lu\n", save->iremainding, save->estimated_iternum);
+    dprintf(fd, "\nNombre de partitions initiales restant : %lu\nNombre d'itérations restant estimées : %lu\n", save->iremainding, save->estimated_iternum);
     
     if (save->toprint) {
         unsigned long nbest = save->nbest;
         dprintf(fd, "Taille maximale trouvée : %lu\n", nbest);
-        schurNumberPrintPartition(save->nbest, nbest, save->best_partition);
+        schur_number_dprint_partition(fd, save->p, nbest, save->best_partition);
         save->toprint = 0;
     }
     
