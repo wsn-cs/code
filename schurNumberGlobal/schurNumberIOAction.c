@@ -299,7 +299,7 @@ void schurNumberDefaultAction(mp_limb_t **partition, unsigned long n, struct sch
     }
     
     if (n > action->nmax) {
-        action->nmax = n;
+        action->nmax = schurNumberSaveUpgrade(action->save, n, partition);
         action->count_max = 0;
     }
     

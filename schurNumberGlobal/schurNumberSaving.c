@@ -25,7 +25,7 @@ static inline unsigned long fast_powl(unsigned long base, unsigned long exp) {
     return res;
 }
 
-void schurNumberSaveInit(schur_number_intermediate_save_t *save, unsigned long p, unsigned long part_pool_count, unsigned long n0) {
+int schurNumberSaveAlloc(schur_number_intermediate_save_t *save, unsigned long p, unsigned long n0) {
     /* Cette fonction crée un fichier temporaire où sauvegarder les partitions intermédiaires générées au cours de l'exécution du programme.
      Elle renvoie le descripteur de fichier associé. */
     char template[31] = "./schur_number_tmp_save_XXXXXX";
@@ -56,21 +56,14 @@ void schurNumberSaveInit(schur_number_intermediate_save_t *save, unsigned long p
     // Estimation du nombre d'itérations
     save->nbest_estimated = nbest_estimated;
     unsigned long estimated_iternum = fast_powl(p, nbest_estimated - n0);
-    save->estimated_iternum = estimated_iternum * part_pool_count;
+    save->estimated_iternum = estimated_iternum;
     
     save->iremainding = 0;
     save->estimated_iternum_initial_partition = NULL;
     
-    if (part_pool_count > 1) {
-        save->iremainding = part_pool_count;
-        save->estimated_iternum_initial_partition = calloc(sizeof(unsigned long), part_pool_count);
-        
-        for (unsigned long i = 0; i < part_pool_count; i++) {
-            save->estimated_iternum_initial_partition[i] = estimated_iternum;
-        }
-    }
-    
     pthread_mutex_init(&save->mutex_s, NULL);
+    
+    return fd;
 }
 
 void schurNumberSaveDealloc(schur_number_intermediate_save_t *save) {
@@ -89,6 +82,20 @@ void schurNumberSaveDealloc(schur_number_intermediate_save_t *save) {
     free(save->filename);
     
     pthread_mutex_destroy(&save->mutex_s);
+}
+
+void schurNumberSavePartitionPoolRegister(schur_number_intermediate_save_t *save, size_t part_pool_count, unsigned long n0) {
+    /*Cette fonction enregistre dans save la présence d'un partitionpool.*/
+    
+    unsigned long estimated_iternum = fast_powl(save->p, save->nbest_estimated - n0);
+    save->estimated_iternum = estimated_iternum * part_pool_count;
+    
+    save->iremainding = part_pool_count;
+    save->estimated_iternum_initial_partition = calloc(sizeof(unsigned long), part_pool_count);
+    
+    for (unsigned long i = 0; i < part_pool_count; i++) {
+        save->estimated_iternum_initial_partition[i] = estimated_iternum;
+    }
 }
 
 unsigned long schurNumberEstimatedRemainingIteration(unsigned long p, mp_limb_t **partition, unsigned long n, unsigned long n0, unsigned long nbound) {

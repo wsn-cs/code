@@ -187,6 +187,10 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
     size_t current_index = 0;                                                                   // Indice de la partition à traiter
     unsigned long nbest = 0;
     
+    // Répercussion dans la sauvegarde
+    schur_number_intermediate_save_t *save = action->save;
+    schurNumberSavePartitionPoolRegister(save, count, partitionstruc_array->n);
+    
     // Création de la mutex associée
     pthread_mutex_t mutex_s;
     pthread_mutex_init(&mutex_s, NULL);
@@ -206,6 +210,7 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
         arg->constraint_partition = constraint_partition;
         arg->func = methodfunc;
         arg->mutex = &mutex_s;
+        actions[i].save = save;
         
         // Création du thread
         pthread_create(&threads[i], NULL, schurNumberThreadTask, arg);
