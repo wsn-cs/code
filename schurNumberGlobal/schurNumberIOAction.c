@@ -28,6 +28,8 @@ void schurNumberActionAlloc(schur_number_action_t *action, unsigned long p, void
     
     action->func = func;
     
+    action->save = NULL;
+    
     action->n_buffers = 0;
     action->count_a = NULL;
     action->limbsize_buffer_a = NULL;
@@ -290,6 +292,10 @@ void schurNumberDefaultAction(mp_limb_t **partition, unsigned long n, struct sch
     
     if (partition) {
         action->count_all++;
+        
+        if (action->save && !(action->count_all % 65536)) {
+            schurNumberSaveToFile(action->save);
+        }
     }
     
     if (n > action->nmax) {

@@ -36,12 +36,12 @@ unsigned long schurNumberExhaustive(schur_number_partition_t *partitionstruc, sc
     mp_limb_t *work2 = calloc(sizeof(mp_limb_t), limballoc);
     
     // Initialisation des variables
-    unsigned long n0 = partitionstruc->n;   // Taille de la partition initiale
-    unsigned long n = n0;                   // Taille de l'intervalle
-    unsigned long nbest = n0;               // Taille de la plus grande partition trouvée
-    unsigned long i = 0;                    // Huche où placer l'entier suivant
-    unsigned long p = partitionstruc->p;    // Nombre de huches non vides
-    unsigned long pmax = partitionstruc->pmax; // Nombre de huches total
+    unsigned long n0 = partitionstruc->n;       // Taille de la partition initiale
+    unsigned long n = n0;                       // Taille de l'intervalle
+    unsigned long nbest = n0;                   // Taille de la plus grande partition trouvée
+    unsigned long i = 0;                        // Huche où placer l'entier suivant
+    unsigned long p = partitionstruc->p;        // Nombre de huches non vides
+    unsigned long pmax = partitionstruc->pmax;  // Nombre de huches total
     char notSumFree = 1;
     char is_new_branch = 1;
     

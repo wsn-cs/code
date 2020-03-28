@@ -8,7 +8,7 @@
 
 #include "schurNumberSaving.h"
 
-inline unsigned long fast_powl(unsigned long base, unsigned long exp) {
+static inline unsigned long fast_powl(unsigned long base, unsigned long exp) {
     /* Renvoie base^exp en utilisant l'exponentiation rapide. */
     unsigned long cur_exp = exp;
     unsigned long res = 1;
@@ -28,7 +28,7 @@ inline unsigned long fast_powl(unsigned long base, unsigned long exp) {
 void schurNumberSaveInit(schur_number_intermediate_save_t *save, unsigned long p, unsigned long part_pool_count, unsigned long n0) {
     /* Cette fonction crée un fichier temporaire où sauvegarder les partitions intermédiaires générées au cours de l'exécution du programme.
      Elle renvoie le descripteur de fichier associé. */
-    char *template = "./schur_number_tmp_save_XXXXXX";
+    char template[31] = "./schur_number_tmp_save_XXXXXX";
     int fd = mkstemp(template);
     
     if (fd == -1) {
@@ -37,26 +37,40 @@ void schurNumberSaveInit(schur_number_intermediate_save_t *save, unsigned long p
         fprintf(stderr, "Fichier temporaire pour sauvegarder les résultats créé : %s\n", template);
     }
     
+    save->fd = fd;
+    asprintf(&save->filename, "%s", template);
+    
     save->p = p;
     
     unsigned long nbest_estimated = 1<<(2 * p - 1);     // borne sur S(p)
     
     // Allocation de best_partition
+    save->nbest = 0;
     mp_size_t limballoc = INTEGER_2_LIMBSIZE(nbest_estimated);
     save->best_partition = calloc(sizeof(mp_limb_t *), p);
     for (unsigned long j = 0; j < p; j++) {
         save->best_partition[j] = calloc(sizeof(mp_limb_t), limballoc);
     }
+    save->toprint = 0;
     
+    // Estimation du nombre d'itérations
     save->nbest_estimated = nbest_estimated;
-    save->iremainding = part_pool_count;
-    save->estimated_iternum_initial_partition = calloc(sizeof(unsigned long), part_pool_count);
+    unsigned long estimated_iternum = fast_powl(p, nbest_estimated - n0);
+    save->estimated_iternum = estimated_iternum * part_pool_count;
     
-    for (unsigned long i = 0; i < part_pool_count; i++) {
-        save->estimated_iternum_initial_partition[i] = fast_powl(p, nbest_estimated - n0);
+    save->iremainding = 0;
+    save->estimated_iternum_initial_partition = NULL;
+    
+    if (part_pool_count > 1) {
+        save->iremainding = part_pool_count;
+        save->estimated_iternum_initial_partition = calloc(sizeof(unsigned long), part_pool_count);
+        
+        for (unsigned long i = 0; i < part_pool_count; i++) {
+            save->estimated_iternum_initial_partition[i] = estimated_iternum;
+        }
     }
     
-    pthread_mutex_init(save->mutex, NULL);
+    pthread_mutex_init(&save->mutex_s, NULL);
 }
 
 void schurNumberSaveDealloc(schur_number_intermediate_save_t *save) {
@@ -66,11 +80,15 @@ void schurNumberSaveDealloc(schur_number_intermediate_save_t *save) {
     }
     free(save->best_partition);
     
-    free(save->estimated_iternum_initial_partition);
+    if (save->estimated_iternum_initial_partition) {
+        free(save->estimated_iternum_initial_partition);
+    }
     
     close(save->fd);
+    remove(save->filename);
+    free(save->filename);
     
-    pthread_mutex_destroy(save->mutex);
+    pthread_mutex_destroy(&save->mutex_s);
 }
 
 unsigned long schurNumberEstimatedRemainingIteration(unsigned long p, mp_limb_t **partition, unsigned long n, unsigned long n0, unsigned long nbound) {
@@ -103,7 +121,7 @@ unsigned long schurNumberEstimatedRemainingIteration(unsigned long p, mp_limb_t 
 unsigned long schurNumberSaveUpgrade(schur_number_intermediate_save_t *save, unsigned long nbest, mp_limb_t **partition) {
     /* Met à jour la meilleure partition trouvée si il y a lieu. */
     
-    pthread_mutex_lock(save->mutex);
+    pthread_mutex_lock(&save->mutex_s);
     
     if (nbest > save->nbest) {
         unsigned long p = save->p;
@@ -118,7 +136,7 @@ unsigned long schurNumberSaveUpgrade(schur_number_intermediate_save_t *save, uns
         save->toprint = 1;
     }
     
-    pthread_mutex_unlock(save->mutex);
+    pthread_mutex_unlock(&save->mutex_s);
     
     return save->nbest;
 }
@@ -126,14 +144,18 @@ unsigned long schurNumberSaveUpgrade(schur_number_intermediate_save_t *save, uns
 void schurNumberSaveToFile(schur_number_intermediate_save_t *save) {
     /* Cette fonction sauvegarde l'état de la recherche dans le fichier fd. */
     
+    pthread_mutex_lock(&save->mutex_s);
+    
     int fd = save->fd;
     
-    dprintf(fd, "Nombre de partitions initiales restant : %lu\n", save->iremainding);
+    dprintf(fd, "Nombre de partitions initiales restant : %lu\nNombre d'itérations restant estimées : %lu\n", save->iremainding, save->estimated_iternum);
     
     if (save->toprint) {
         unsigned long nbest = save->nbest;
         dprintf(fd, "Taille maximale trouvée : %lu\n", nbest);
         schurNumberPrintPartition(save->nbest, nbest, save->best_partition);
+        save->toprint = 0;
     }
     
+    pthread_mutex_unlock(&save->mutex_s);
 }

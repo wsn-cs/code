@@ -220,10 +220,18 @@ int main(int argc, const char * argv[]) {
             break;
     }
     
+    // Création de la sauvegarde temporaire
+    schur_number_intermediate_save_t save_str;
+    schurNumberSaveInit(&save_str, p, 0, partition_s.n);
+    action_s.save = &save_str;
+    
     // Lancement du code
     time0 = clock();
     schurNumberLaunch(methodfunc, &partition_s, &action_s, mp_bits_per_limb * limballoc, threadPartitionNumberOption);
     time1 = clock();
+    
+    // Detruction de la sauvegarde temporaire
+    schurNumberSaveDealloc(&save_str);
     
     // Affichage des résultats
     

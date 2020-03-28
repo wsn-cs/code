@@ -24,11 +24,14 @@ struct schur_number_intermediate_save_struc {
     char toprint;               // Booléen spécifiant si cette partition doit être affichées
     
     unsigned long nbest_estimated;  // Plus grande taille de partition estimée
+    unsigned long estimated_iternum;
+    
     size_t iremainding;             // Nombre de partitions initiales restant à explorer
     unsigned long *estimated_iternum_initial_partition; // Tableau contenant le nombre d'itérations estimées pour chaque partition initiale
     
     int fd;                     // Descripteur du fichier où effectuer les sauvegardes intermédiaires
-    pthread_mutex_t *mutex;     // Mutex liée à l'écriture dans fd
+    char *filename;             // Nom du fichier temporaire
+    pthread_mutex_t mutex_s;    // Mutex liée à l'écriture dans fd
 };
 
 typedef struct schur_number_intermediate_save_struc schur_number_intermediate_save_t;

@@ -10,6 +10,7 @@
 #define schurNumberIOAction_h
 
 #include "schurNumberIO.h"
+#include "schurNumberSaving.h"
 
 struct schurNumberIOAction {
     unsigned long p;        // Nombre d'ensembles par partition
@@ -31,6 +32,8 @@ struct schurNumberIOAction {
     FILE *partition_stream;     // Flux associé au tampon
     
     void (*func)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+    
+    schur_number_intermediate_save_t *save;
     
     size_t n_buffers;               // Nombre de tampons issus d'un éventuel regroupement
     size_t *count_a;                // Tableau contenant le nombre de partitions contenues dans chaque tampon
