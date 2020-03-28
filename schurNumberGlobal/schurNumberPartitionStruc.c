@@ -14,8 +14,9 @@ void schur_number_partition_alloc(schur_number_partition_t *partitionstruc, mp_s
     mp_limb_t **partition = calloc(p, sizeof(mp_limb_t *));
     mp_limb_t **partitioninvert = calloc(p, sizeof(mp_limb_t *));
     for (unsigned long j = 0; j < p; j++) {
-        partition[j] = calloc(limballoc, sizeof(mp_limb_t));
-        partitioninvert[j] = calloc(limballoc, sizeof(mp_limb_t));
+        //partition[j] = calloc(limballoc, sizeof(mp_limb_t));
+        partitioninvert[j] = calloc(2 * limballoc, sizeof(mp_limb_t));
+        partition[j] = partitioninvert[j] + limballoc;
     }
     
     partitionstruc->p = 0;
@@ -30,13 +31,13 @@ void schur_number_partition_alloc(schur_number_partition_t *partitionstruc, mp_s
 void schur_number_partition_dealloc(schur_number_partition_t *partitionstruc) {
     /*Libère partitionstruc.*/
     unsigned long p = partitionstruc->pmax;
-    mp_size_t limballoc = partitionstruc->limballoc;
     
     mp_limb_t **partition = partitionstruc->partition;
     mp_limb_t **partitioninvert = partitionstruc->partitioninvert;
     
     for (unsigned long j = 0; j < p; j++) {
-        partition[j] = calloc(limballoc, sizeof(mp_limb_t));
-        partitioninvert[j] = calloc(limballoc, sizeof(mp_limb_t));
+        free(partitioninvert[j]);
     }
+    free(partition);
+    free(partitioninvert);
 }
