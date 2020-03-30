@@ -19,10 +19,13 @@ unsigned long schurNumberGetSetMaximum(char *str) {
     unsigned long nmax = 0;
     while (*ptr1 != '\0') {
         unsigned long n = strtoul(ptr0, &ptr1, 10);
-        if (n > nmax) {
-            nmax = n;
+        if (ptr0 != ptr1) {
+            // Chiffres valides trouvés dans ptr0
+            if (n > nmax) {
+                nmax = n;
+            }
         }
-        ptr0 = ptr1;
+        ptr0 = ptr1 + 1;
     }
     return nmax;
 }
@@ -36,11 +39,14 @@ void schurNumberGetSet(char *str, mp_limb_t *set, mp_limb_t *setinvert, mp_size_
     
     while (*ptr1 != '\0') {
         unsigned long k = strtoul(ptr0, &ptr1, 10);
-        ADD_POINT(set, k);
-        if (setinvert) {
-            ADD_POINT(setinvert, nalloc - k);
+        if (ptr0 != ptr1) {
+            // Chiffres valides trouvés dans ptr0
+            ADD_POINT(set, k);
+            if (setinvert) {
+                ADD_POINT(setinvert, nalloc - k);
+            }
         }
-        ptr0 = ptr1;
+        ptr0 = ptr1 + 1;
     }
 }
 
