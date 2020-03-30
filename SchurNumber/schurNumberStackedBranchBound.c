@@ -10,67 +10,6 @@
 #include "gmp-impl.h"
 #include "longlong.h"
 
-inline void schur_number_translation(mp_limb_t *r_set, const mp_limb_t *set, mp_size_t limbsize, unsigned long n) {
-    /* Calcule set + n et place le résultat dans r_set. */
-    const mp_limb_t *work = set;
-    
-    while (n > 0) {
-        unsigned int shift = n % mp_bits_per_limb;
-        if (!shift) {
-            shift = mp_bits_per_limb - 1;
-        }
-        
-        mpn_lshift(r_set, work, limbsize, shift);     // r_set = work + shift
-        work = r_set;
-        
-        n -= shift;
-    }
-}
-
-inline void schur_number_ntranslation(mp_limb_t *r_set, const mp_limb_t *set, mp_size_t limbsize, unsigned long n) {
-    /* Calcule set - n et place le résultat dans r_set. */
-    const mp_limb_t *work = set;
-
-    while (n > 0) {
-        unsigned int shift = n % mp_bits_per_limb;
-        if (!shift) {
-            shift = mp_bits_per_limb - 1;
-        }
-
-        mpn_rshift(r_set, work, limbsize, shift);     // r_set = work - shift
-        work = r_set;
-
-        n -= shift;
-    }
-}
-
-void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set, mp_size_t limbsize, unsigned long x) {
-    /* Cette fonction calcule set + set - x et le place dans r_set, qui doit pouvoir contenir tous les éléments. */
-    unsigned long nsize = limbsize * mp_bits_per_limb;
-    
-    mp_limb_t *work1 = calloc(sizeof(mp_limb_t), limbsize);
-    
-    //schurNumberPrintSet(nsize, set);
-    
-    for (unsigned long n = 0; n < nsize; n++) {
-        // Parcourir les éléments de set
-        if (GET_POINT(set, n)) {
-            if (n < x) {
-                // Calculer set - (x - n)
-                schur_number_ntranslation(work1, set, limbsize, x - n);
-                
-            } else {
-                // Calculer set + (n - x)
-                schur_number_translation(work1, set, limbsize, n - x);
-            }
-            // Ajouter work1 à r_set
-            //schurNumberPrintSet(nsize, work1);
-            mpn_ior_n(r_set, r_set, work1, limbsize);
-        }
-    }
-    free(work1);
-}
-
 unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit) {
     /*
      Cette fonction calcule successivement les nombres de Schur S(p) pour p<= pmax, en partant de la partition initiale contenue dans partitionstruc.
@@ -121,7 +60,7 @@ unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitions
     for (unsigned long j = 0; j < pmax; j++) {
         sumpartition[j] = calloc(sizeof(mp_limb_t) * limballoc, nlimit);    // Tableau contenant la pile des sommes de l'ensembles j
         sums_ptr[j] = sumpartition[j];                                      // Pointeur vers le sommet de la pile des sommes de l'ensembles j
-        schurNumberSumset(sums_ptr[j], partition[j], limballoc, 0);
+        schurNumberSumset(sums_ptr[j], partition[j], partition[j], limballoc, 0);
         
         unsigned long cardinal = 0;
         for (unsigned long k = 0; k < limballoc; k++) {

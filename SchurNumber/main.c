@@ -230,7 +230,7 @@ int main(int argc, const char * argv[]) {
     schurNumberLaunch(methodfunc, &partition_s, &action_s, mp_bits_per_limb * limballoc, threadPartitionNumberOption);
     time1 = clock();
     
-    // Detruction de la sauvegarde temporaire
+    // Destruction de la sauvegarde temporaire
     schurNumberSaveDealloc(&save_str);
     
     // Affichage des résultats
