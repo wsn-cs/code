@@ -31,7 +31,7 @@ struct schurNumberIOAction {
     size_t partition_size;      // Taille du tampon en octet
     FILE *partition_stream;     // Flux associé au tampon
     
-    void (*func)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+    unsigned long (*func)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
     
     schur_number_intermediate_save_t *save;
     
@@ -45,7 +45,7 @@ struct schurNumberIOAction {
 
 typedef struct schurNumberIOAction schur_number_action_t;
 
-typedef void (*schur_number_action_func_t)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+typedef unsigned long (*schur_number_action_func_t)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 
 void schurNumberActionAlloc(schur_number_action_t *action, unsigned long p, void (*func)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action));
 void schurNumberActionDealloc(schur_number_action_t *action);
@@ -53,10 +53,11 @@ void schurNumberActionDealloc(schur_number_action_t *action);
 void schurNumberActionGatherCopy(schur_number_action_t *r_action, schur_number_action_t *actions, size_t n_actions);
 void schurNumberActionGatherNoCopy(schur_number_action_t *r_action, schur_number_action_t *actions, size_t n_actions);
 
-void schurNumberDefaultAction(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
-void schurNumberSaveSomePartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
-void schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
-void schurNumberSaveAllPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schurNumberDefaultAction(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schurNumberSaveSomePartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schurNumberSaveAllPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+
 size_t schurNumberPrintPartitions(struct schurNumberIOAction *action);
 
 #endif /* schurNumberIOAction_h */

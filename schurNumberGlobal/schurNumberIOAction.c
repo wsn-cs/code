@@ -287,43 +287,61 @@ void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number
     action_r->n_buffers = n_buffers;
 }
 
-void schurNumberDefaultAction(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
+unsigned long schurNumberDefaultAction(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
     /*Met seulement à jour les indicateurs statistiques.*/
+    
+    schur_number_intermediate_save_t *save = action->save;
     
     if (partition) {
         action->count_all++;
         
-        if (action->save && !(action->count_all % 65536)) {
-            schurNumberSaveToFile(action->save);
+        if (save && !(action->count_all % 4294967296)) {
+            schurNumberSaveProgressionUpdate(save, n, partition);
         }
     }
     
     if (n > action->nmax) {
-        action->nmax = schurNumberSaveUpgrade(action->save, n, partition);
+        if (save) {
+            action->nmax = schurNumberSaveBestUpgrade(save, n, partition);
+        } else {
+            action->nmax = n;
+        }
         action->count_max = 0;
     }
     
     if (n == action->nmax && partition) {
         action->count_max++;
     }
+    
+    return action->nmax;
 }
 
-void schurNumberSaveSomePartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
+unsigned long schurNumberSaveSomePartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
     /*Compare n avec nmax. Si n ≥ nmax, le nmax est mis à jour et la partition remplace les précédentes.
      Cette action limite la quantité de partition grâce à count_limit.*/
     unsigned long  p = action->p;
     FILE *limbsize_stream = action->limbsize_stream;
     FILE *partition_stream = action->partition_stream;
     
+    schur_number_intermediate_save_t *save = action->save;
+    
     if (partition) {
         action->count_all++;
+        
+        if (save && !(action->count_all % 4294967296)) {
+            schurNumberSaveProgressionUpdate(save, n, partition);
+        }
     }
     
     if (n > action->nmax) {
         /*Vider partitions*/
         rewind(limbsize_stream);
         rewind(partition_stream);
-        action->nmax = n;
+        if (save) {
+            action->nmax = schurNumberSaveBestUpgrade(save, n, partition);
+        } else {
+            action->nmax = n;
+        }
         action->count = 0;
         action->count_max = 0;
     }
@@ -343,23 +361,35 @@ void schurNumberSaveSomePartition(mp_limb_t **partition, unsigned long n, struct
         }
         action->count_max ++;
     }
+    
+    return action->nmax;
 }
 
-void schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
+unsigned long schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
     /*Compare n avec nmax. Si n ≥ nmax, le nmax est mis à jour et la partition est ajoutée aux partitions.*/
     unsigned long  p = action->p;
     FILE *limbsize_stream = action->limbsize_stream;
     FILE *partition_stream = action->partition_stream;
     
+    schur_number_intermediate_save_t *save = action->save;
+    
     if (partition) {
         action->count_all++;
+        
+        if (save && !(action->count_all % 4294967296)) {
+            schurNumberSaveProgressionUpdate(save, n, partition);
+        }
     }
     
     if (n > action->nmax) {
         /*Vider partitions*/
         rewind(limbsize_stream);
         rewind(partition_stream);
-        action->nmax = n;
+        if (save) {
+            action->nmax = schurNumberSaveBestUpgrade(save, n, partition);
+        } else {
+            action->nmax = n;
+        }
         action->count = 0;
         action->count_max = 0;
     }
@@ -377,17 +407,26 @@ void schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long n, struct
         action->count ++;
         action->count_max = action->count;
     }
+    
+    return action->nmax;
 }
 
-void schurNumberSaveAllPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
+unsigned long schurNumberSaveAllPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
     /*La partition est ajoutée aux autres.*/
     
+    schur_number_intermediate_save_t *save = action->save;
+    
     if (n > action->nmax) {
-        action->nmax = n;
+        if (save) {
+            action->nmax = schurNumberSaveBestUpgrade(save, n, partition);
+        } else {
+            action->nmax = n;
+        }
         action->count_max = 0;
     }
     
     if (partition) {
+        
         unsigned long  p = action->p;
         FILE *limbsize_stream = action->limbsize_stream;
         FILE *partition_stream = action->partition_stream;
@@ -404,7 +443,13 @@ void schurNumberSaveAllPartition(mp_limb_t **partition, unsigned long n, struct 
             action->count_max ++;
         }
         action->count_all = action->count;
+        
+        if (save && !(action->count_all % 4294967296)) {
+            schurNumberSaveProgressionUpdate(save, n, partition);;
+        }
     }
+    
+    return action->nmax;
 }
 
 size_t schurNumberPrintPartitionBuffer(unsigned long p, char *limbsize_buffer, char *partition_buffer, size_t count) {

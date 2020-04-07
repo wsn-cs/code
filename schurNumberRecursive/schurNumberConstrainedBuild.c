@@ -75,10 +75,7 @@ unsigned long schurNumberConstrainedBuild(schur_number_partition_t *partitionstr
             /*n ne peut être placé nul part*/
             if (is_new_branch) {
                 /*Ecrire la partition*/
-                action->func(partition, n-1, action);
-                if (n > nbest) {
-                    nbest = n;
-                }
+                nbest = action->func(partition, n-1, action);
             }
             is_new_branch = 0;
             
@@ -117,5 +114,5 @@ unsigned long schurNumberConstrainedBuild(schur_number_partition_t *partitionstr
     
     action->iter_num = iter_num;
     
-    return nbest - 1;
+    return nbest;
 }
