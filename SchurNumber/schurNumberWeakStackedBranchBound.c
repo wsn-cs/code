@@ -1,8 +1,8 @@
 //
-//  schurNumberStackedBranchBound.c
+//  schurNumberWeakStackedBranchBound.c
 //  SchurNumber
 //
-//  Created by rubis on 22/03/2020.
+//  Created by rubis on 07/04/2020.
 //  Copyright © 2020 rubis. All rights reserved.
 //
 
@@ -20,13 +20,13 @@ unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitions
      alors k appartient à l'ensemble; sinon il n'y appartient pas.
      
      Pour tester si il est possible d'ajouter n+1 à l'ensemble P sans-somme,
-     on regarde si n+1 appartient à P+P, qui est mis à jour à chaque ajout d'un nouvel entier.
-     Les valeurs successives de P+P sont suavegardées dans une pile.
+     on effectue un & entre les [n/2] premiers bits et les [n/2] derniers.
+     Si le résultat est 0, il est possible d'ajouter n+1.
      
      Lorsqu'un entier n n'a pu être inséré dans aucune huches, on revient au sup sur les huches
      du plus petit n'≥[n/2]+1 tel que n' et n-n' appartiennent simultanément à cette huche.
      
-     De plus, les sommes de la partition sont conservées en mémoire dans le tableau sumpartition, de sorte qu'à chaque itération, il est possible de réaliser leur intersection pour borner la taille de la partition sans-somme en construction.
+     De plus, les sommes faibles de la partition sont conservées en mémoire dans le tableau sumpartition, de sorte qu'à chaque itération, il est possible de réaliser leur intersection pour borner la taille de la partition faiblement sans-somme en construction.
      */
     
     // Initialisation de la partition à calculer
@@ -148,11 +148,8 @@ unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitions
                 ADD_POINT(partition[p], n);
                 cardinals[p] = 1;
                 popcounts[p * limballoc + limbsize - 1] = 1;
-                
-                mp_limb_t *sumptr = sumpartition[p];
-                //mp_limb_t *sumptr = sums_ptr[p];
-                ADD_POINT(sumptr, 2 * n);
-                sums_ptr[p] = sumptr;
+
+                sums_ptr[p] = sumpartition[p];
                 
                 i = 0;
                 if (n > nsize) {
@@ -210,11 +207,9 @@ unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitions
                         sums_ptr[i] -= limb_diff;
                         mpn_zero(sums_ptr[i], limb_diff + limballoc);
                         sums_ptr[i] -= (!!cardinal) * limballoc;
-                        //sums_ptr[i] -= limballoc;
                         
                         cardinals[i] = cardinal;
                         
-                        //popcounts[i * limballoc + blockinglimbsize - 1] -= cardinals[i] - cardinal;
                         char popcnt;
                         popc_limb(popcnt, partition[i][blockinglimbsize - 1]);
                         popcounts[i * limballoc + blockinglimbsize - 1] = popcnt;
@@ -242,12 +237,13 @@ unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitions
         } else {
             // Adjoindre n+1 à la huche i et incrémenter n
             n++;
-            ADD_POINT(partition[i], n);
             
             mp_limb_t *sumset = sums_ptr[i] + limballoc;
             schur_number_translation(sumset, partition[i], limbsize, n);
             mpn_ior_n(sumset, sumset, sums_ptr[i], limballoc);
             sums_ptr[i] = sumset;
+            
+            ADD_POINT(partition[i], n);
             
             cardinals[i]++;
             popcounts[i * limballoc + limbsize - 1] ++;
