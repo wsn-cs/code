@@ -25,20 +25,36 @@ static inline unsigned long fast_powl(unsigned long base, unsigned long exp) {
     return res;
 }
 
+int schurNumberSaveFileOpen(schur_number_save_file_t *save_file_p) {
+    char template[31] = "./schur_number_tmp_save_XXXXXX";
+    int fd = mkstemp(template);
+    
+    if (fd != -1) {
+        asprintf(&save_file_p->filename, "%s", template);
+        
+        dprintf(fd, "Nombre de partitions initiales inexplorées :\t");
+        save_file_p->irem_offset = lseek(fd, 0, SEEK_CUR);
+        
+        dprintf(fd, "%20lu\nEstimation du nombre d'itérations restants :\t", (unsigned long)0);
+        save_file_p->iternum_offset = lseek(fd, 0, SEEK_CUR);
+        
+        dprintf(fd, "%20lu\nTaille maximale trouvée :\t", (unsigned long)0);
+        save_file_p->nbest_offset = lseek(fd, 0, SEEK_CUR);
+    }
+    
+    return fd;
+}
+
 int schurNumberSaveAlloc(schur_number_intermediate_save_t *save, unsigned long p, unsigned long n0) {
     /* Cette fonction crée un fichier temporaire où sauvegarder les partitions intermédiaires générées au cours de l'exécution du programme.
      Elle renvoie le descripteur de fichier associé. */
-    char template[31] = "./schur_number_tmp_save_XXXXXX";
-    int fd = mkstemp(template);
+    int fd = schurNumberSaveFileOpen(&save->file);
     
     if (fd == -1) {
         fprintf(stderr, "Impossible de créer un fichier temporaire pour sauvegarder les résultats\n");
     } else {
-        fprintf(stderr, "Fichier temporaire pour sauvegarder les résultats créé : %s\n", template);
+        fprintf(stderr, "Fichier temporaire pour sauvegarder les résultats créé : %s\n", save->file.filename);
     }
-    
-    save->fd = fd;
-    asprintf(&save->filename, "%s", template);
     
     save->p = p;
     save->n0 = n0;
@@ -70,6 +86,13 @@ int schurNumberSaveAlloc(schur_number_intermediate_save_t *save, unsigned long p
     return fd;
 }
 
+void schurNumberSaveFileClose(schur_number_save_file_t *save_file_p) {
+    
+    close(save_file_p->fd);
+    remove(save_file_p->filename);
+    free(save_file_p->filename);
+}
+
 void schurNumberSaveDealloc(schur_number_intermediate_save_t *save) {
     
     for (unsigned long j = 0; j < save->p; j++) {
@@ -78,10 +101,6 @@ void schurNumberSaveDealloc(schur_number_intermediate_save_t *save) {
     free(save->best_partition);
     
     pthread_key_delete(save->key);
-    
-    close(save->fd);
-    remove(save->filename);
-    free(save->filename);
     
     pthread_mutex_destroy(&save->mutex_s);
 }
@@ -168,13 +187,25 @@ unsigned long schurNumberSaveBestUpgrade(schur_number_intermediate_save_t *save,
 void schurNumberSaveToFile(schur_number_intermediate_save_t *save) {
     /* Cette fonction sauvegarde l'état de la recherche dans le fichier fd. */
     
-    int fd = save->fd;
+    schur_number_save_file_t save_file = save->file;
+    int fd = save_file.fd;
     
-    dprintf(fd, "\nNombre de partitions initiales restant : %lu\nNombre d'itérations restant estimées : %lu\n", save->iremainding, save->estimated_iternum);
+    // Ecriture de iremainding
+    lseek(fd, save_file.irem_offset, SEEK_SET);
+    dprintf(fd, "%20lu", save->iremainding);
+    
+    // Ecriture de estimated_iternum
+    lseek(fd, save_file.iternum_offset, SEEK_SET);
+    dprintf(fd, "%20lu", save->estimated_iternum);
     
     if (save->toprint) {
         unsigned long nbest = save->nbest;
-        dprintf(fd, "Taille maximale trouvée : %lu\n", nbest);
+        
+        // Ecriture de nbest
+        lseek(fd, save_file.nbest_offset, SEEK_SET);
+        dprintf(fd, "%20lu\n", nbest);
+        
+        // Ecriture de best_partition
         schur_number_dprint_partition(fd, save->p, nbest, save->best_partition);
         save->toprint = 0;
     }

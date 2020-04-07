@@ -16,6 +16,17 @@
 #include "schurNumberIO.h"
 #include "schurNumberPartitionStruc.h"
 
+struct schur_number_save_file_struc {
+    int fd;                     // Descripteur du fichier où effectuer les sauvegardes intermédiaires
+    char *filename;             // Nom du fichier temporaire
+    
+    off_t irem_offset;          // Incrément repérant la position où écrire iremainding
+    off_t iternum_offset;       // Incrément repérant la position où écrire estimated_iternum
+    off_t nbest_offset;         // Incrément repérant la position où écrire nbest
+};
+
+typedef struct schur_number_save_file_struc schur_number_save_file_t;
+
 struct schur_number_intermediate_save_struc {
     unsigned long p;            // Nombre d'ensembles par partition
     unsigned long n0;           // Taille de la partition initiale
@@ -33,9 +44,8 @@ struct schur_number_intermediate_save_struc {
     
     unsigned char tick;         // Compteur modulo 8 permettant de savoir si une sauvegarde doit être faite dans le fichier temporaire
     
-    int fd;                     // Descripteur du fichier où effectuer les sauvegardes intermédiaires
-    char *filename;             // Nom du fichier temporaire
-    pthread_mutex_t mutex_s;    // Mutex liée à l'écriture dans fd
+    schur_number_save_file_t file;  // Fichier où effectuer les sauvegardes intermédiaires
+    pthread_mutex_t mutex_s;        // Mutex permettant le multi-threading
 };
 
 typedef struct schur_number_intermediate_save_struc schur_number_intermediate_save_t;
