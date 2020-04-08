@@ -14,7 +14,8 @@ int schurNumberSaveFileOpen(schur_number_save_file_t *save_file_p) {
     int fd = mkstemp(template);
     
     if (fd != -1) {
-        asprintf(&save_file_p->filename, "%s", template);
+        save_file_p->filename = calloc(1, sizeof(template));
+        snprintf(save_file_p->filename, sizeof(template), "%s", template);
         
         dprintf(fd, "Nombre de partitions initiales inexplorées : ");
         save_file_p->irem_offset = lseek(fd, 0, SEEK_CUR);
