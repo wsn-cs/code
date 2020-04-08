@@ -105,17 +105,10 @@ void schurNumberSaveThreadRegister(schur_number_intermediate_save_t *save) {
     /* Tout thread doit appeler cette fonction pour s'enregistrer avant d'effectuer la moindre sauvegarde.
      La variable thread_estimated_iternum doit pointer vers un entier mpz déjà initialisée. Celui-ci est enregistré dans la clef save->key.*/
     
-    //size_t num_keys = save->num_keys;
-    //mpz_t **keys = realloc(save->keys, (num_keys + 1) * sizeof(mpz_t *));
-    
     mpz_t *thread_estimated_iternum_p = calloc(1, sizeof(mpz_t));
     mpz_init(*thread_estimated_iternum_p);
-    //keys[num_keys] = thread_estimated_iternum_p;
     
     pthread_setspecific(save->key, thread_estimated_iternum_p);
-    
-    //save->num_keys = num_keys + 1;
-    //save->keys = keys;
 }
 
 void schurNumberSavePartitionPoolRegister(schur_number_intermediate_save_t *save, size_t part_pool_count, unsigned long n0) {
@@ -238,7 +231,8 @@ void schurNumberSaveToFile(schur_number_intermediate_save_t *save) {
         save->toprint = 0;
     }
     
-    fcntl(fd, F_FULLFSYNC);
+    fsync(fd);
+    //fcntl(fd, F_FULLFSYNC);
 }
 
 unsigned long schurNumberSaveProgressionUpdate(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition) {
