@@ -22,7 +22,10 @@ int schurNumberSaveFileOpen(schur_number_save_file_t *save_file_p) {
         dprintf(fd, "%16lu\nEstimation du nombre d'itérations restants : ", (unsigned long)0);
         save_file_p->iternum_offset = lseek(fd, 0, SEEK_CUR);
         
-        dprintf(fd, "%16lu\nTaille maximale trouvée : ", (unsigned long)0);
+        dprintf(fd, "%16lu\nEtat de progression : ", (unsigned long)0);
+        save_file_p->percentage_offset = lseek(fd, 0, SEEK_CUR);
+        
+        dprintf(fd, "%16lu%%\nTaille maximale trouvée : ", (unsigned long)0);
         save_file_p->nbest_offset = lseek(fd, 0, SEEK_CUR);
     }
     
@@ -61,6 +64,7 @@ int schurNumberSaveAlloc(schur_number_intermediate_save_t *save, unsigned long p
 
     mpz_init2(save->estimated_iternum, nbest_estimated - n0);
     mpz_ui_pow_ui(save->estimated_iternum, p, nbest_estimated - n0);
+    mpz_init_set(save->total_estimated_iternum, save->estimated_iternum);
     
     save->iremainding = 0;
     mpz_init_set(save->branch_estimated_iternum, save->estimated_iternum);
@@ -81,6 +85,9 @@ void schurNumberSaveFileClose(schur_number_save_file_t *save_file_p) {
 }
 
 void schurNumberSaveDealloc(schur_number_intermediate_save_t *save) {
+    mpz_clear(save->estimated_iternum);
+    mpz_clear(save->total_estimated_iternum);
+    mpz_clear(save->branch_estimated_iternum);
     
     for (unsigned long j = 0; j < save->p; j++) {
         free(save->best_partition[j]);
@@ -116,6 +123,7 @@ void schurNumberSavePartitionPoolRegister(schur_number_intermediate_save_t *save
     
     mpz_ui_pow_ui(save->branch_estimated_iternum, save->p, save->nbest_estimated - n0);
     mpz_mul_ui(save->estimated_iternum, save->branch_estimated_iternum, part_pool_count);
+    mpz_set(save->total_estimated_iternum, save->estimated_iternum);
 
     save->iremainding = part_pool_count;
 }
@@ -211,6 +219,12 @@ void schurNumberSaveToFile(schur_number_intermediate_save_t *save) {
         unsigned long digits = mpz_get_ui(estimated_iternum);
         dprintf(fd, "%16lu", digits);
     }
+    
+    // Ecriture de pourcentage de progression
+    lseek(fd, save_file.percentage_offset, SEEK_SET);
+    double rem_iternum = mpz_get_d(estimated_iternum);
+    double total_iternum = mpz_get_d(save->total_estimated_iternum);
+    dprintf(fd, "%16.2e", 100 * rem_iternum/total_iternum);
     
     if (save->toprint) {
         unsigned long nbest = save->nbest;

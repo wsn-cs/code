@@ -24,6 +24,7 @@ struct schur_number_save_file_struc {
     
     off_t irem_offset;          // Incrément repérant la position où écrire iremainding
     off_t iternum_offset;       // Incrément repérant la position où écrire estimated_iternum
+    off_t percentage_offset;    // Incrément repérant la position où écrire le pourcentage de progression
     off_t nbest_offset;         // Incrément repérant la position où écrire nbest
 };
 
@@ -39,6 +40,7 @@ struct schur_number_intermediate_save_struc {
     
     unsigned long nbest_estimated;  // Plus grande taille de partition estimée
     mpz_t estimated_iternum;        // Nombre estimé d'itérations restant à effectuer
+    mpz_t total_estimated_iternum;  // Estimation du nombre total d'itérations
     
     size_t iremainding;             // Nombre de partitions initiales restant à explorer
     mpz_t branch_estimated_iternum; // Nombre estimé d'itérations pour chaque branche
