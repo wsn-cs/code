@@ -295,8 +295,11 @@ unsigned long schurNumberDefaultAction(mp_limb_t **partition, unsigned long n, s
     if (partition) {
         action->count_all++;
         
-        if (save && !(action->count_all % 4294967296)) {
-            schurNumberSaveProgressionUpdate(save, n, partition);
+        if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
+            unsigned long nbest = schurNumberSaveProgressionUpdate(save, n, partition);
+            if (nbest > action->nmax) {
+                schurNumberSaveSomePartition(NULL, nbest, action);
+            }
         }
     }
     
@@ -328,8 +331,11 @@ unsigned long schurNumberSaveSomePartition(mp_limb_t **partition, unsigned long 
     if (partition) {
         action->count_all++;
         
-        if (save && !(action->count_all % 4294967296)) {
-            schurNumberSaveProgressionUpdate(save, n, partition);
+        if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
+            unsigned long nbest = schurNumberSaveProgressionUpdate(save, n, partition);
+            if (nbest > action->nmax) {
+                schurNumberSaveSomePartition(NULL, nbest, action);
+            }
         }
     }
     
@@ -376,8 +382,11 @@ unsigned long schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long 
     if (partition) {
         action->count_all++;
         
-        if (save && !(action->count_all % 4294967296)) {
-            schurNumberSaveProgressionUpdate(save, n, partition);
+        if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
+            unsigned long nbest = schurNumberSaveProgressionUpdate(save, n, partition);
+            if (nbest > action->nmax) {
+                schurNumberSaveSomePartition(NULL, nbest, action);
+            }
         }
     }
     
@@ -444,8 +453,11 @@ unsigned long schurNumberSaveAllPartition(mp_limb_t **partition, unsigned long n
         }
         action->count_all = action->count;
         
-        if (save && !(action->count_all % 4294967296)) {
-            schurNumberSaveProgressionUpdate(save, n, partition);;
+        if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
+            unsigned long nbest = schurNumberSaveProgressionUpdate(save, n, partition);
+            if (nbest > action->nmax) {
+                schurNumberSaveSomePartition(NULL, nbest, action);
+            }
         }
     }
     

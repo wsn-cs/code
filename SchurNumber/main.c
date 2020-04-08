@@ -22,7 +22,7 @@
 #else
 
 typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
-#define schurNumberLaunch(methodfunc, partitionstruc, action, nlimit, load_balancing_opt) methodfunc(partitionstruc, action, nlimit)
+#define schurNumberLaunch(methodfunc, partitionstruc, action, nlimit, load_balancing_opt) schurNumberSaveThreadRegister(action->save); \ methodfunc(partitionstruc, action, nlimit)
 
 #endif
 

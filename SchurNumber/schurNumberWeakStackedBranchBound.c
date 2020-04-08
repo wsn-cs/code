@@ -10,7 +10,7 @@
 #include "gmp-impl.h"
 #include "longlong.h"
 
-unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit) {
+unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit) {
     /*
      Cette fonction calcule successivement les nombres de Schur S(p) pour p<= pmax, en partant de la partition initiale contenue dans partitionstruc.
      Elle se limite à explorer les partitions de taille <= nlimit.

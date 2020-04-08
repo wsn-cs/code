@@ -123,6 +123,10 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
     
     unsigned long nbest = 0;
     unsigned long i;
+    
+    // Enregistrement du thread
+    schur_number_intermediate_save_t *save = action->save;
+    schurNumberSaveThreadRegister(save);
 
     // Lire l'indice courant
     pthread_mutex_lock(mutex);
@@ -133,6 +137,8 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
     while (i < count) {
         // Lance la procédure
         schur_number_partition_t *partitionstruc = &(partitionstruc_array[i]);
+        
+        schurNumberSaveNewExplorationRegister(save);
         
         unsigned long n;
         unsigned long nalloc = partitionstruc->limballoc * mp_bits_per_limb;

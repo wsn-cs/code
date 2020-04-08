@@ -7,23 +7,7 @@
 //
 
 #include "schurNumberSaving.h"
-
-static inline unsigned long fast_powl(unsigned long base, unsigned long exp) {
-    /* Renvoie base^exp en utilisant l'exponentiation rapide. */
-    unsigned long cur_exp = exp;
-    unsigned long res = 1;
-    unsigned long mul = base;
-    
-    while (cur_exp) {
-        if (cur_exp & (unsigned long)1) {
-            res *= mul;
-        }
-        mul *= mul;
-        cur_exp >>= 1;
-    }
-    
-    return res;
-}
+#include <fcntl.h>
 
 int schurNumberSaveFileOpen(schur_number_save_file_t *save_file_p) {
     char template[31] = "./schur_number_tmp_save_XXXXXX";
@@ -32,15 +16,17 @@ int schurNumberSaveFileOpen(schur_number_save_file_t *save_file_p) {
     if (fd != -1) {
         asprintf(&save_file_p->filename, "%s", template);
         
-        dprintf(fd, "Nombre de partitions initiales inexplorées :\t");
+        dprintf(fd, "Nombre de partitions initiales inexplorées : ");
         save_file_p->irem_offset = lseek(fd, 0, SEEK_CUR);
         
-        dprintf(fd, "%20lu\nEstimation du nombre d'itérations restants :\t", (unsigned long)0);
+        dprintf(fd, "%16lu\nEstimation du nombre d'itérations restants : ", (unsigned long)0);
         save_file_p->iternum_offset = lseek(fd, 0, SEEK_CUR);
         
-        dprintf(fd, "%20lu\nTaille maximale trouvée :\t", (unsigned long)0);
+        dprintf(fd, "%16lu\nTaille maximale trouvée : ", (unsigned long)0);
         save_file_p->nbest_offset = lseek(fd, 0, SEEK_CUR);
     }
+    
+    save_file_p->fd = fd;
     
     return fd;
 }
@@ -72,12 +58,13 @@ int schurNumberSaveAlloc(schur_number_intermediate_save_t *save, unsigned long p
     
     // Estimation du nombre d'itérations
     save->nbest_estimated = nbest_estimated;
-    unsigned long estimated_iternum = fast_powl(p, nbest_estimated - n0);
-    save->estimated_iternum = estimated_iternum;
+
+    mpz_init2(save->estimated_iternum, nbest_estimated - n0);
+    mpz_ui_pow_ui(save->estimated_iternum, p, nbest_estimated - n0);
     
     save->iremainding = 0;
-    save->branch_estimated_iternum = estimated_iternum;
-    pthread_key_create(&save->key, NULL);
+    mpz_init_set(save->branch_estimated_iternum, save->estimated_iternum);
+    pthread_key_create(&save->key, mpz_clear);
     
     save->tick = 7;
     
@@ -101,62 +88,76 @@ void schurNumberSaveDealloc(schur_number_intermediate_save_t *save) {
     free(save->best_partition);
     
     pthread_key_delete(save->key);
+
+    schurNumberSaveFileClose(&save->file);
     
     pthread_mutex_destroy(&save->mutex_s);
+}
+
+void schurNumberSaveThreadRegister(schur_number_intermediate_save_t *save) {
+    /* Tout thread doit appeler cette fonction pour s'enregistrer avant d'effectuer la moindre sauvegarde.
+     La variable thread_estimated_iternum doit pointer vers un entier mpz déjà initialisée. Celui-ci est enregistré dans la clef save->key.*/
+    
+    //size_t num_keys = save->num_keys;
+    //mpz_t **keys = realloc(save->keys, (num_keys + 1) * sizeof(mpz_t *));
+    
+    mpz_t *thread_estimated_iternum_p = calloc(1, sizeof(mpz_t));
+    mpz_init(*thread_estimated_iternum_p);
+    //keys[num_keys] = thread_estimated_iternum_p;
+    
+    pthread_setspecific(save->key, thread_estimated_iternum_p);
+    
+    //save->num_keys = num_keys + 1;
+    //save->keys = keys;
 }
 
 void schurNumberSavePartitionPoolRegister(schur_number_intermediate_save_t *save, size_t part_pool_count, unsigned long n0) {
     /*Cette fonction enregistre dans save la présence d'un partitionpool.*/
     
-    unsigned long estimated_iternum = fast_powl(save->p, save->nbest_estimated - n0);
-    
-    save->branch_estimated_iternum = estimated_iternum;
-    save->estimated_iternum = estimated_iternum * part_pool_count;
+    mpz_ui_pow_ui(save->branch_estimated_iternum, save->p, save->nbest_estimated - n0);
+    mpz_mul_ui(save->estimated_iternum, save->branch_estimated_iternum, part_pool_count);
+
     save->iremainding = part_pool_count;
 }
 
-void schurNumberSaveNewExplorationRegister(schur_number_intermediate_save_t *save, unsigned long index) {
+void schurNumberSaveNewExplorationRegister(schur_number_intermediate_save_t *save) {
     /* Cette fonction est à appeler à chaque fois q'un thread entame l'exploration à partir d'une nouvelle partition.
      Elle enregistre l'indice associé au thread dans la clef save->key. */
     pthread_key_t key = save->key;
     
-    unsigned long estimated_branch_iternum = pthread_getspecific(key);
+    mpz_t *estimated_branch_iternum_p = pthread_getspecific(key);
     
-    save->estimated_iternum -= estimated_branch_iternum;
-    pthread_setspecific(key, save->branch_estimated_iternum);
+    mpz_submul_ui(save->estimated_iternum, *estimated_branch_iternum_p, 1);
+    mpz_set(*estimated_branch_iternum_p, save->branch_estimated_iternum);
+    
     save->iremainding --;
 }
 
-unsigned long schurNumberEstimatedRemaindingIteration(unsigned long p, mp_limb_t **partition, unsigned long n, unsigned long n0, unsigned long nbound) {
+void schurNumberEstimatedRemaindingIteration(mpz_t iternum_estimated, unsigned long p, mp_limb_t **partition, unsigned long n, unsigned long n0, unsigned long nbound) {
     /* Cette fonction estime le nombre d'itérations qu'il restera à parcourir sur l'arbre.
      Cette estimation s'obtient en dénombrant le nombre de combinaison qu'il reste à effectuer pour énumérer les partitions de nbound sachant que nous sommes parvenus à partition. */
     
-    unsigned long i = nbound;
+    mpz_t num_configuration;        // Nombre de configurations possibles en partant de l'étape n pour atteindre nbound
+    mpz_init2(num_configuration, nbound - n);
+    mpz_ui_pow_ui(num_configuration, p, nbound - n);
     
-    unsigned long num_configuration = 1; // Nombre de configurations possibles en partant de l'étape n pour atteindre nbound
-    while (i > n) {
-        num_configuration *= p;
-        i--;
-    }
+    mpz_set_ui(iternum_estimated, 0);
     
-    unsigned long iternum_estimated = 0;
-    
-    while (i > n0) {
+    for (unsigned long i = n; i > n0; i--) {
         unsigned long j = 0;
         while (j < p && !GET_POINT(partition[j], i)) {
             j++;
         }
-        iternum_estimated += (p - j) * num_configuration;
-        num_configuration *= p;
-        i--;
+        mpz_addmul_ui(iternum_estimated, num_configuration, p - j);
+        mpz_mul_ui(num_configuration, num_configuration, p);
     }
-    
-    return iternum_estimated;
 }
 
 unsigned long schurNumberSaveBestUpgrade(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition) {
     /* Met à jour la meilleure partition trouvée si il y a lieu.
      La fonction renvoie le nbest mis à jour, ce qui permet une éventuelle synchronisation entre threads. */
+    
+    char should_update = 0;
     
     pthread_mutex_lock(&save->mutex_s);
     
@@ -172,6 +173,8 @@ unsigned long schurNumberSaveBestUpgrade(schur_number_intermediate_save_t *save,
             for (unsigned long i = 0; i < p; i++) {
                 mpn_copyd(save->best_partition[i], partition[i], limbsize);
             }
+            
+            should_update = 1;
         }
         
         nbest = n;
@@ -180,6 +183,10 @@ unsigned long schurNumberSaveBestUpgrade(schur_number_intermediate_save_t *save,
     }
     
     pthread_mutex_unlock(&save->mutex_s);
+    
+    if (should_update) {
+        schurNumberSaveProgressionUpdate(save, n, partition);
+    }
     
     return nbest;
 }
@@ -192,23 +199,32 @@ void schurNumberSaveToFile(schur_number_intermediate_save_t *save) {
     
     // Ecriture de iremainding
     lseek(fd, save_file.irem_offset, SEEK_SET);
-    dprintf(fd, "%20lu", save->iremainding);
+    dprintf(fd, "%16lu", save->iremainding);
     
     // Ecriture de estimated_iternum
     lseek(fd, save_file.iternum_offset, SEEK_SET);
-    dprintf(fd, "%20lu", save->estimated_iternum);
+    mpz_ptr estimated_iternum = save->estimated_iternum;
+    if (mpz_cmp_ui(estimated_iternum, 65536) > 0) {
+        double digits = mpz_get_d(estimated_iternum);
+        dprintf(fd, "%16.2e", digits);
+    } else {
+        unsigned long digits = mpz_get_ui(estimated_iternum);
+        dprintf(fd, "%16lu", digits);
+    }
     
     if (save->toprint) {
         unsigned long nbest = save->nbest;
         
         // Ecriture de nbest
         lseek(fd, save_file.nbest_offset, SEEK_SET);
-        dprintf(fd, "%20lu\n", nbest);
+        dprintf(fd, "%24lu\n", nbest);
         
         // Ecriture de best_partition
         schur_number_dprint_partition(fd, save->p, nbest, save->best_partition);
         save->toprint = 0;
     }
+    
+    fcntl(fd, F_FULLFSYNC);
 }
 
 unsigned long schurNumberSaveProgressionUpdate(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition) {
@@ -216,17 +232,18 @@ unsigned long schurNumberSaveProgressionUpdate(schur_number_intermediate_save_t 
      Elle renvoie le nbest de save, ce qui permet une éventuelle synchronisation entre threads. */
     
     // Nombre d'itérations précédemment estimé pour la branche courante
-    unsigned long estimated_branch_iternum = pthread_getspecific(save->key);
+    mpz_t *estimated_branch_iternum_p = pthread_getspecific(save->key);
+    mpz_t executed_iternum;
+    mpz_init_set(executed_iternum, *estimated_branch_iternum_p);
     
     // Nombre d'itérations restant
-    unsigned long estimated_rem_iternum = schurNumberEstimatedRemaindingIteration(save->p, partition, n, save->n0, save->nbest_estimated);
-    pthread_setspecific(save->key, estimated_rem_iternum);
+    schurNumberEstimatedRemaindingIteration(*estimated_branch_iternum_p, save->p, partition, n, save->n0, save->nbest_estimated);
     
     // Nombre d'itérations déjà effectuées
-    unsigned long executed_iternum = estimated_branch_iternum - estimated_rem_iternum;
+    mpz_sub(executed_iternum, executed_iternum, *estimated_branch_iternum_p);
     
     pthread_mutex_lock(&save->mutex_s);
-    save->estimated_iternum -= executed_iternum;
+    mpz_sub(save->estimated_iternum, save->estimated_iternum, executed_iternum);
     save->tick--;
     save->tick %= 8;
     if (!save->tick) {
