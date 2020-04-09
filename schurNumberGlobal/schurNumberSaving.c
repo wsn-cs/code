@@ -140,8 +140,8 @@ void schurNumberEstimatedRemaindingIteration(mpz_t iternum_estimated, unsigned l
      Cette estimation s'obtient en dénombrant le nombre de combinaison qu'il reste à effectuer pour énumérer les partitions de nbound sachant que nous sommes parvenus à partition. */
     
     mpz_t num_configuration;        // Nombre de configurations possibles en partant de l'étape n pour atteindre nbound
-    mpz_init2(num_configuration, nbound - n);
-    mpz_ui_pow_ui(num_configuration, p, nbound - n);
+    mpz_init2(num_configuration, nbound - n - 1);
+    mpz_ui_pow_ui(num_configuration, p, nbound - n - 1);
     
     mpz_set_ui(iternum_estimated, 0);
     
@@ -150,7 +150,7 @@ void schurNumberEstimatedRemaindingIteration(mpz_t iternum_estimated, unsigned l
         while (j < p && !GET_POINT(partition[j], i)) {
             j++;
         }
-        mpz_addmul_ui(iternum_estimated, num_configuration, p - j);
+        mpz_addmul_ui(iternum_estimated, num_configuration, p - j - 1);
         mpz_mul_ui(num_configuration, num_configuration, p);
     }
 }
@@ -206,9 +206,10 @@ void schurNumberSaveToFile(schur_number_intermediate_save_t *save) {
     // Ecriture de estimated_iternum
     lseek(fd, save_file.iternum_offset, SEEK_SET);
     mpz_ptr estimated_iternum = save->estimated_iternum;
+    double rem_iternum = mpz_get_d(estimated_iternum);
+    
     if (mpz_cmp_ui(estimated_iternum, 65536) > 0) {
-        double digits = mpz_get_d(estimated_iternum);
-        dprintf(fd, "%16.2e", digits);
+        dprintf(fd, "%16.2e", rem_iternum);
     } else {
         unsigned long digits = mpz_get_ui(estimated_iternum);
         dprintf(fd, "%16lu", digits);
@@ -216,7 +217,6 @@ void schurNumberSaveToFile(schur_number_intermediate_save_t *save) {
     
     // Ecriture de pourcentage de progression
     lseek(fd, save_file.percentage_offset, SEEK_SET);
-    double rem_iternum = mpz_get_d(estimated_iternum);
     double total_iternum = mpz_get_d(save->total_estimated_iternum);
     dprintf(fd, "%16.2e", 100 * rem_iternum / total_iternum);
     
@@ -233,7 +233,6 @@ void schurNumberSaveToFile(schur_number_intermediate_save_t *save) {
     }
     
     fsync(fd);
-    //fcntl(fd, F_FULLFSYNC);
 }
 
 unsigned long schurNumberSaveProgressionUpdate(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition) {
