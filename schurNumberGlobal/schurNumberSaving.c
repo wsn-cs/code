@@ -218,7 +218,7 @@ void schurNumberSaveToFile(schur_number_intermediate_save_t *save) {
     // Ecriture de pourcentage de progression
     lseek(fd, save_file.percentage_offset, SEEK_SET);
     double total_iternum = mpz_get_d(save->total_estimated_iternum);
-    dprintf(fd, "%16.2e", 100 * rem_iternum / total_iternum);
+    dprintf(fd, "%16.2f", 100 * rem_iternum / total_iternum);
     
     if (save->toprint) {
         unsigned long nbest = save->nbest;
