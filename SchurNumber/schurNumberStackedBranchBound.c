@@ -103,10 +103,11 @@ unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitions
                 // Il s'agit du plus petit m tel que la somme de l'ensemble i à l'étape m rencontre n
                 
                 mp_limb_t *blockingsumset = sums_ptr[i] - limballoc;
+                mp_limb_t *sumset0 = sumpartition[i];
                 
-                unsigned long c = cardinals[i] - 1;     // Numéro de l'entier m dans l'ensemble i, commençant à 0
+                unsigned long c = cardinals[i] - 1;             // Numéro de l'entier m dans l'ensemble i, commençant à 0
                 
-                while (c > 0 && GET_POINT(blockingsumset, n+1)) {
+                while (blockingsumset >= sumset0 && GET_POINT(blockingsumset, n+1)) {
                     c--;
                     blockingsumset -= limballoc;
                 }
@@ -203,11 +204,13 @@ unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitions
                 
                 // Dépiler les sommes
                 for (unsigned long i = 0; i < p; i++) {
-                    mp_bitcnt_t cardinal = mpn_popcount(partition[i], blockinglimbsize);
+                    // Il faut déterminer le nombre d'éléments de [nblocking, n] contenu dans l'ensemble i
+                    mp_bitcnt_t cardinal = mpn_popcount(partition[i], blockinglimbsize);    // Nombre d'éléments dans A_i ∩ [1, nblocking-1]
                     
                     if (cardinal < cardinals[i]) {
                         mp_bitcnt_t limb_diff = (cardinals[i] - cardinal - 1) * limballoc;
                         sums_ptr[i] -= limb_diff;
+                        //mpn_zero(sums_ptr[i], limb_diff);
                         mpn_zero(sums_ptr[i], limb_diff + limballoc);
                         sums_ptr[i] -= (!!cardinal) * limballoc;
                         //sums_ptr[i] -= limballoc;

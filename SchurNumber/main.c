@@ -13,7 +13,7 @@
 
 #include "schurNumberMethods.h"
 #include "../schurNumberGlobal/schurNumberIOAction.h"
-//#include "../schurNumberGlobal/schurNumberThreads.h"
+#include "../schurNumberGlobal/schurNumberThreads.h"
 
 #ifdef schurNumberThreads_h
 
