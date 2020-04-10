@@ -63,8 +63,8 @@ int schurNumberSaveAlloc(schur_number_intermediate_save_t *save, unsigned long p
     // Estimation du nombre d'itérations
     save->nbest_estimated = nbest_estimated;
 
-    mpz_init2(save->estimated_iternum, nbest_estimated - n0);
-    mpz_ui_pow_ui(save->estimated_iternum, p, nbest_estimated - n0);
+    mpz_init2(save->estimated_iternum, nbest_estimated - n0 + 1);
+    mpz_ui_pow_ui(save->estimated_iternum, p, nbest_estimated - n0 + 1);
     mpz_init_set(save->total_estimated_iternum, save->estimated_iternum);
     
     save->iremainding = 0;
@@ -95,6 +95,8 @@ void schurNumberSaveDealloc(schur_number_intermediate_save_t *save) {
     }
     free(save->best_partition);
     
+    mpz_t *estimated_branch_iternum_p = pthread_getspecific(save->key);
+    mpz_clear(*estimated_branch_iternum_p);
     pthread_key_delete(save->key);
 
     schurNumberSaveFileClose(&save->file);
@@ -115,10 +117,11 @@ void schurNumberSaveThreadRegister(schur_number_intermediate_save_t *save) {
 void schurNumberSavePartitionPoolRegister(schur_number_intermediate_save_t *save, size_t part_pool_count, unsigned long n0) {
     /*Cette fonction enregistre dans save la présence d'un partitionpool.*/
     
-    mpz_ui_pow_ui(save->branch_estimated_iternum, save->p, save->nbest_estimated - n0);
+    mpz_ui_pow_ui(save->branch_estimated_iternum, save->p, save->nbest_estimated - n0 + 1);
     mpz_mul_ui(save->estimated_iternum, save->branch_estimated_iternum, part_pool_count);
     mpz_set(save->total_estimated_iternum, save->estimated_iternum);
 
+    save->n0 = n0;
     save->iremainding = part_pool_count;
 }
 
@@ -150,7 +153,7 @@ void schurNumberEstimatedRemaindingIteration(mpz_t iternum_estimated, unsigned l
         while (j < p && !GET_POINT(partition[j], i)) {
             j++;
         }
-        mpz_addmul_ui(iternum_estimated, num_configuration, p - j - 1);
+        mpz_addmul_ui(iternum_estimated, num_configuration, j);
         mpz_mul_ui(num_configuration, num_configuration, p);
     }
 }
