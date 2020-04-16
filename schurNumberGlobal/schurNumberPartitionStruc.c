@@ -8,13 +8,35 @@
 
 #include "schurNumberPartitionStruc.h"
 
-void schur_number_partition_alloc(schur_number_partition_t *partitionstruc, mp_size_t limballoc, unsigned long p) {
-    /*Initialise partitionstruc.*/
+void schur_number_partition_alloc(schur_number_partition_t *partitionstruc, unsigned long p) {
+    /* Alloue partitionstruc, c'est-à-dire alloue le tableau pour placer des pointeurs vers chaque ensemble de la partition. */
     
     mp_limb_t **partition = calloc(p, sizeof(mp_limb_t *));
     mp_limb_t **partitioninvert = calloc(p, sizeof(mp_limb_t *));
+    
     for (unsigned long j = 0; j < p; j++) {
-        //partition[j] = calloc(limballoc, sizeof(mp_limb_t));
+        partitioninvert[j] = NULL;
+        partition[j] = NULL;
+    }
+    
+    partitionstruc->p = 0;
+    partitionstruc->pmax = p;
+    partitionstruc->n = 0;
+    partitionstruc->limballoc = 0;
+    partitionstruc->limbsize = 0;
+    partitionstruc->partition = partition;
+    partitionstruc->partitioninvert = partitioninvert;
+}
+
+void schur_number_partition_init(schur_number_partition_t *partitionstruc, mp_size_t limballoc) {
+    /* Initialise partitionstruc, c'est-à-dire alloue l'espace nécessaire à chaque ensemble de la partition et met à jour les variables adéquates. */
+    
+    // partition et partitioninvert ont normalement déjà été allouées
+    unsigned long p = partitionstruc->pmax;
+    mp_limb_t **partition = partitionstruc->partition;
+    mp_limb_t **partitioninvert = partitionstruc->partitioninvert;
+    
+    for (unsigned long j = 0; j < p; j++) {
         partitioninvert[j] = calloc(2 * limballoc, sizeof(mp_limb_t));
         partition[j] = partitioninvert[j] + limballoc;
     }
@@ -36,7 +58,9 @@ void schur_number_partition_dealloc(schur_number_partition_t *partitionstruc) {
     mp_limb_t **partitioninvert = partitionstruc->partitioninvert;
     
     for (unsigned long j = 0; j < p; j++) {
-        free(partitioninvert[j]);
+        if (partitioninvert) {
+            free(partitioninvert[j]);
+        }
     }
     free(partition);
     free(partitioninvert);
@@ -97,4 +121,27 @@ void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, m
         }
     }
     free(work);
+}
+
+void schur_number_set_revert(mp_limb_t *r_set, mp_limb_t *set, mp_size_t limbsize) {
+    /* Cette fonction renverse set et place le résultat dans r_set. */
+    for (mp_size_t i = 0; i < limbsize; i++) {
+        mp_limb_t v = set[i];
+        // swap odd and even bits
+        v = ((v >> 1) & (mp_limb_t)0x5555555555555555) | ((v & (mp_limb_t)0x5555555555555555) << 1);
+        // swap consecutive pairs
+        v = ((v >> 2) & (mp_limb_t)0x3333333333333333) | ((v & (mp_limb_t)0x3333333333333333) << 2);
+        // swap nibbles ...
+        v = ((v >> 4) & (mp_limb_t)0x0F0F0F0F0F0F0F0F) | ((v & (mp_limb_t)0x0F0F0F0F0F0F0F0F) << 4);
+        // swap bytes
+        v = ((v >> 8) & (mp_limb_t)0x00FF00FF00FF00FF) | ((v & (mp_limb_t)0x00FF00FF00FF00FF) << 8);
+        // swap 2-byte long pairs
+    #if GMP_NUMB_BITS == 32
+        v = ( v >> 16             ) | ( v               << 16);
+    #else
+        v = ((v >> 16) & (mp_limb_t)0x0000FFFF0000FFFF) | ((v & (mp_limb_t)0x0000FFFF0000FFFF) << 16);
+        v = ( v >> 32                                 ) | ( v                                  << 32);
+    #endif
+        r_set[limbsize - i - 1] = v;
+    }
 }

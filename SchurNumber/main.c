@@ -37,6 +37,7 @@ void usage(char *cmdname) {
             "\t-u: Print number of sum-free partitions which are not prolongeable\n"\
             "\t-c: Print total number of tested partitions\n"\
             "\t-e: Print number of tested partitions for each thread\n"\
+            "\t-f: Ensembles au format binaire (vecteur de 0 et 1)\n"\
             "\t-m method: Select a method\n"\
             "\t-t: Print execution's time\n"\
             "\t-h: Print usage message\n"\
@@ -53,12 +54,12 @@ int main(int argc, const char * argv[]) {
     char threadPartitionNumberOption = 0;
     char method = 0;
     char *print_range = NULL;
-    unsigned long *schurNumbers;
+    int format = SCHUR_NUMBER_ELEMENT_FORMAT;
     clock_t time0;
     clock_t time1;
     
     // Analyse des options
-    while ((c = getopt(argc, argv, "abcehm:p:tu")) != -1) {
+    while ((c = getopt(argc, argv, "abcefhm:p:tu")) != -1) {
         switch (c) {
             case 'a':
                 timeOption = 1;
@@ -82,6 +83,10 @@ int main(int argc, const char * argv[]) {
                 
             case 'e':
                 threadPartitionNumberOption = 1;
+                break;
+                
+            case 'f':
+                format = SCHUR_NUMBER_NUMERIC_FORMAT;
                 break;
                 
             case 'h':
@@ -117,9 +122,6 @@ int main(int argc, const char * argv[]) {
         usage(argv[0]);
         return 0;
     }
-    
-    schurNumbers = calloc(p, sizeof(unsigned long));
-    //partitionNumbers = calloc(p, sizeof(unsigned long));
     
     // Initialisation de l'action
     schur_number_action_t action_s;
@@ -157,26 +159,26 @@ int main(int argc, const char * argv[]) {
     schur_number_partition_t partition_s;
     
     mp_size_t limballoc = PARTITION_2_LIMBSIZE(p);
-    schur_number_partition_alloc(&partition_s, limballoc, p);
+    schur_number_partition_alloc(&partition_s, p);
+    schur_number_partition_init(&partition_s, limballoc);
     
     if (optind + 1 < argc) {
         // Récupérer la partition initiale depuis argv
         unsigned long p_init = argc - (optind + 1);  // Nombre d'ensembles passés en argument pour constituer la partition initiale
         if (p_init > p) {
+            // Si il y a plus d'ensembles que p
             p_init = p;
         }
         char **set_str_ptr = &(argv[optind + 1]);
         
-        unsigned long n_init = 0;
+        unsigned long n_init = 0;                   // Taille de la partition initiale
         
         for (unsigned long j = 0; j < p_init; j++) {
             
-            unsigned long nmax = schurNumberGetSetMaximum(*set_str_ptr);
+            unsigned long nmax = schurNumberGetSet(partition_s.partition[j], partition_s.partitioninvert[j], limballoc, *set_str_ptr, format);
             if (n_init < nmax) {
                 n_init = nmax;
             }
-            
-            schurNumberGetSet(*set_str_ptr, partition_s.partition[j], partition_s.partitioninvert[j], limballoc);
             set_str_ptr++;
         }
         
@@ -237,11 +239,6 @@ int main(int argc, const char * argv[]) {
     schurNumberSaveDealloc(&save_str);
     
     // Affichage des résultats
-    
-    /*for (i=0; i<p; i++) {
-        printf("Schur Number S(%lu) = %lu\n", i+1, schurNumbers[i]);
-    }*/
-    free(schurNumbers);
     
     if (print_range) {
         schurNumberPrintPartitions(&action_s);

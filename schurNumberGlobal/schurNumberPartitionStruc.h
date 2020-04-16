@@ -36,14 +36,17 @@ struct schur_number_partition_struc {
 
 typedef struct schur_number_partition_struc schur_number_partition_t;
 
-void schur_number_partition_alloc(schur_number_partition_t *partitionstruc, mp_size_t limballoc, unsigned long p);
+void schur_number_partition_alloc(schur_number_partition_t *partitionstruc, unsigned long p);
+void schur_number_partition_init(schur_number_partition_t *partitionstruc, mp_size_t limballoc);
 
 void schur_number_partition_dealloc(schur_number_partition_t *partitionstruc);
 
-//void schur_number_translation(mp_limb_t *r_set, const mp_limb_t *set, mp_size_t limbsize, unsigned long nrem) __attribute__((__always_inline__)) ;
-//void schur_number_ntranslation(mp_limb_t *r_set, const mp_limb_t *set, mp_size_t limbsize, unsigned long nrem) __attribute__((__always_inline__)) ;
+unsigned long schurNumberPartitionSetString(schur_number_partition_t *partition, char **str, size_t str_size, int format);
+
 void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t limbsize, unsigned long x);
 void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t limbsize, unsigned long x);
+
+void schur_number_set_revert(mp_limb_t *r_set, mp_limb_t *set, mp_size_t limbsize);
 
 static inline void schur_number_translation(mp_limb_t *r_set, const mp_limb_t *set, mp_size_t limbsize, unsigned long n) {
     /* Calcule set + n et place le résultat dans r_set. */

@@ -10,6 +10,7 @@
 #include <time.h>
 #include <libgen.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "schurNumberConstrainedBuild.h"
 //#include "../schurNumberGlobal/schurNumberThreads.h"
@@ -33,6 +34,7 @@ void usage(char *cmdname) {
             "\t-u: Affichage du nombre de partitions non prolongeables\n"\
             "\t-c: Affichage du nombre total de partitions testées\n"\
             "\t-e: Affichage du nombre de partitions testées pour chaque thread\n"\
+            "\t-f: Ensembles au format binaire (vecteur de 0 et 1)\n"\
             "\t-m method: Selection d'une méthode\n"\
             "\t\t1: Recherche totalement exhaustive (par défaut)\n"\
             "\t-t: Affichage du temps d'exécution\n"\
@@ -53,11 +55,12 @@ int main(int argc, const char * argv[]) {
     char threadPartitionNumberOption = 0;
     char method = 0;
     char *print_range = NULL;
+    int format = SCHUR_NUMBER_ELEMENT_FORMAT;
     clock_t time0;
     clock_t time1;
     
     // Analyse des options
-    while ((c = getopt(argc, argv, "abcehm:p:tu")) != -1) {
+    while ((c = getopt(argc, argv, "abcefhm:p:tu")) != -1) {
         switch (c) {
             case 'a':
                 timeOption = 1;
@@ -81,6 +84,10 @@ int main(int argc, const char * argv[]) {
                 
             case 'e':
                 threadPartitionNumberOption = 1;
+                break;
+                
+            case 'f':
+                format = SCHUR_NUMBER_NUMERIC_FORMAT;
                 break;
                 
             case 'h':
@@ -163,7 +170,7 @@ int main(int argc, const char * argv[]) {
     // Allocation de la partition de contrainte
     mp_limb_t **constraint_partition = calloc(sizeof(mp_limb_t *), p);
     
-    mp_size_t constraint_size = (schurNumberGetPartition(p, arg_ptr, constraint_partition, NULL, 1) >> 6) + 1;
+    mp_size_t constraint_size = (schurNumberGetPartition(p, constraint_partition, NULL, 1, arg_ptr, format) >> 6) + 1;
     
     arg_ptr += p;
     argc2 -= p;
@@ -172,7 +179,8 @@ int main(int argc, const char * argv[]) {
     schur_number_partition_t partition_s;
     
     mp_size_t limballoc = PARTITION_2_LIMBSIZE(p);
-    schur_number_partition_alloc(&partition_s, limballoc, p);
+    schur_number_partition_alloc(&partition_s, p);
+    schur_number_partition_init(&partition_s, limballoc);
     
     if (0 < argc2) {
         // Récupérer la partition initiale depuis argv
@@ -185,12 +193,10 @@ int main(int argc, const char * argv[]) {
         
         for (unsigned long j = 0; j < p_init; j++) {
             
-            unsigned long nmax = schurNumberGetSetMaximum(*arg_ptr);
+            unsigned long nmax = schurNumberGetSet(partition_s.partition[j], partition_s.partitioninvert[j], limballoc, *arg_ptr, format);
             if (n_init < nmax) {
                 n_init = nmax;
             }
-            
-            schurNumberGetSet(*arg_ptr, partition_s.partition[j], partition_s.partitioninvert[j], limballoc);
             arg_ptr++;
         }
         
@@ -224,8 +230,9 @@ int main(int argc, const char * argv[]) {
     
     // Lancement du code
     time0 = clock();
-    schurNumberLaunch(methodfunc, &partition_s, &action_s, constraint_partition, constraint_size, mp_bits_per_limb * limballoc, threadPartitionNumberOption);
+    //schurNumberLaunch(methodfunc, &partition_s, &action_s, constraint_partition, constraint_size, mp_bits_per_limb * limballoc, threadPartitionNumberOption);
     time1 = clock();
+
     
     // Destruction de la sauvegarde temporaire
     schurNumberSaveDealloc(&save_str);

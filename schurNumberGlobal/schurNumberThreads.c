@@ -57,7 +57,8 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
         
         for (unsigned long i = 0; i < count; i++) {
             schur_number_partition_t *partitionstruc = &(work_partitionstruc_array[i]);
-            schur_number_partition_alloc(partitionstruc, limballoc, p);
+            schur_number_partition_alloc(partitionstruc, p);
+            schur_number_partition_init(partitionstruc, limballoc);
             
             partitionstruc->n = n;
             partitionstruc->limbsize = limbsize;
