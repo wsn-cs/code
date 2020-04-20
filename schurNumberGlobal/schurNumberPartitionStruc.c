@@ -58,7 +58,7 @@ void schur_number_partition_dealloc(schur_number_partition_t *partitionstruc) {
     mp_limb_t **partitioninvert = partitionstruc->partitioninvert;
     
     for (unsigned long j = 0; j < p; j++) {
-        if (partitioninvert) {
+        if (partitioninvert[j]) {
             free(partitioninvert[j]);
         }
     }

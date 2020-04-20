@@ -21,6 +21,7 @@ unsigned long schurNumberGetSetMaximum(char *str, int format) {
         case SCHUR_NUMBER_NUMERIC_FORMAT:
             {
                 mpz_t set_int;
+                mpz_init(set_int);
                 gmp_sscanf(str, "%Zd", set_int);
                 nmax = mpz_sizeinbase(set_int, 2) - 1;
             }
@@ -56,6 +57,7 @@ unsigned long schurNumberGetSet(mp_limb_t *set, mp_limb_t *setinvert, mp_size_t 
             /* La chaîne str est déjà sous la forme d'un grand entier.*/
             {
                 mpz_t set_int;
+                mpz_init(set_int);
                 gmp_sscanf(str, "%Zd", set_int);
                 nmax = mpz_sizeinbase(set_int, 2) - 1;
                 mpn_copyd(set, set_int->_mp_d, set_int->_mp_size);
