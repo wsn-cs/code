@@ -13,7 +13,7 @@
 #include <string.h>
 
 #include "schurNumberConstrainedBuild.h"
-//#include "../schurNumberGlobal/schurNumberThreads.h"
+#include "../schurNumberGlobal/schurNumberThreads.h"
 
 #ifdef schurNumberThreads_h
     #define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit, load_balancing_opt) schurNumberThreadsLaunch(partitionstruc, methodfunc, action, constraint_partition, constraint_size, load_balancing_opt)
