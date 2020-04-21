@@ -40,6 +40,7 @@ struct schur_number_task_arg_struc {
 
 typedef struct schur_number_task_arg_struc schur_number_task_arg_t;
 
-unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc, schur_number_method_t methodfunc, schur_number_action_t *action, mp_limb_t **constraint_partition, mp_size_t constraint_size, char load_balancing_stat);
+
+unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc, schur_number_method_t methodfunc, schur_number_action_t *action, mp_limb_t **constraint_partition, mp_size_t constraint_size);
 
 #endif /* schurNumberThreads_h */

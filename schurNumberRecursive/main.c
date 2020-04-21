@@ -240,7 +240,7 @@ int main(int argc, const char * argv[]) {
     // Affichage des résultats
     
     if (print_range) {
-        schurNumberPrintPartitions(&action_s);
+        schurNumberActionPrintPartitions(&action_s);
     }
     
     if (timeOption) {
@@ -248,15 +248,23 @@ int main(int argc, const char * argv[]) {
     }
     
     if (testedPartitionNumberOption) {
-        printf("Nombre de partitions testées: %lu\n", action_s.iter_num);
+        printf("Nombre de partitions testées: %lu\n", schurNumberActionTotalIterations(&action_s));
+    }
+    
+    if (threadPartitionNumberOption) {
+        size_t i;
+        for (i = 0; i < action_s.count_gathered_actions; i++) {
+            printf("Thread %lu : %lu tests.\n", i, action_s.gathered_actions[i]->iter_num);
+        }
+        printf("Thread %lu : %lu tests.\n", i, action_s.iter_num);
     }
     
     if (unprolongeableSfPartitionNumbersOption) {
-        printf("Nombre de partitions non prolongeables: %lu\n", action_s.count_all);
+        printf("Nombre de partitions non prolongeables: %lu\n", schurNumberActionTotalCountAll(&action_s));
     }
     
     if (bestPartitionNumbersOption) {
-        printf("Nombre de partitions de taille maximale: %lu\n", action_s.count_max);
+        printf("Nombre de partitions de taille maximale: %lu\n", schurNumberActionTotalCountMax(&action_s));
     }
     
     printf("Taille maximale : %lu\n", action_s.nmax);

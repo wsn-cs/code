@@ -17,12 +17,12 @@
 
 #ifdef schurNumberThreads_h
 
-    #define schurNumberLaunch(methodfunc, partitionstruc, action, nlimit, load_balancing_opt) schurNumberThreadsLaunch(partitionstruc, methodfunc, action, NULL, 0, load_balancing_opt)
+    #define schurNumberLaunch(methodfunc, partitionstruc, action, nlimit) schurNumberThreadsLaunch(partitionstruc, methodfunc, action, NULL, 0)
 
 #else
 
     typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
-    #define schurNumberLaunch(methodfunc, partitionstruc, action, nlimit, load_balancing_opt) do {\
+    #define schurNumberLaunch(methodfunc, partitionstruc, action, nlimit) do {\
         schurNumberSaveThreadRegister((action)->save);\
         methodfunc(partitionstruc, action, nlimit);\
         } while(0)
@@ -232,7 +232,7 @@ int main(int argc, const char * argv[]) {
     
     // Lancement du code
     time0 = clock();
-    schurNumberLaunch(methodfunc, &partition_s, &action_s, mp_bits_per_limb * limballoc, threadPartitionNumberOption);
+    schurNumberLaunch(methodfunc, &partition_s, &action_s, mp_bits_per_limb * limballoc);
     time1 = clock();
     
     // Destruction de la sauvegarde temporaire
@@ -241,7 +241,7 @@ int main(int argc, const char * argv[]) {
     // Affichage des résultats
     
     if (print_range) {
-        schurNumberPrintPartitions(&action_s);
+        schurNumberActionPrintPartitions(&action_s);
     }
     
     if (timeOption) {
@@ -249,15 +249,23 @@ int main(int argc, const char * argv[]) {
     }
     
     if (testedPartitionNumberOption) {
-        printf("Number of tested partitions: %lu\n", action_s.iter_num);
+        printf("Nombre de partitions testées: %lu\n", schurNumberActionTotalIterations(&action_s));
+    }
+    
+    if (threadPartitionNumberOption) {
+        size_t i;
+        for (i = 0; i < action_s.count_gathered_actions; i++) {
+            printf("Thread %lu : %lu tests.\n", i, action_s.gathered_actions[i]->iter_num);
+        }
+        printf("Thread %lu : %lu tests.\n", i, action_s.iter_num);
     }
     
     if (unprolongeableSfPartitionNumbersOption) {
-        printf("Number of unprolongeable partitions: %lu\n", action_s.count_all);
+        printf("Nombre de partitions non prolongeables: %lu\n", schurNumberActionTotalCountAll(&action_s));
     }
     
     if (bestSfPartitionNumbersOption) {
-        printf("Number of maximal sized partitions: %lu\n", action_s.count_max);
+        printf("Nombre de partitions de taille maximale: %lu\n", schurNumberActionTotalCountMax(&action_s));
     }
     
     printf("Nombre de Schur S(%lu) ≥ %lu\n", p, action_s.nmax);

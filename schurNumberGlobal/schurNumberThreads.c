@@ -32,6 +32,7 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
     while (count <= 2 * NUM_THREADS && has_improved) {
         // Recherche des partitions
         for (unsigned long i = 0; i < count; i++) {
+            schurNumberPrintPartition(p, n+1, work_partitionstruc_array[i].partition);
             methodfunc(&(work_partitionstruc_array[i]), &action_s, n + 4, constraint_partition, constraint_size);
         }
         fflush(action_s.limbsize_stream);
@@ -86,7 +87,7 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
     
     *partitionstruc_array_ptr = work_partitionstruc_array;
     
-    //schurNumberPrintPartitions(&action_s);
+    schurNumberActionPrintPartitions(&action_s);
     schurNumberActionDealloc(&action_s);
     
     return count;
@@ -178,11 +179,11 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
     }
 }
 
-unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc, schur_number_method_t methodfunc, schur_number_action_t *action, mp_limb_t **constraint_partition, mp_size_t constraint_size, char load_balancing_stat) {
+unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc, schur_number_method_t methodfunc, schur_number_action_t *action, mp_limb_t **constraint_partition, mp_size_t constraint_size) {
     /*Cette fonction initialise plusieurs threads. La répartition se fait en spécifiant différentes partitions de départ pour n = 4.*/
     
     pthread_t threads[NUM_THREADS - 1];
-    schur_number_action_t actions[NUM_THREADS - 1];
+    schur_number_action_t *actions[NUM_THREADS - 1];
     schur_number_task_arg_t arg_s_array[NUM_THREADS];
     schur_number_partition_t *partitionstruc_array = NULL;
     
@@ -210,14 +211,15 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
         arg->count = count;
         arg->current_index_ptr = &current_index;
         arg->partitionstruc_array = partitionstruc_array;
-        schurNumberActionAlloc(&actions[i], p, action->func);
-        actions[i].count_limit = action->count_limit;
-        arg->action = &actions[i];
+        actions[i] = calloc(1, sizeof(schur_number_action_t));
+        schurNumberActionAlloc(actions[i], p, action->func);
+        actions[i]->count_limit = action->count_limit;
+        arg->action = actions[i];
         arg->constraint_size = constraint_size;
         arg->constraint_partition = constraint_partition;
         arg->func = methodfunc;
         arg->mutex = &mutex_s;
-        actions[i].save = save;
+        actions[i]->save = save;
         
         // Création du thread
         pthread_create(&threads[i], NULL, schurNumberThreadTask, arg);
@@ -242,21 +244,15 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
     // Regroupement
     for (unsigned int i = 0; i < NUM_THREADS - 1; i++) {
         pthread_join(threads[i], NULL);
-        if (load_balancing_stat) {
-            printf("Thread %u : %lu tests.\n", i, actions[i].iter_num);
-        }
     }
     
-    if (load_balancing_stat) {
-        printf("Thread %u : %lu tests.\n", NUM_THREADS - 1, action->iter_num);
-    }
+    //schurNumberActionGatherCopy(action, actions, NUM_THREADS - 1);
+    schurNumberActionGatherNoCopy(action, actions, NUM_THREADS - 1);
     
-    schurNumberActionGatherCopy(action, actions, NUM_THREADS - 1);
-    //schurNumberActionGatherNoCopy(action, actions, NUM_THREADS - 1);
-    
-    for (unsigned int i = 0; i < NUM_THREADS - 1; i++) {
-        schurNumberActionDealloc(&actions[i]);
-    }
+//    for (unsigned int i = 0; i < NUM_THREADS - 1; i++) {
+//        schurNumberActionDealloc(actions[i]);
+//        free(actions[i]);
+//    }
     
     // Nettoyage
     schurNumberPartitionPoolDealloc(&partitionstruc_array, count);
