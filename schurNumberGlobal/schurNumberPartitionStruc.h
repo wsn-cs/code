@@ -18,7 +18,7 @@
 
 #define GET_POINT(set, x) ((set)[(x) / mp_bits_per_limb] & ((unsigned long)1 << ((x) % mp_bits_per_limb)))
 
-#define PARTITION_2_LIMBSIZE(p) (((4 << (2 * (p))) >> 6) + 1)
+#define PARTITION_2_LIMBSIZE(p) (((1 << (2 * (p) - 1)) >> 6) + 1)
 
 #define INTEGER_2_LIMBSIZE(n) ((n) / mp_bits_per_limb) + 1
 
