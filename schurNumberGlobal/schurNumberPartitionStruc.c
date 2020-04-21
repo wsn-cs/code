@@ -144,4 +144,5 @@ void schur_number_set_revert(mp_limb_t *r_set, mp_limb_t *set, mp_size_t limbsiz
     #endif
         r_set[limbsize - i - 1] = v;
     }
+    mpn_lshift(r_set, r_set, limbsize, 1);
 }
