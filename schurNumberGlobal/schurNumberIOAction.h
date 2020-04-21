@@ -12,6 +12,8 @@
 #include "schurNumberIO.h"
 #include "schurNumberSaving.h"
 
+enum schur_number_action_flag {SCHUR_NUMBER_DEFAULT, SCHUR_NUMBER_INTERMEDIATE_PRINT, SCHUR_NUMBER_PRINT_AND_STOP};
+
 struct schurNumberIOAction {
     unsigned long p;        // Nombre d'ensembles par partition
     
