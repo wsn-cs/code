@@ -125,7 +125,7 @@ int main(int argc, const char * argv[]) {
     
     // Initialisation de l'action
     schur_number_action_t action_s;
-    void (*actionfunc)(mp_limb_t **, unsigned long, struct schurNumberIOAction *);
+    unsigned long (*actionfunc)(mp_limb_t **, unsigned long, struct schurNumberIOAction *);
     size_t part_count_limit = 0;
     
     if (print_range) {

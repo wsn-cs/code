@@ -82,9 +82,9 @@ static inline void schur_number_ntranslation(mp_limb_t *r_set, const mp_limb_t *
     }
 }
 
-static inline void schur_number_setinterval_1(mp_limb_t *set, mp_size_t limbsize, unsigned long n) {
+static inline void schur_number_setinterval_1(mp_limb_t *set, mp_size_t limbsize, mp_size_t blockingsize, unsigned long n) {
     /* Place l'intervalle [1, n-1] = 2^n - 1 dans set. */
-    mp_size_t blockingsize = (n >> 6) + 1;
+    //mp_size_t blockingsize = (n >> 6) + 1;
     
     mpn_zero(set, limbsize);
     *set = (mp_limb_t)1;
@@ -94,13 +94,13 @@ static inline void schur_number_setinterval_1(mp_limb_t *set, mp_size_t limbsize
     set[blockingsize - 1] = ((mp_limb_t)1 << (n % GMP_NUMB_BITS)) - 1;
 }
 
-static inline void schur_number_setinterval_s(mp_limb_t *set, mp_size_t limbsize, unsigned long n) {
-    /* Place l'intervalle [n+1, limbsize * GMP_NUMB_BITS - 1] = -2^n dans set. */
-    mp_size_t blockingsize = (n >> 6) + 1;
+static inline void schur_number_setinterval_s(mp_limb_t *set, mp_size_t limbsize, mp_size_t blockingsize, unsigned long n) {
+    /* Place l'intervalle [n+1, limbsize * GMP_NUMB_BITS - 1] = -2^n dans set. Cette fonction ne marcje pas si n = 1. */
+    //mp_size_t blockingsize = (n >> 6) + 1;
     
     mpn_zero(set, limbsize);
+    ADD_POINT(set, GMP_NUMB_BITS * limbsize - n + 1);
     mp_limb_t *set0 = set + limbsize - blockingsize;
-    *set0 = (mp_limb_t)1 << (GMP_NUMB_BITS - (n % GMP_NUMB_BITS));
     mpn_neg(set0, set0, blockingsize);
 }
 

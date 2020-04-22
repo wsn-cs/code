@@ -187,15 +187,9 @@ unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitions
                 // Revenir à une partition de [1, nblocking-1]
                 
                 // Masquer tous les bits au-delà de nblocking en construisant un masque
-                mpn_zero(work1, limbsize);
                 
                 mp_size_t blockinglimbsize = (nblocking / GMP_NUMB_BITS) + 1;    // Nombre de limbes nécessaires pour contenir nblocking
-                
-                *work1 = (mp_limb_t)1;
-                
-                mpn_neg(work1, work1, blockinglimbsize);                            // Attribue 1 à tous les bits < nblockinglimbsize * 64
-                
-                work1[blockinglimbsize - 1] >>= GMP_NUMB_BITS - (nblocking % GMP_NUMB_BITS);
+                schur_number_setinterval_1(work1, limbsize, blockinglimbsize, nblocking); // work1 = [1, nblocking-1]
                 
                 // Appliquer le masque
                 for (unsigned long i = 0; i < p; i++) {
