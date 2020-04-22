@@ -28,8 +28,8 @@ unsigned long schurNumberExhaustive(schur_number_partition_t *partitionstruc, sc
     mp_limb_t **partitioninvert = partitionstruc->partitioninvert;
     mp_size_t limballoc = partitionstruc->limballoc;    // Nombre de limbes alloué à chaque ensemble de sfpartition
     mp_size_t limbsize = partitionstruc->limbsize;      // Nombre de limbes utilisés par les ensembles de sfpartition
-    unsigned long nsize = mp_bits_per_limb * limbsize - 1;      // Plus grand entier pouvant être contenu dans limbsize limbes
-    unsigned long nalloc = mp_bits_per_limb * limballoc - 1;    // Plus grand entier pouvant être contenu dans limballoc limbes
+    unsigned long nsize = GMP_NUMB_BITS * limbsize - 1;      // Plus grand entier pouvant être contenu dans limbsize limbes
+    unsigned long nalloc = GMP_NUMB_BITS * limballoc - 1;    // Plus grand entier pouvant être contenu dans limballoc limbes
     
     // Initialisation des ensembles intermédiaires
     mp_limb_t *work1 = calloc(sizeof(mp_limb_t), limballoc);
@@ -58,9 +58,9 @@ unsigned long schurNumberExhaustive(schur_number_partition_t *partitionstruc, sc
             // Calculer (n+1) - huche i = (nsize + 1 - partitioninvert[i]) - (nsize - n) en effectuant une succession de décalage vers la droite
             unsigned long nrem = nsize - n;
             while (nrem > 0) {
-                unsigned int shift = nrem % mp_bits_per_limb;
+                unsigned int shift = nrem % GMP_NUMB_BITS;
                 if (!shift) {
-                    shift = mp_bits_per_limb - 1;
+                    shift = GMP_NUMB_BITS - 1;
                 }
                 
                 mpn_rshift(work1, work0, limbsize, shift);     // work1 = work0 - shift
@@ -86,7 +86,7 @@ unsigned long schurNumberExhaustive(schur_number_partition_t *partitionstruc, sc
                 i = 0;
                 if (n > nsize) {
                     limbsize++;
-                    nsize += mp_bits_per_limb;
+                    nsize += GMP_NUMB_BITS;
                 }
                 p++;
                 is_new_branch = 1;
@@ -117,9 +117,9 @@ unsigned long schurNumberExhaustive(schur_number_partition_t *partitionstruc, sc
                 n--;
                 DELETE_POINT(partitioninvert[i], nalloc - n);
                 
-                if (n + mp_bits_per_limb <= nsize) {
+                if (n + GMP_NUMB_BITS <= nsize) {
                     limbsize--;
-                    nsize -= mp_bits_per_limb;
+                    nsize -= GMP_NUMB_BITS;
                 }
                 i++;
             }
@@ -132,7 +132,7 @@ unsigned long schurNumberExhaustive(schur_number_partition_t *partitionstruc, sc
             i = 0;
             if (n > nsize) {
                 limbsize++;
-                nsize += mp_bits_per_limb;
+                nsize += GMP_NUMB_BITS;
             }
             is_new_branch = 1;
         }

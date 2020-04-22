@@ -208,7 +208,7 @@ int main(int argc, const char * argv[]) {
         //partition_s.p = 1;
         //partition_s.n = 0;
         ADD_POINT(*(partition_s.partition), 0);
-        //ADD_POINT(partition_s.partitioninvert[0], limballoc * mp_bits_per_limb - 1);
+        //ADD_POINT(partition_s.partitioninvert[0], limballoc * GMP_NUMB_BITS - 1);
     }
     
     // Sélection de la méthode
@@ -230,7 +230,7 @@ int main(int argc, const char * argv[]) {
     
     // Lancement du code
     time0 = clock();
-    //schurNumberLaunch(methodfunc, &partition_s, &action_s, constraint_partition, constraint_size, mp_bits_per_limb * limballoc, threadPartitionNumberOption);
+    //schurNumberLaunch(methodfunc, &partition_s, &action_s, constraint_partition, constraint_size, GMP_NUMB_BITS * limballoc, threadPartitionNumberOption);
     time1 = clock();
 
     

@@ -68,7 +68,7 @@ void schur_number_partition_dealloc(schur_number_partition_t *partitionstruc) {
 
 void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t limbsize, unsigned long x) {
     /* Cette fonction calcule set1 + set2 - x et le place dans r_set, qui doit pouvoir contenir tous les éléments. */
-    unsigned long nsize = limbsize * mp_bits_per_limb;
+    unsigned long nsize = limbsize * GMP_NUMB_BITS;
     
     mp_limb_t *work = calloc(limbsize, sizeof(mp_limb_t));
     
@@ -92,7 +92,7 @@ void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_si
 
 void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t limbsize, unsigned long x) {
     /* Cette fonction calcule set1 + set2 - x et le place dans r_set, qui doit pouvoir contenir tous les éléments. */
-    unsigned long nsize = limbsize * mp_bits_per_limb;
+    unsigned long nsize = limbsize * GMP_NUMB_BITS;
     
     mp_limb_t *work = calloc(limbsize, sizeof(mp_limb_t));
     

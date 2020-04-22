@@ -28,8 +28,8 @@ unsigned long schurNumberConstrainedBuild(schur_number_partition_t *partitionstr
     mp_limb_t **partitioninvert = partitionstruc->partitioninvert;
     mp_size_t limballoc = partitionstruc->limballoc;    // Nombre de limbes alloué à chaque ensemble de sfpartition
     mp_size_t limbsize = partitionstruc->limbsize;      // Nombre de limbes utilisés par les ensembles de sfpartition
-    unsigned long nsize = mp_bits_per_limb * limbsize;      // Plus grand entier pouvant être contenu dans limbsize limbes
-    unsigned long nalloc = mp_bits_per_limb * limballoc;    // Plus grand entier pouvant être contenu dans limballoc limbes
+    unsigned long nsize = GMP_NUMB_BITS * limbsize;      // Plus grand entier pouvant être contenu dans limbsize limbes
+    unsigned long nalloc = GMP_NUMB_BITS * limballoc;    // Plus grand entier pouvant être contenu dans limballoc limbes
     
     mp_limb_t *work1 = calloc(sizeof(mp_limb_t), limballoc);
     mp_limb_t *work2 = calloc(sizeof(mp_limb_t), constraint_size);
@@ -54,9 +54,9 @@ unsigned long schurNumberConstrainedBuild(schur_number_partition_t *partitionstr
             mp_limb_t *work0 = partitioninvert[i] + (limballoc - limbsize);
             
             while (nrem > 0) {
-                unsigned int shift = nrem % mp_bits_per_limb;
+                unsigned int shift = nrem % GMP_NUMB_BITS;
                 if (!shift) {
-                    shift = mp_bits_per_limb - 1;
+                    shift = GMP_NUMB_BITS - 1;
                 }
                 
                 mpn_rshift(work1, work0, limbsize, shift);     // work1 = work0 - shift
@@ -87,9 +87,9 @@ unsigned long schurNumberConstrainedBuild(schur_number_partition_t *partitionstr
             }
             DELETE_POINT(partition[i], n);
             DELETE_POINT(partitioninvert[i], nalloc - n);
-            if (nsize >= n + mp_bits_per_limb) {
+            if (nsize >= n + GMP_NUMB_BITS) {
                 limbsize--;
-                nsize -= mp_bits_per_limb;
+                nsize -= GMP_NUMB_BITS;
             }
             i++;
             
@@ -100,7 +100,7 @@ unsigned long schurNumberConstrainedBuild(schur_number_partition_t *partitionstr
             n++;
             if (nsize < n) {
                 limbsize++;
-                nsize += mp_bits_per_limb;
+                nsize += GMP_NUMB_BITS;
             }
             i = 0;
             is_new_branch = 1;

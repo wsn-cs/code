@@ -30,8 +30,8 @@ unsigned long schurNumberBranchBound(schur_number_partition_t *partitionstruc, s
     mp_limb_t **partitioninvert = partitionstruc->partitioninvert;
     mp_size_t limballoc = partitionstruc->limballoc;            // Nombre de limbes alloué à chaque ensemble de partition
     mp_size_t limbsize = partitionstruc->limbsize;              // Nombre de limbes utilisés par les ensembles de partition
-    unsigned long nsize = mp_bits_per_limb * limbsize - 1;      // Plus grand entier pouvant être contenu dans limbsize limbes
-    unsigned long nalloc = mp_bits_per_limb * limballoc - 1;    // Plus grand entier pouvant être contenu dans limballoc limbes
+    unsigned long nsize = GMP_NUMB_BITS * limbsize - 1;      // Plus grand entier pouvant être contenu dans limbsize limbes
+    unsigned long nalloc = GMP_NUMB_BITS * limballoc - 1;    // Plus grand entier pouvant être contenu dans limballoc limbes
     
     // Initialisation des ensembles intermédiaires
     mp_limb_t *work1 = calloc(sizeof(mp_limb_t), limballoc);
@@ -61,9 +61,9 @@ unsigned long schurNumberBranchBound(schur_number_partition_t *partitionstruc, s
             // Calculer (n+1) - huche i = (nsize + 1 - partitioninvert[i]) - (nsize - n) en effectuant une succession de décalage vers la droite
             unsigned long nrem = nsize - n;
             while (nrem > 0) {
-                unsigned int shift = nrem % mp_bits_per_limb;
+                unsigned int shift = nrem % GMP_NUMB_BITS;
                 if (!shift) {
-                    shift = mp_bits_per_limb - 1;
+                    shift = GMP_NUMB_BITS - 1;
                 }
                 
                 mpn_rshift(work1, work0, limbsize, shift);     // work1 = work0 - shift
@@ -97,7 +97,7 @@ unsigned long schurNumberBranchBound(schur_number_partition_t *partitionstruc, s
                 i = 0;
                 if (n > nsize) {
                     limbsize++;
-                    nsize += mp_bits_per_limb;
+                    nsize += GMP_NUMB_BITS;
                 }
                 p++;
                 is_new_branch = 1;
@@ -128,7 +128,7 @@ unsigned long schurNumberBranchBound(schur_number_partition_t *partitionstruc, s
                 mpn_zero(work1, limbsize);
                 mpn_zero(work2, limbsize);
                 
-                mp_size_t blockinglimbsize = (nblocking / mp_bits_per_limb) + 1;    // Nombre de limbes nécessaires pour contenir nblocking
+                mp_size_t blockinglimbsize = (nblocking / GMP_NUMB_BITS) + 1;    // Nombre de limbes nécessaires pour contenir nblocking
                 
                 *work1 = (mp_limb_t)1;
                 mp_limb_t *work0 = work2 + limbsize - blockinglimbsize;
@@ -137,8 +137,8 @@ unsigned long schurNumberBranchBound(schur_number_partition_t *partitionstruc, s
                 mpn_neg(work1, work1, blockinglimbsize);                            // Attribue 1 à tous les bits < nblockinglimbsize * 64
                 mpn_neg(work0, work0, blockinglimbsize);
                 
-                work1[blockinglimbsize - 1] >>= mp_bits_per_limb - (nblocking % mp_bits_per_limb);
-                *work0 <<= mp_bits_per_limb - (nblocking % mp_bits_per_limb) + 1;
+                work1[blockinglimbsize - 1] >>= GMP_NUMB_BITS - (nblocking % GMP_NUMB_BITS);
+                *work0 <<= GMP_NUMB_BITS - (nblocking % GMP_NUMB_BITS) + 1;
                 
                 // Appliquer le masque
                 for (unsigned long i = 0; i < p; i++) {
@@ -153,7 +153,7 @@ unsigned long schurNumberBranchBound(schur_number_partition_t *partitionstruc, s
                 
                 n = nblocking - 1;
                 limbsize = blockinglimbsize;
-                nsize = mp_bits_per_limb * blockinglimbsize - 1;
+                nsize = GMP_NUMB_BITS * blockinglimbsize - 1;
                 
                 i = iblocking + 1;
                 nblocking = n;
@@ -166,7 +166,7 @@ unsigned long schurNumberBranchBound(schur_number_partition_t *partitionstruc, s
             i = 0;
             if (n > nsize) {
                 limbsize++;
-                nsize += mp_bits_per_limb;
+                nsize += GMP_NUMB_BITS;
             }
             is_new_branch = 1;
             nblocking = 1;

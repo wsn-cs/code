@@ -33,8 +33,8 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
     mp_limb_t **partition = partitionstruc->partition;
     mp_size_t limballoc = partitionstruc->limballoc;            // Nombre de limbes alloué à chaque ensemble de partition
     mp_size_t limbsize = partitionstruc->limbsize;              // Nombre de limbes utilisés par les ensembles de partition
-    unsigned long nsize = mp_bits_per_limb * limbsize - 1;      // Plus grand entier pouvant être contenu dans limbsize limbes
-    unsigned long nalloc = mp_bits_per_limb * limballoc - 1;    // Plus grand entier pouvant être contenu dans limballoc limbes
+    unsigned long nsize = GMP_NUMB_BITS * limbsize - 1;      // Plus grand entier pouvant être contenu dans limbsize limbes
+    unsigned long nalloc = GMP_NUMB_BITS * limballoc - 1;    // Plus grand entier pouvant être contenu dans limballoc limbes
     
     // Initialisation des ensembles intermédiaires
     mp_limb_t *work1 = calloc(sizeof(mp_limb_t), limballoc);
@@ -155,7 +155,7 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
                 i = 0;
                 if (n > nsize) {
                     limbsize++;
-                    nsize += mp_bits_per_limb;
+                    nsize += GMP_NUMB_BITS;
                 }
                 p++;
                 is_new_branch = 1;
@@ -186,13 +186,13 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
                 // Masquer tous les bits au-delà de nblocking en construisant un masque
                 mpn_zero(work1, limbsize);
                 
-                mp_size_t blockinglimbsize = (nblocking / mp_bits_per_limb) + 1;    // Nombre de limbes nécessaires pour contenir nblocking
+                mp_size_t blockinglimbsize = (nblocking / GMP_NUMB_BITS) + 1;    // Nombre de limbes nécessaires pour contenir nblocking
                 
                 *work1 = (mp_limb_t)1;
                 
                 mpn_neg(work1, work1, blockinglimbsize);                            // Attribue 1 à tous les bits < nblockinglimbsize * 64
                 
-                work1[blockinglimbsize - 1] >>= mp_bits_per_limb - (nblocking % mp_bits_per_limb);
+                work1[blockinglimbsize - 1] >>= GMP_NUMB_BITS - (nblocking % GMP_NUMB_BITS);
                 
                 // Appliquer le masque
                 for (unsigned long i = 0; i < p; i++) {
@@ -230,7 +230,7 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
                 
                 n = nblocking - 1;
                 limbsize = blockinglimbsize;
-                nsize = mp_bits_per_limb * blockinglimbsize - 1;
+                nsize = GMP_NUMB_BITS * blockinglimbsize - 1;
                 
                 i = iblocking + 1;
                 nblocking = n;
@@ -252,7 +252,7 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
             i = 0;
             if (n > nsize) {
                 limbsize++;
-                nsize += mp_bits_per_limb;
+                nsize += GMP_NUMB_BITS;
             }
             is_new_branch = 1;
             nblocking = n;

@@ -15,7 +15,7 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
     unsigned long p = beginpartitionstruc->pmax;
     unsigned long n = beginpartitionstruc->n;
     mp_size_t limballoc = beginpartitionstruc->limballoc;
-    unsigned long nalloc = limballoc * mp_bits_per_limb;
+    unsigned long nalloc = limballoc * GMP_NUMB_BITS;
     
     schur_number_action_t action_s;
     #ifdef schurNumberConstrainedBuild_h
@@ -32,7 +32,6 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
     while (count <= 2 * NUM_THREADS && has_improved) {
         // Recherche des partitions
         for (unsigned long i = 0; i < count; i++) {
-            schurNumberPrintPartition(p, n+1, work_partitionstruc_array[i].partition);
             methodfunc(&(work_partitionstruc_array[i]), &action_s, n + 4, constraint_partition, constraint_size);
         }
         fflush(action_s.limbsize_stream);
@@ -143,7 +142,7 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
         schurNumberSaveNewExplorationRegister(save);
         
         unsigned long n;
-        unsigned long nalloc = partitionstruc->limballoc * mp_bits_per_limb;
+        unsigned long nalloc = partitionstruc->limballoc * GMP_NUMB_BITS;
         
         n = arg->func(partitionstruc, action, nalloc, constraint_partition, constraint_size);
         
