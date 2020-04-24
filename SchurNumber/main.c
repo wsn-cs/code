@@ -255,9 +255,9 @@ int main(int argc, const char * argv[]) {
     if (threadPartitionNumberOption) {
         size_t i;
         for (i = 0; i < action_s.count_gathered_actions; i++) {
-            printf("Thread %lu : %lu tests.\n", i, action_s.gathered_actions[i]->iter_num);
+            printf("\tThread %lu : %lu tests.\n", i, action_s.gathered_actions[i]->iter_num);
         }
-        printf("Thread %lu : %lu tests.\n", i, action_s.iter_num);
+        printf("\tThread %lu : %lu tests.\n", i, action_s.iter_num);
     }
     
     if (unprolongeableSfPartitionNumbersOption) {

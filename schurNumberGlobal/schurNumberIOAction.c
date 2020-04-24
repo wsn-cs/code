@@ -138,7 +138,7 @@ void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number
         }
     }
     
-    schur_number_action_t **gathered_actions = realloc(action_r->gathered_actions, old_n_actions + n_actions);
+    schur_number_action_t **gathered_actions = realloc(action_r->gathered_actions, (old_n_actions + n_actions) * sizeof(schur_number_action_t*));
     
     if (gathered_actions) {
         
