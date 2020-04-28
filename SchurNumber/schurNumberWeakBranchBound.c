@@ -130,7 +130,7 @@ unsigned long schurNumberWeakBranchBound(schur_number_partition_t *partitionstru
                     if (n >= nlimit) {
                         nblocking = n;
                     }
-                    schurNumberPrintPartition(p, n, partition);
+                    //schurNumberPrintPartition(p, n, partition);
                 }
                 is_new_branch = 0;
                 
@@ -151,11 +151,11 @@ unsigned long schurNumberWeakBranchBound(schur_number_partition_t *partitionstru
                 schur_number_setinterval_1(work1, limbsize, blockinglimbsize, nblocking); // work1 = [1, nblocking-1]
                 schur_number_setinterval_s(work2, limbsize, blockinglimbsize, nblocking); // work2 = [nsize - nblocking, nsize]
                 
-                printf("Masques : ");
+                /*printf("Masques : ");
                 schurNumberPrintSet(STDOUT_FILENO, nsize, work1);
                 printf("\n");
                 schurNumberPrintSet(STDOUT_FILENO, nalloc, work2);
-                printf("\n");
+                printf("\n");*/
                 
                 //schurNumberPrintPartition(p, n, partition);
                 //schurNumberPrintPartition(p, nalloc, partitioninvert);
@@ -165,8 +165,8 @@ unsigned long schurNumberWeakBranchBound(schur_number_partition_t *partitionstru
                     mpn_and_n(partition[i], work1, partition[i], limbsize);
                     mpn_and_n(partitioninvert[i] + (limballoc - limbsize), work2, partitioninvert[i] + (limballoc - limbsize), limbsize);
                 }
-                schurNumberPrintPartition(p, n, partition);
-                schurNumberPrintPartition(p, nalloc, partitioninvert);
+                /*schurNumberPrintPartition(p, n, partition);
+                schurNumberPrintPartition(p, nalloc, partitioninvert);*/
                 
                 while (0 < p && mpn_zero_p(partition[p - 1], limbsize)) {
                     // Supprimer la dernière huche

@@ -216,6 +216,10 @@ int main(int argc, const char * argv[]) {
             methodfunc = schurNumberWeakBranchBound;
             break;
             
+        case '6':
+            methodfunc = schurNumberWeakStackedBranchBound;
+            break;
+            
         case 'w':
             methodfunc = schurNumberWeakExhaustive;
             break;
