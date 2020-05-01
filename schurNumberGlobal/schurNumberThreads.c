@@ -86,7 +86,7 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
     
     *partitionstruc_array_ptr = work_partitionstruc_array;
     
-    schurNumberActionPrintPartitions(&action_s);
+    //schurNumberActionPrintPartitions(&action_s);
     schurNumberActionDealloc(&action_s);
     
     return count;
