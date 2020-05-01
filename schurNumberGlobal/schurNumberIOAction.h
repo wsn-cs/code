@@ -63,5 +63,6 @@ size_t schurNumberActionPrintPartitions(schur_number_action_t *action);
 unsigned long schurNumberActionTotalIterations(const schur_number_action_t *action);
 unsigned long schurNumberActionTotalCountAll(const schur_number_action_t *action);
 unsigned long schurNumberActionTotalCountMax(const schur_number_action_t *action);
+unsigned long schurNumberActionTotalNMax(const schur_number_action_t *action);
 
 #endif /* schurNumberIOAction_h */

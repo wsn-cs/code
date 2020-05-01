@@ -439,3 +439,18 @@ unsigned long schurNumberActionTotalCountMax(const schur_number_action_t *action
     
     return count;
 }
+
+unsigned long schurNumberActionTotalNMax(const schur_number_action_t *action) {
+    /* Renvoie la plus grande taille de partitions trouvée parmi toutes les actions. */
+    unsigned long nmax = action->nmax;
+    
+    schur_number_action_t **actions = action->gathered_actions;
+    for (unsigned long i = 0; i < action->count_gathered_actions; i++) {
+        unsigned long n = schurNumberActionTotalNMax(actions[i]);
+        if (n > nmax) {
+            nmax = n;
+        }
+    }
+    
+    return nmax;
+}
