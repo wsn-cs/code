@@ -95,13 +95,15 @@ static inline void schur_number_setinterval_1(mp_limb_t *set, mp_size_t limbsize
 }
 
 static inline void schur_number_setinterval_s(mp_limb_t *set, mp_size_t limbsize, mp_size_t blockingsize, unsigned long n) {
-    /* Place l'intervalle [n+1, limbsize * GMP_NUMB_BITS - 1] = -2^n dans set. Cette fonction ne marcje pas si n = 1. */
+    /* Place l'intervalle [n+1, limbsize * GMP_NUMB_BITS - 1] = -2^n dans set. Cette fonction ne marche pas si n = 1. */
     //mp_size_t blockingsize = (n >> 6) + 1;
     
     mpn_zero(set, limbsize);
-    ADD_POINT(set, GMP_NUMB_BITS * limbsize - n + 1);
-    mp_limb_t *set0 = set + limbsize - blockingsize;
-    mpn_neg(set0, set0, blockingsize);
+    if (n > 1) {
+        ADD_POINT(set, GMP_NUMB_BITS * limbsize - n + 1);
+        mp_limb_t *set0 = set + limbsize - blockingsize;
+        mpn_neg(set0, set0, blockingsize);
+    }
 }
 
 #endif /* schurNumberPartitionStruc_h */

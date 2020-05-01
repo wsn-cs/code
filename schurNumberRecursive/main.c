@@ -16,7 +16,7 @@
 #include "../schurNumberGlobal/schurNumberThreads.h"
 
 #ifdef schurNumberThreads_h
-    #define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit, load_balancing_opt) schurNumberThreadsLaunch(partitionstruc, methodfunc, action, constraint_partition, constraint_size, load_balancing_opt)
+    #define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit) schurNumberThreadsLaunch(partitionstruc, methodfunc, action, constraint_partition, constraint_size)
 #else
     #define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit, load_balancing_opt) do {\
             schurNumberSaveThreadRegister((action)->save);\
@@ -230,7 +230,7 @@ int main(int argc, const char * argv[]) {
     
     // Lancement du code
     time0 = clock();
-    //schurNumberLaunch(methodfunc, &partition_s, &action_s, constraint_partition, constraint_size, GMP_NUMB_BITS * limballoc, threadPartitionNumberOption);
+    schurNumberLaunch(methodfunc, &partition_s, &action_s, constraint_partition, constraint_size, GMP_NUMB_BITS * limballoc);
     time1 = clock();
 
     

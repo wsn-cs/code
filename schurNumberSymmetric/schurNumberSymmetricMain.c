@@ -137,7 +137,7 @@ void partition_unalloc(partition_t *partitionstruc) {
     free(partitionstruc->work1);
 }
 
-int main2(int argc, const char * argv[]) {
+int main(int argc, const char * argv[]) {
     char optc;
     char *cmdname;
     char printpartition;
@@ -265,9 +265,9 @@ int main2(int argc, const char * argv[]) {
     
     return 0;
 }
-
+/*
 int main() {
     printf("%lu\n", schurNumberSymmetricImposedPartition(532, 6));
     return 0;
-}
+}*/
 

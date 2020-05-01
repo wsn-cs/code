@@ -62,7 +62,7 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
     for (unsigned long j = 0; j < pmax; j++) {
         sumpartition[j] = calloc(sizeof(mp_limb_t) * limballoc, nlimit);    // Tableau contenant la pile des sommes de l'ensembles j
         sums_ptr[j] = sumpartition[j];                                      // Pointeur vers le sommet de la pile des sommes de l'ensembles j
-        schurNumberSumset(sums_ptr[j], partition[j], partition[j], limballoc, 0);
+        schurNumberWeakSumset(sums_ptr[j], partition[j], partition[j], limballoc, 0);
         
         unsigned long cardinal = 0;
         for (unsigned long k = 0; k < limballoc; k++) {
@@ -89,6 +89,11 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
             nmax = nalloc;
             if (!mpn_zero_p(work1, limballoc)) {
                 nmax = mpn_scan1(work1, limballoc);
+            }
+            
+            if (nmax <= nbest) {
+                notSumFree = 0;
+                nblocking = n;
             }
         }
         
@@ -172,6 +177,7 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
                     if (n >= nlimit) {
                         nblocking = n;
                     }
+                    //schurNumberPrintPartition(p, n, partition);
                 }
                 is_new_branch = 0;
                 
@@ -249,7 +255,7 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
                 nsize += GMP_NUMB_BITS;
             }
             is_new_branch = 1;
-            nblocking = n;
+            nblocking = 1;
         }
         notSumFree = 1;
     }
