@@ -18,11 +18,7 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
     unsigned long nalloc = limballoc * GMP_NUMB_BITS;
     
     schur_number_action_t action_s;
-    #ifdef schurNumberConstrainedBuild_h
-    schurNumberActionAlloc(&action_s, p, schurNumberConstrainedBuild);
-    #else
     schurNumberActionAlloc(&action_s, p, schurNumberSaveBestPartition);
-    #endif
     
     size_t count = 1;
     schur_number_partition_t *work_partitionstruc_array = beginpartitionstruc;
@@ -32,7 +28,11 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
     while (count <= 2 * NUM_THREADS && has_improved) {
         // Recherche des partitions
         for (unsigned long i = 0; i < count; i++) {
+#ifdef schurNumberConstrainedBuild_h
             methodfunc(&(work_partitionstruc_array[i]), &action_s, n + 4, constraint_partition, constraint_size);
+#else
+            methodfunc(&(work_partitionstruc_array[i]), &action_s, n + 4);
+#endif
         }
         fflush(action_s.limbsize_stream);
         fflush(action_s.partition_stream);
@@ -144,7 +144,12 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
         unsigned long n;
         unsigned long nalloc = partitionstruc->limballoc * GMP_NUMB_BITS;
         
+        #ifdef schurNumberConstrainedBuild_h
         n = arg->func(partitionstruc, action, nalloc, constraint_partition, constraint_size);
+        #else
+        n = arg->func(partitionstruc, action, nalloc);
+        #endif
+        
         
         if (n > nbest) {
             nbest = n;
