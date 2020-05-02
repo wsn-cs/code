@@ -142,12 +142,12 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
         schurNumberSaveNewExplorationRegister(save);
         
         unsigned long n;
-        unsigned long nalloc = partitionstruc->limballoc * GMP_NUMB_BITS;
+        unsigned long nlimit = arg->nlimit;
         
         #ifdef schurNumberConstrainedBuild_h
-        n = arg->func(partitionstruc, action, nalloc, constraint_partition, constraint_size);
+        n = arg->func(partitionstruc, action, nlimit, constraint_partition, constraint_size);
         #else
-        n = arg->func(partitionstruc, action, nalloc);
+        n = arg->func(partitionstruc, action, nlimit);
         #endif
         
         
@@ -183,7 +183,7 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
     }
 }
 
-unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc, schur_number_method_t methodfunc, schur_number_action_t *action, mp_limb_t **constraint_partition, mp_size_t constraint_size) {
+unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc, schur_number_method_t methodfunc, schur_number_action_t *action, unsigned long nlimit, mp_limb_t **constraint_partition, mp_size_t constraint_size) {
     /*Cette fonction initialise plusieurs threads. La répartition se fait en spécifiant différentes partitions de départ pour n = 4.*/
     
     pthread_t threads[NUM_THREADS - 1];
@@ -219,6 +219,7 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
         schurNumberActionAlloc(actions[i], p, action->func);
         actions[i]->count_limit = action->count_limit;
         arg->action = actions[i];
+        arg->nlimit = nlimit;
         arg->constraint_size = constraint_size;
         arg->constraint_partition = constraint_partition;
         arg->func = methodfunc;
@@ -237,6 +238,7 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
     arg->current_index_ptr = &current_index;
     arg->partitionstruc_array = partitionstruc_array;
     arg->action = action;
+    arg->nlimit = nlimit;
     arg->constraint_size = constraint_size;
     arg->constraint_partition = constraint_partition;
     arg->func = methodfunc;
