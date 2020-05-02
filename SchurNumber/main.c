@@ -38,6 +38,7 @@ void usage(char *cmdname) {
             "\t-c: Print total number of tested partitions\n"\
             "\t-e: Print number of tested partitions for each thread\n"\
             "\t-f: Ensembles au format binaire (vecteur de 0 et 1)\n"\
+            "\t-l lim: Limite sur la taille des partitions cherchées\n"\
             "\t-m method: Select a method\n"\
             "\t-t: Print execution's time\n"\
             "\t-h: Print usage message\n"\
@@ -52,6 +53,7 @@ int main(int argc, const char * argv[]) {
     char unprolongeableSfPartitionNumbersOption = 0;
     char testedPartitionNumberOption = 0;
     char threadPartitionNumberOption = 0;
+    unsigned long nlimit = 0;
     char method = 0;
     char *print_range = NULL;
     int format = SCHUR_NUMBER_ELEMENT_FORMAT;
@@ -59,7 +61,7 @@ int main(int argc, const char * argv[]) {
     clock_t time1;
     
     // Analyse des options
-    while ((c = getopt(argc, argv, "abcefhm:p:tu")) != -1) {
+    while ((c = getopt(argc, argv, "abcefhl:m:p:tu")) != -1) {
         switch (c) {
             case 'a':
                 timeOption = 1;
@@ -97,6 +99,10 @@ int main(int argc, const char * argv[]) {
                 timeOption = 1;
                 break;
             
+            case 'l':
+                nlimit = atol(optarg);
+                break;
+                
             case 'm':
                 method = optarg[0];
                 break;
@@ -234,9 +240,18 @@ int main(int argc, const char * argv[]) {
     schurNumberSaveAlloc(&save_str, p, partition_s.n);
     action_s.save = &save_str;
     
+    // Gestion de la taille limite des partitions cherchées qui n'excéderont pas [1, nlimit-1]
+    if (!nlimit) {
+        nlimit = GMP_NUMB_BITS * limballoc;
+    } else {
+        if (nlimit > GMP_NUMB_BITS * limballoc) {
+            nlimit = GMP_NUMB_BITS * limballoc;
+        }
+    }
+    
     // Lancement du code
     time0 = clock();
-    schurNumberLaunch(methodfunc, &partition_s, &action_s, GMP_NUMB_BITS * limballoc);
+    schurNumberLaunch(methodfunc, &partition_s, &action_s, nlimit);
     time1 = clock();
     
     // Destruction de la sauvegarde temporaire
