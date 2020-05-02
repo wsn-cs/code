@@ -242,7 +242,7 @@ unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitions
             ADD_POINT(partition[i], n);
             
             mp_limb_t *sumset = sums_ptr[i] + limballoc;
-            schur_number_translation(sumset, partition[i], limbsize, n);
+            schur_number_translation(sumset, partition[i], limballoc, n);
             mpn_ior_n(sumset, sumset, sums_ptr[i], limballoc);
             sums_ptr[i] = sumset;
             
