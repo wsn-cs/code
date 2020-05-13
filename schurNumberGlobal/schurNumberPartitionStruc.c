@@ -66,11 +66,36 @@ void schur_number_partition_dealloc(schur_number_partition_t *partitionstruc) {
     free(partitioninvert);
 }
 
-void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t limbsize, unsigned long x) {
+static inline void schur_number_translation2(mp_limb_t *r_set, const mp_limb_t *s_set, mp_size_t r_limbsize, mp_size_t s_limbsize, unsigned long n) {
+    /* Calcule s_set + n de taille s_limbsize et place le résultat dans r_set de taille r_limbsize. */
+    
+    unsigned int shift = n % GMP_NUMB_BITS;
+    if (!shift) {
+        shift = GMP_NUMB_BITS - 1;
+    }
+    mp_limb_t limb_overflow = mpn_lshift(r_set, s_set, s_limbsize, shift);     // r_set = work + shift
+    if (r_limbsize > s_limbsize) {
+        r_set[s_limbsize] = limb_overflow;
+    }
+    n -= shift;
+    
+    while (n > 0) {
+        shift = n % GMP_NUMB_BITS;
+        if (!shift) {
+            shift = GMP_NUMB_BITS - 1;
+        }
+        
+        mpn_lshift(r_set, r_set, r_limbsize, shift);     // r_set = work + shift
+        
+        n -= shift;
+    }
+}
+
+void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x) {
     /* Cette fonction calcule set1 + set2 - x et le place dans r_set, qui doit pouvoir contenir tous les éléments. */
     unsigned long nsize = limbsize * GMP_NUMB_BITS;
     
-    mp_limb_t *work = calloc(limbsize, sizeof(mp_limb_t));
+    mp_limb_t *work = calloc(r_limbsize, sizeof(mp_limb_t));
     
     for (unsigned long n = 0; n < nsize; n++) {
         // Parcourir les éléments de set1
@@ -81,20 +106,20 @@ void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_si
                 
             } else {
                 // Calculer set2 + (n - x)
-                schur_number_translation(work, set2, limbsize, n - x);
+                schur_number_translation2(work, set2, r_limbsize, limbsize, n - x);
             }
             // Ajouter work à r_set
-            mpn_ior_n(r_set, r_set, work, limbsize);
+            mpn_ior_n(r_set, r_set, work, r_limbsize);
         }
     }
     free(work);
 }
 
-void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t limbsize, unsigned long x) {
+void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x) {
     /* Cette fonction calcule set1 + set2 - x et le place dans r_set, qui doit pouvoir contenir tous les éléments. */
     unsigned long nsize = limbsize * GMP_NUMB_BITS;
     
-    mp_limb_t *work = calloc(limbsize, sizeof(mp_limb_t));
+    mp_limb_t *work = calloc(r_limbsize, sizeof(mp_limb_t));
     
     for (unsigned long n = 0; n < nsize; n++) {
         // Parcourir les éléments de set1
@@ -109,7 +134,7 @@ void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, m
                 
             } else {
                 // Calculer set2 + (n - x)
-                schur_number_translation(work, set2, limbsize, n - x);
+                schur_number_translation2(work, set2, r_limbsize, limbsize, n - x);
                 
                 if (2 * (n - x) < nsize) {
                     DELETE_POINT(work, 2 * (n - x));
@@ -117,7 +142,7 @@ void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, m
                 
             }
             // Ajouter work à r_set
-            mpn_ior_n(r_set, r_set, work, limbsize);
+            mpn_ior_n(r_set, r_set, work, r_limbsize);
         }
     }
     free(work);

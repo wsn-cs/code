@@ -62,7 +62,7 @@ unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitions
     for (unsigned long j = 0; j < pmax; j++) {
         sumpartition[j] = calloc(sizeof(mp_limb_t) * limballoc, nlimit);    // Tableau contenant la pile des sommes de l'ensembles j
         sums_ptr[j] = sumpartition[j];                                      // Pointeur vers le sommet de la pile des sommes de l'ensembles j
-        schurNumberSumset(sums_ptr[j], partition[j], partition[j], limballoc, 0);
+        schurNumberSumset(sums_ptr[j], partition[j], partition[j], limballoc, limballoc, 0);
         
         unsigned long cardinal = 0;
         for (unsigned long k = 0; k < limballoc; k++) {
