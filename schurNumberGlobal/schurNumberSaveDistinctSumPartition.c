@@ -14,7 +14,11 @@ static inline int find_sequential_index(mp_limb_t *sumset_array, mp_limb_t *sums
     
     for (*i = 0; *i < size; (*i) ++) {
         cmp_r = mpn_cmp(&(sumset_array[limbsize * sorted_indexes[*i]]), sumset, limbsize);
-        if (cmp_r >= 0) {
+        if (!cmp_r) {
+            break;
+        }
+        if (cmp_r > 0) {
+            (*i)--;
             break;
         }
     }
@@ -210,13 +214,7 @@ unsigned long schurNumberSaveDistinctRestrictedSumPartition(mp_limb_t **partitio
         size_t i2 = action->count;
         
         if (action->count > 0) {
-            //find_dichotomic_index(action->sum_partition_buffer, work, 2 * limbsize, sorted_index_sum_partition_buffer, action->count, &i1, &i2);
-            i2 = find_sequential_index(action->sum_partition_buffer, work, 2 * limbsize, sorted_index_sum_partition_buffer, action->count, &i1);
-            if (i2) {
-                i2 = i1 + 1;
-            } else {
-                i2 = i1;
-            }
+            find_dichotomic_index(action->sum_partition_buffer, work, 2 * limbsize, sorted_index_sum_partition_buffer, action->count, &i1, &i2);
         } else {
             i2 = 1;
         }
