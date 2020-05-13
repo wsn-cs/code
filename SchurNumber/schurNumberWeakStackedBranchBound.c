@@ -238,6 +238,7 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
         } else {
             // Adjoindre n+1 à la huche i et incrémenter n
             n++;
+            //printf("%lu\n", n);
             
             mp_limb_t *sumset = sums_ptr[i] + limballoc;
             schur_number_translation(sumset, partition[i], limballoc, n);

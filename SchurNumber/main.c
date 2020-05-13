@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <libgen.h>
-#include <ctype.h>
+//#include <ctype.h>
 
 #include "schurNumberMethods.h"
 #include "../schurNumberGlobal/schurNumberIOAction.h"
@@ -17,7 +17,7 @@
 
 #ifdef schurNumberThreads_h
 
-    #define schurNumberLaunch(methodfunc, partitionstruc, action, nlimit) schurNumberThreadsLaunch(partitionstruc, methodfunc, action, NULL, 0)
+    #define schurNumberLaunch(methodfunc, partitionstruc, action, nlimit) schurNumberThreadsLaunch(partitionstruc, methodfunc, action, nlimit, NULL, 0)
 
 #else
 
@@ -157,6 +157,8 @@ int main(int argc, const char * argv[]) {
     } else {
         actionfunc = schurNumberDefaultAction;
     }
+    
+    actionfunc = schurNumberSaveDistinctSumPartition;
     
     schurNumberActionAlloc(&action_s, p, actionfunc);
     action_s.count_limit = part_count_limit;

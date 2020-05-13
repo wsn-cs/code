@@ -8,7 +8,6 @@
 
 #include "schurNumberIOAction.h"
 
-
 void schurNumberActionAlloc(schur_number_action_t *action, unsigned long p, unsigned long (*func)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action)) {
     action->p = p;
     action->count = 0;
@@ -28,6 +27,18 @@ void schurNumberActionAlloc(schur_number_action_t *action, unsigned long p, unsi
     
     action->action_flag = SCHUR_NUMBER_DEFAULT;
     
+    if (func == schurNumberSaveDistinctSumPartition) {
+        action->sum_partition_stream = open_memstream(&(action->sum_partition_buffer), &(action->sum_partition_size));
+        action->sorted_index_sum_partition_stream = open_memstream(&(action->sorted_index_sum_partition_buffer), &(action->sorted_index_sum_partition_size));
+        action->work = calloc(((1 << (2 * p - 1)) / GMP_NUMB_BITS) + 1, sizeof(mp_limb_t));
+    } else {
+        action->sum_partition_buffer = NULL;
+        action->sum_partition_size = 0;
+        action->sorted_index_sum_partition_buffer = NULL;
+        action->sorted_index_sum_partition_size = 0;
+        action->work = NULL;
+    }
+    
     action->func = func;
     
     action->save = NULL;
@@ -43,6 +54,14 @@ void schurNumberActionDealloc(schur_number_action_t *action) {
     
     free(action->limbsize_buffer);
     free(action->partition_buffer);
+    
+    if (action->sum_partition_buffer) {
+        fclose(action->sum_partition_stream);
+        free(action->sum_partition_buffer);
+        fclose(action->sorted_index_sum_partition_stream);
+        free(action->sorted_index_sum_partition_buffer);
+        free(action->work);
+    }
     
     schur_number_action_t **actions = action->gathered_actions;
     if (actions) {
