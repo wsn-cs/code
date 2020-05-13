@@ -215,10 +215,13 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
         arg->count = count;
         arg->current_index_ptr = &current_index;
         arg->partitionstruc_array = partitionstruc_array;
+        
         actions[i] = calloc(1, sizeof(schur_number_action_t));
         schurNumberActionAlloc(actions[i], p, action->func);
         actions[i]->count_limit = action->count_limit;
+        actions[i]->nmax = action->nmax;
         arg->action = actions[i];
+        
         arg->nlimit = nlimit;
         arg->constraint_size = constraint_size;
         arg->constraint_partition = constraint_partition;

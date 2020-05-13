@@ -106,6 +106,99 @@ unsigned long schurNumberSaveDistinctSumPartition(mp_limb_t **partition, unsigne
         
         /* Regarder si la somme de la partition a déjà été trouvée. */
         mp_size_t limbsize = ((unsigned long)n>>6) + 1;
+        schurNumberSumset(work, partition[p - 1], partition[p - 1], 2 * limbsize, limbsize, 0);
+        
+        fflush(sum_partition_stream);
+        fflush(sorted_index_sum_partition_stream);
+        
+        mp_limb_t *sorted_index_sum_partition_buffer = action->sorted_index_sum_partition_buffer;
+        
+        size_t i1 = 0;
+        size_t i2 = action->count;
+        
+        if (action->count > 0) {
+            //find_dichotomic_index(action->sum_partition_buffer, work, 2 * limbsize, sorted_index_sum_partition_buffer, action->count, &i1, &i2);
+            i2 = find_sequential_index(action->sum_partition_buffer, work, 2 * limbsize, sorted_index_sum_partition_buffer, action->count, &i1);
+            if (i2) {
+                i2 = i1 + 1;
+            } else {
+                i2 = i1;
+            }
+        } else {
+            i2 = 1;
+        }
+        
+        if (i1 != i2) {
+            /* Somme pas encore présente, donc ajouter la partition. */
+            fwrite(&limbsize, sizeof(mp_size_t), 1, limbsize_stream);
+            
+            for (unsigned long j = 0; j < p; j++) {
+                fwrite(partition[j], sizeof(mp_limb_t), limbsize, partition_stream);
+            }
+            
+            /* Ajouter sa somme. */
+            fwrite(work, sizeof(mp_limb_t), 2 * limbsize, sum_partition_stream);
+            
+            /* Placer son indice. */
+            size_t index = action->count;
+            for (size_t i = i1 + 1; i < action->count; i++) {
+                size_t old_index = sorted_index_sum_partition_buffer[i];
+                sorted_index_sum_partition_buffer[i] = index;
+                index = old_index;
+            }
+            fwrite(&index, sizeof(size_t), 1, sorted_index_sum_partition_stream);
+            
+            action->count ++;
+        }
+        action->count_max ++;
+    }
+    
+    return action->nmax;
+}
+
+unsigned long schurNumberSaveDistinctRestrictedSumPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
+    /* Ajoute la partition si sa somme restreinte n'a pas déjà été trouvée, et si n == nmax. */
+    unsigned long  p = action->p;
+    FILE *limbsize_stream = action->limbsize_stream;
+    FILE *partition_stream = action->partition_stream;
+    
+    FILE *sum_partition_stream = action->sum_partition_stream;
+    FILE *sorted_index_sum_partition_stream = action->sorted_index_sum_partition_stream;
+    
+    schur_number_intermediate_save_t *save = action->save;
+    
+    if (partition) {
+        action->count_all++;
+        
+        if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
+            unsigned long nbest = schurNumberSaveProgressionUpdate(save, n, partition);
+            if (nbest > action->nmax) {
+                schurNumberSaveDistinctSumPartition(NULL, nbest, action);
+            }
+        }
+    }
+    
+    if (n > action->nmax) {
+        /*Vider partitions*/
+        rewind(limbsize_stream);
+        rewind(partition_stream);
+        rewind(sum_partition_stream);
+        rewind(sorted_index_sum_partition_stream);
+        if (save) {
+            action->nmax = schurNumberSaveBestUpgrade(save, n, partition);
+        } else {
+            action->nmax = n;
+        }
+        action->count = 0;
+        action->count_max = 0;
+    }
+    
+    if (n == action->nmax && partition && action->count < action->count_limit) {
+        
+        mp_limb_t *work = action->work;
+        
+        /* Regarder si la somme de la partition a déjà été trouvée. */
+        mp_size_t limbsize = ((unsigned long)n>>6) + 1;
         schurNumberWeakSumset(work, partition[p - 1], partition[p - 1], 2 * limbsize, limbsize, 0);
         
         fflush(sum_partition_stream);
@@ -155,3 +248,4 @@ unsigned long schurNumberSaveDistinctSumPartition(mp_limb_t **partition, unsigne
     
     return action->nmax;
 }
+

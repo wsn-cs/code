@@ -148,6 +148,14 @@ int main(int argc, const char * argv[]) {
                     actionfunc = schurNumberSaveBestPartition;
                     break;
                     
+                case 's':
+                    actionfunc = schurNumberSaveDistinctSumPartition;
+                    break;
+                    
+                case 'w':
+                    actionfunc = schurNumberSaveDistinctRestrictedSumPartition;
+                    break;
+                    
                 default:
                     actionfunc = schurNumberDefaultAction;
                     break;
@@ -157,8 +165,6 @@ int main(int argc, const char * argv[]) {
     } else {
         actionfunc = schurNumberDefaultAction;
     }
-    
-    actionfunc = schurNumberSaveDistinctSumPartition;
     
     schurNumberActionAlloc(&action_s, p, actionfunc);
     action_s.count_limit = part_count_limit;

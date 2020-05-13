@@ -76,5 +76,6 @@ unsigned long schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long 
 unsigned long schurNumberSaveAllPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 
 unsigned long schurNumberSaveDistinctSumPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schurNumberSaveDistinctRestrictedSumPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 
 #endif /* schurNumberIOAction_h */
