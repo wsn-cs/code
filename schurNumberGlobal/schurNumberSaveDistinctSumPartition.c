@@ -9,7 +9,20 @@
 #include "schurNumberIOAction.h"
 #include "schurNumberPartitionStruc.h"
 
-static void find_dichotomic_index(mp_limb_t *sumset_array, mp_limb_t *sumset, mp_size_t limbsize, size_t *sorted_indexes, size_t size, size_t *i1_p, size_t *i2_p) {
+static inline int find_sequential_index(mp_limb_t *sumset_array, mp_limb_t *sumset, mp_size_t limbsize, size_t *sorted_indexes, size_t size, unsigned long *i) {
+    int cmp_r = 0;
+    
+    for (*i = 0; *i < size; (*i) ++) {
+        cmp_r = mpn_cmp(&(sumset_array[limbsize * sorted_indexes[*i]]), sumset, limbsize);
+        if (cmp_r >= 0) {
+            break;
+        }
+    }
+    
+    return cmp_r;
+}
+
+static inline void find_dichotomic_index(mp_limb_t *sumset_array, mp_limb_t *sumset, mp_size_t limbsize, size_t *sorted_indexes, size_t size, size_t *i1_p, size_t *i2_p) {
     /* Cette fonction trouve les deux indices du tableau sumset_array encadrant sumset. */
     int cmp_r;
     *i1_p = 0;
@@ -87,13 +100,13 @@ unsigned long schurNumberSaveDistinctSumPartition(mp_limb_t **partition, unsigne
         action->count_max = 0;
     }
     
-    if (n == action->nmax && partition) {
+    if (n == action->nmax && partition && action->count < action->count_limit) {
         
         mp_limb_t *work = action->work;
         
         /* Regarder si la somme de la partition a déjà été trouvée. */
         mp_size_t limbsize = ((unsigned long)n>>6) + 1;
-        schurNumberWeakSumset(work, partition[p - 1], partition[p - 1], limbsize, 0);
+        schurNumberWeakSumset(work, partition[p - 1], partition[p - 1], 2 * limbsize, limbsize, 0);
         
         fflush(sum_partition_stream);
         fflush(sorted_index_sum_partition_stream);
@@ -101,10 +114,18 @@ unsigned long schurNumberSaveDistinctSumPartition(mp_limb_t **partition, unsigne
         mp_limb_t *sorted_index_sum_partition_buffer = action->sorted_index_sum_partition_buffer;
         
         size_t i1 = 0;
-        size_t i2 = limbsize;
+        size_t i2 = action->count;
         
         if (action->count > 0) {
-            find_dichotomic_index(action->sum_partition_buffer, work, limbsize, sorted_index_sum_partition_buffer, action->count, &i1, &i2);
+            //find_dichotomic_index(action->sum_partition_buffer, work, 2 * limbsize, sorted_index_sum_partition_buffer, action->count, &i1, &i2);
+            i2 = find_sequential_index(action->sum_partition_buffer, work, 2 * limbsize, sorted_index_sum_partition_buffer, action->count, &i1);
+            if (i2) {
+                i2 = i1 + 1;
+            } else {
+                i2 = i1;
+            }
+        } else {
+            i2 = 1;
         }
         
         if (i1 != i2) {
@@ -116,7 +137,7 @@ unsigned long schurNumberSaveDistinctSumPartition(mp_limb_t **partition, unsigne
             }
             
             /* Ajouter sa somme. */
-            fwrite(work, sizeof(mp_limb_t), limbsize, sum_partition_stream);
+            fwrite(work, sizeof(mp_limb_t), 2 * limbsize, sum_partition_stream);
             
             /* Placer son indice. */
             size_t index = action->count;
