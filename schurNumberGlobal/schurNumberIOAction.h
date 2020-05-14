@@ -24,6 +24,7 @@ struct schurNumberIOAction {
     
     size_t count;           // Nombre de partitions contenues dans le tampon
     size_t count_limit;     // Nombre limite de partitions pouvant être contenues dans le tampon
+    size_t size_limit;
     
     char *limbsize_buffer;      // Tampon contenant les nombres de limbes par ensembles de la partition
     size_t limbsize_size;       // Taille du tampon en octet

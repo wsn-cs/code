@@ -13,16 +13,16 @@ size_t schurNumberOrder2Unities(unsigned long n, unsigned long *group) {
      Elle renvoie le nombre d'inversibles.
      
      Le tableau group est alloué par la fonction.*/
-    size_t count;
+    size_t count;       // Nombre d'inversibles d'ordre 2
     size_t alloc_size;
-    unsigned long i, nn;
+    unsigned long nn;
     
     nn = n+1;
     alloc_size = n;
     count = 0;
     group = calloc(alloc_size, sizeof(unsigned long));
     
-    for (i=1; i<=n; i++) {
+    for (unsigned long i = 1; i <= n; i++) {
         if ((i * i) % nn == 1) {
             group[count] = i;
             count++;
@@ -108,7 +108,7 @@ unsigned long schurNumberPermutationImproved(unsigned long n, partition_t *parti
     /*Itération jusqu'à trouver une partion sans-somme symétrique à au plus p huches*/
     while (m > 0 && m < n) {
         
-        // Placer m+1 dans une des huches en conservant la sans-sommité
+        // Placer m+1 dans une des huches en conservant le caractère sans-somme
         while (i < q) {
             // Tester si l'ensemble obtenu en ajoutant m+1 à la huche i est sans-somme
             mpn_rshift(work1, sfpartitioninvert[i] + limballoc - limbsize, limbsize, shift);

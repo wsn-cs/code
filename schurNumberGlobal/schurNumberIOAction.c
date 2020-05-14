@@ -8,6 +8,33 @@
 
 #include "schurNumberIOAction.h"
 
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
+
+#include <sys/sysctl.h>
+#define set_size_limit(size_limit_ptr) do {\
+        int64_t memsize;\
+        size_t len = sizeof(memsize);\
+        sysctlbyname("hw.memsize", &memsize, &len, NULL, 0);\
+        *(size_limit_ptr) = memsize / 16;\
+    } while(0)
+
+#elif defined(__linux__)
+
+#include <sys/sysinfo.h>
+#define set_size_limit(size_limit_ptr) do {\
+        struct sysinfo info_s;\
+        sysinfo(&info_s);\
+        *(size_limit_ptr) = info_s.totalram / 16;\
+    } while(0)
+
+#else
+
+#define set_size_limit(size_limit_ptr) do {\
+        *(size_limit_ptr) = 16777216;\
+    } while(0)
+
+#endif
+
 void schurNumberActionAlloc(schur_number_action_t *action, unsigned long p, unsigned long (*func)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action)) {
     action->p = p;
     action->count = 0;
@@ -16,6 +43,7 @@ void schurNumberActionAlloc(schur_number_action_t *action, unsigned long p, unsi
     action->count_all = 0;
     action->count_max = 0;
     action->count_limit = 0;
+    set_size_limit(&(action->size_limit));
     
     //action->limbsize_buffer = NULL;
     //action->limbsize_size = 0;
@@ -319,17 +347,19 @@ unsigned long schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long 
     }
     
     if (n == action->nmax && partition) {
-        /*Ajouter la partition.*/
-        mp_size_t limbsize = ((unsigned long)n>>6) + 1;
-        
-        fwrite(&limbsize, sizeof(mp_size_t), 1, limbsize_stream);
-        
-        for (unsigned long j = 0; j < p; j++) {
-            fwrite(partition[j], sizeof(mp_limb_t), limbsize, partition_stream);
+        if (action->partition_size < action->size_limit) {
+            /*Ajouter la partition.*/
+            mp_size_t limbsize = ((unsigned long)n>>6) + 1;
+            
+            fwrite(&limbsize, sizeof(mp_size_t), 1, limbsize_stream);
+            
+            for (unsigned long j = 0; j < p; j++) {
+                fwrite(partition[j], sizeof(mp_limb_t), limbsize, partition_stream);
+            }
+            
+            action->count ++;
         }
-        
-        action->count ++;
-        action->count_max = action->count;
+        action->count_max ++;
     }
     
     return action->nmax;
@@ -350,23 +380,25 @@ unsigned long schurNumberSaveAllPartition(mp_limb_t **partition, unsigned long n
     }
     
     if (partition) {
-        
-        unsigned long  p = action->p;
-        FILE *limbsize_stream = action->limbsize_stream;
-        FILE *partition_stream = action->partition_stream;
-        mp_size_t limbsize = ((action->nmax)>>6) + 1;
-        
-        fwrite(&limbsize, sizeof(mp_size_t), 1, limbsize_stream);
-        
-        for (unsigned long j = 0; j < p; j++) {
-            fwrite(partition[j], sizeof(mp_limb_t), limbsize, partition_stream);
+        if (action->partition_size < action->size_limit) {
+            /* Ajouter la partition. */
+            unsigned long  p = action->p;
+            FILE *limbsize_stream = action->limbsize_stream;
+            FILE *partition_stream = action->partition_stream;
+            mp_size_t limbsize = ((action->nmax)>>6) + 1;
+            
+            fwrite(&limbsize, sizeof(mp_size_t), 1, limbsize_stream);
+            
+            for (unsigned long j = 0; j < p; j++) {
+                fwrite(partition[j], sizeof(mp_limb_t), limbsize, partition_stream);
+            }
+            
+            action->count ++;
         }
-        
-        action->count ++;
         if (n == action->nmax) {
             action->count_max ++;
         }
-        action->count_all = action->count;
+        action->count_all ++;
         
         if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
             unsigned long nbest = schurNumberSaveProgressionUpdate(save, n, partition);

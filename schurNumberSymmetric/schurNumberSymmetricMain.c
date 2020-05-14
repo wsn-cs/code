@@ -249,7 +249,8 @@ int main(int argc, const char * argv[]) {
         
         sort(depths, p);
         makeInitialPartition(p, n, &partitionstruc);
-        d = schurNumberSymmetricBranch(n, &partitionstruc, depths[p-1], completesearch);
+        //d = schurNumberSymmetricBranch(n, &partitionstruc, depths[p-1], completesearch);
+        d = schurNumberPermutationImproved(n, &partitionstruc, depths[p-1], completesearch);
         
         if (printpartition) {
             printSymmetricPartition(p, n, partitionstruc.partition);

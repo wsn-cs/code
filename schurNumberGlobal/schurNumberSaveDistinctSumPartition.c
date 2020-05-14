@@ -106,56 +106,57 @@ unsigned long schurNumberSaveDistinctSumPartition(mp_limb_t **partition, unsigne
     }
     
     if (n == action->nmax && partition && action->count < action->count_limit) {
-        
-        mp_limb_t *work = action->work;
-        
-        /* Regarder si la somme de la partition a déjà été trouvée. */
-        mp_size_t limbsize = ((unsigned long)n>>6) + 1;
-        schurNumberSumset(work, partition[p - 1], partition[p - 1], 2 * limbsize, limbsize, 0);
-        
-        fflush(sum_partition_stream);
-        fflush(sorted_index_sum_partition_stream);
-        
-        size_t *sorted_index_sum_partition_buffer = action->sorted_index_sum_partition_buffer;
-        
-        size_t i1 = 0;
-        size_t i2 = action->count;
-        
-        if (action->count > 0) {
-            find_dichotomic_index(action->sum_partition_buffer, work, 2 * limbsize, sorted_index_sum_partition_buffer, action->count, &i1, &i2);
-        } else {
-            i2 = 1;
-        }
-        
-        if (i1 != i2) {
-            /* Somme pas encore présente, donc ajouter la partition. */
-            fwrite(&limbsize, sizeof(mp_size_t), 1, limbsize_stream);
+        if (action->partition_size < action->size_limit) {
+            mp_limb_t *work = action->work;
             
-            for (unsigned long j = 0; j < p; j++) {
-                fwrite(partition[j], sizeof(mp_limb_t), limbsize, partition_stream);
+            /* Regarder si la somme de la partition a déjà été trouvée. */
+            mp_size_t limbsize = ((unsigned long)n>>6) + 1;
+            schurNumberSumset(work, partition[p - 1], partition[p - 1], 2 * limbsize, limbsize, 0);
+            
+            fflush(sum_partition_stream);
+            fflush(sorted_index_sum_partition_stream);
+            
+            size_t *sorted_index_sum_partition_buffer = action->sorted_index_sum_partition_buffer;
+            
+            size_t i1 = 0;
+            size_t i2 = action->count;
+            
+            if (action->count > 0) {
+                find_dichotomic_index(action->sum_partition_buffer, work, 2 * limbsize, sorted_index_sum_partition_buffer, action->count, &i1, &i2);
+            } else {
+                i2 = 1;
             }
             
-            /* Ajouter sa somme. */
-            fwrite(work, sizeof(mp_limb_t), 2 * limbsize, sum_partition_stream);
-            
-            /* Placer son indice. */
-            size_t index = action->count;
-            for (size_t i = i1 + 1; i < action->count; i++) {
-                size_t old_index = sorted_index_sum_partition_buffer[i];
-                sorted_index_sum_partition_buffer[i] = index;
-                index = old_index;
-            }
-            fwrite(&index, sizeof(size_t), 1, sorted_index_sum_partition_stream);
-            
-            action->count ++;
-        } else {
-            /* Compter le nombre d'éléments de partition[p] et remplacer la partition déjà enregistrée si il lui est supérieur. */
-            fflush(action->partition_stream);
-            mp_limb_t *partition_buffer = action->partition_buffer;
-            size_t index = sorted_index_sum_partition_buffer[i1];
-            if (mpn_popcount(partition[p-1], limbsize) > mpn_popcount(&(partition_buffer[limbsize * (p * index + p - 1)]), limbsize)) {
+            if (i1 != i2) {
+                /* Somme pas encore présente, donc ajouter la partition. */
+                fwrite(&limbsize, sizeof(mp_size_t), 1, limbsize_stream);
+                
                 for (unsigned long j = 0; j < p; j++) {
-                    mpn_copyi(&(partition_buffer[limbsize * (p * index + j)]), partition[j], limbsize);
+                    fwrite(partition[j], sizeof(mp_limb_t), limbsize, partition_stream);
+                }
+                
+                /* Ajouter sa somme. */
+                fwrite(work, sizeof(mp_limb_t), 2 * limbsize, sum_partition_stream);
+                
+                /* Placer son indice. */
+                size_t index = action->count;
+                for (size_t i = i1 + 1; i < action->count; i++) {
+                    size_t old_index = sorted_index_sum_partition_buffer[i];
+                    sorted_index_sum_partition_buffer[i] = index;
+                    index = old_index;
+                }
+                fwrite(&index, sizeof(size_t), 1, sorted_index_sum_partition_stream);
+                
+                action->count ++;
+            } else {
+                /* Compter le nombre d'éléments de partition[p] et remplacer la partition déjà enregistrée si il lui est supérieur. */
+                fflush(action->partition_stream);
+                mp_limb_t *partition_buffer = action->partition_buffer;
+                size_t index = sorted_index_sum_partition_buffer[i1];
+                if (mpn_popcount(partition[p-1], limbsize) > mpn_popcount(&(partition_buffer[limbsize * (p * index + p - 1)]), limbsize)) {
+                    for (unsigned long j = 0; j < p; j++) {
+                        mpn_copyi(&(partition_buffer[limbsize * (p * index + j)]), partition[j], limbsize);
+                    }
                 }
             }
         }
@@ -203,56 +204,57 @@ unsigned long schurNumberSaveDistinctRestrictedSumPartition(mp_limb_t **partitio
     }
     
     if (n == action->nmax && partition) {
-        
-        mp_limb_t *work = action->work;
-        
-        /* Regarder si la somme de la partition a déjà été trouvée. */
-        mp_size_t limbsize = ((unsigned long)n>>6) + 1;
-        schurNumberWeakSumset(work, partition[p - 1], partition[p - 1], 2 * limbsize, limbsize, 0);
-        
-        fflush(sum_partition_stream);
-        fflush(sorted_index_sum_partition_stream);
-        
-        mp_limb_t *sorted_index_sum_partition_buffer = action->sorted_index_sum_partition_buffer;
-        
-        size_t i1 = 0;
-        size_t i2 = action->count;
-        
-        if (action->count > 0) {
-            find_dichotomic_index(action->sum_partition_buffer, work, 2 * limbsize, sorted_index_sum_partition_buffer, action->count, &i1, &i2);
-        } else {
-            i2 = 1;
-        }
-        
-        if (i1 != i2) {
-            /* Somme pas encore présente, donc ajouter la partition. */
-            fwrite(&limbsize, sizeof(mp_size_t), 1, limbsize_stream);
+        if (action->partition_size < action->size_limit) {
+            mp_limb_t *work = action->work;
             
-            for (unsigned long j = 0; j < p; j++) {
-                fwrite(partition[j], sizeof(mp_limb_t), limbsize, partition_stream);
+            /* Regarder si la somme de la partition a déjà été trouvée. */
+            mp_size_t limbsize = ((unsigned long)n>>6) + 1;
+            schurNumberWeakSumset(work, partition[p - 1], partition[p - 1], 2 * limbsize, limbsize, 0);
+            
+            fflush(sum_partition_stream);
+            fflush(sorted_index_sum_partition_stream);
+            
+            mp_limb_t *sorted_index_sum_partition_buffer = action->sorted_index_sum_partition_buffer;
+            
+            size_t i1 = 0;
+            size_t i2 = action->count;
+            
+            if (action->count > 0) {
+                find_dichotomic_index(action->sum_partition_buffer, work, 2 * limbsize, sorted_index_sum_partition_buffer, action->count, &i1, &i2);
+            } else {
+                i2 = 1;
             }
             
-            /* Ajouter sa somme. */
-            fwrite(work, sizeof(mp_limb_t), 2 * limbsize, sum_partition_stream);
-            
-            /* Placer son indice. */
-            size_t index = action->count;
-            for (size_t i = i1 + 1; i < action->count; i++) {
-                size_t old_index = sorted_index_sum_partition_buffer[i];
-                sorted_index_sum_partition_buffer[i] = index;
-                index = old_index;
-            }
-            fwrite(&index, sizeof(size_t), 1, sorted_index_sum_partition_stream);
-            
-            action->count ++;
-        } else {
-            /* Compter le nombre d'éléments de partition[p] et remplacer la partition déjà enregistrée si il lui est supérieur. */
-            fflush(action->partition_stream);
-            mp_limb_t *partition_buffer = action->partition_buffer;
-            size_t index = sorted_index_sum_partition_buffer[i1];
-            if (mpn_popcount(partition[p-1], limbsize) > mpn_popcount(&(partition_buffer[limbsize * (p * index + p - 1)]), limbsize)) {
+            if (i1 != i2) {
+                /* Somme pas encore présente, donc ajouter la partition. */
+                fwrite(&limbsize, sizeof(mp_size_t), 1, limbsize_stream);
+                
                 for (unsigned long j = 0; j < p; j++) {
-                    mpn_copyi(&(partition_buffer[limbsize * (p * index + j)]), partition[j], limbsize);
+                    fwrite(partition[j], sizeof(mp_limb_t), limbsize, partition_stream);
+                }
+                
+                /* Ajouter sa somme. */
+                fwrite(work, sizeof(mp_limb_t), 2 * limbsize, sum_partition_stream);
+                
+                /* Placer son indice. */
+                size_t index = action->count;
+                for (size_t i = i1 + 1; i < action->count; i++) {
+                    size_t old_index = sorted_index_sum_partition_buffer[i];
+                    sorted_index_sum_partition_buffer[i] = index;
+                    index = old_index;
+                }
+                fwrite(&index, sizeof(size_t), 1, sorted_index_sum_partition_stream);
+                
+                action->count ++;
+            } else {
+                /* Compter le nombre d'éléments de partition[p] et remplacer la partition déjà enregistrée si il lui est supérieur. */
+                fflush(action->partition_stream);
+                mp_limb_t *partition_buffer = action->partition_buffer;
+                size_t index = sorted_index_sum_partition_buffer[i1];
+                if (mpn_popcount(partition[p-1], limbsize) > mpn_popcount(&(partition_buffer[limbsize * (p * index + p - 1)]), limbsize)) {
+                    for (unsigned long j = 0; j < p; j++) {
+                        mpn_copyi(&(partition_buffer[limbsize * (p * index + j)]), partition[j], limbsize);
+                    }
                 }
             }
         }
