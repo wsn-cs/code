@@ -148,6 +148,16 @@ unsigned long schurNumberSaveDistinctSumPartition(mp_limb_t **partition, unsigne
             fwrite(&index, sizeof(size_t), 1, sorted_index_sum_partition_stream);
             
             action->count ++;
+        } else {
+            /* Compter le nombre d'éléments de partition[p] et remplacer la partition déjà enregistrée si il lui est supérieur. */
+            fflush(action->partition_stream);
+            mp_limb_t *partition_buffer = action->partition_buffer;
+            size_t index = sorted_index_sum_partition_buffer[i1];
+            if (mpn_popcount(partition[p-1], limbsize) > mpn_popcount(&(partition_buffer[limbsize * (p * index + p - 1)]), limbsize)) {
+                for (unsigned long j = 0; j < p; j++) {
+                    mpn_copyi(&(partition_buffer[limbsize * (p * index + j)]), partition[j], limbsize);
+                }
+            }
         }
         action->count_max ++;
     }
@@ -235,6 +245,16 @@ unsigned long schurNumberSaveDistinctRestrictedSumPartition(mp_limb_t **partitio
             fwrite(&index, sizeof(size_t), 1, sorted_index_sum_partition_stream);
             
             action->count ++;
+        } else {
+            /* Compter le nombre d'éléments de partition[p] et remplacer la partition déjà enregistrée si il lui est supérieur. */
+            fflush(action->partition_stream);
+            mp_limb_t *partition_buffer = action->partition_buffer;
+            size_t index = sorted_index_sum_partition_buffer[i1];
+            if (mpn_popcount(partition[p-1], limbsize) > mpn_popcount(&(partition_buffer[limbsize * (p * index + p - 1)]), limbsize)) {
+                for (unsigned long j = 0; j < p; j++) {
+                    mpn_copyi(&(partition_buffer[limbsize * (p * index + j)]), partition[j], limbsize);
+                }
+            }
         }
         action->count_max ++;
     }
