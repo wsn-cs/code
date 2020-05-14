@@ -115,19 +115,13 @@ unsigned long schurNumberSaveDistinctSumPartition(mp_limb_t **partition, unsigne
         fflush(sum_partition_stream);
         fflush(sorted_index_sum_partition_stream);
         
-        mp_limb_t *sorted_index_sum_partition_buffer = action->sorted_index_sum_partition_buffer;
+        size_t *sorted_index_sum_partition_buffer = action->sorted_index_sum_partition_buffer;
         
         size_t i1 = 0;
         size_t i2 = action->count;
         
         if (action->count > 0) {
-            //find_dichotomic_index(action->sum_partition_buffer, work, 2 * limbsize, sorted_index_sum_partition_buffer, action->count, &i1, &i2);
-            i2 = find_sequential_index(action->sum_partition_buffer, work, 2 * limbsize, sorted_index_sum_partition_buffer, action->count, &i1);
-            if (i2) {
-                i2 = i1 + 1;
-            } else {
-                i2 = i1;
-            }
+            find_dichotomic_index(action->sum_partition_buffer, work, 2 * limbsize, sorted_index_sum_partition_buffer, action->count, &i1, &i2);
         } else {
             i2 = 1;
         }
@@ -197,7 +191,7 @@ unsigned long schurNumberSaveDistinctRestrictedSumPartition(mp_limb_t **partitio
         action->count_max = 0;
     }
     
-    if (n == action->nmax && partition && action->count < action->count_limit) {
+    if (n == action->nmax && partition) {
         
         mp_limb_t *work = action->work;
         

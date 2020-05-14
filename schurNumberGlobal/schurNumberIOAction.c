@@ -27,7 +27,7 @@ void schurNumberActionAlloc(schur_number_action_t *action, unsigned long p, unsi
     
     action->action_flag = SCHUR_NUMBER_DEFAULT;
     
-    if (func == schurNumberSaveDistinctSumPartition) {
+    if ((func == schurNumberSaveDistinctSumPartition) || (func == schurNumberSaveDistinctRestrictedSumPartition)) {
         action->sum_partition_stream = open_memstream(&(action->sum_partition_buffer), &(action->sum_partition_size));
         action->sorted_index_sum_partition_stream = open_memstream(&(action->sorted_index_sum_partition_buffer), &(action->sorted_index_sum_partition_size));
         action->work = calloc(((1 << (2 * p - 1)) / GMP_NUMB_BITS) + 1, 2 * sizeof(mp_limb_t));

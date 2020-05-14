@@ -73,7 +73,7 @@ static inline void schur_number_translation2(mp_limb_t *r_set, const mp_limb_t *
     if (!shift) {
         shift = GMP_NUMB_BITS - 1;
     }
-    mp_limb_t limb_overflow = mpn_lshift(r_set, s_set, s_limbsize, shift);     // r_set = work + shift
+    mp_limb_t limb_overflow = mpn_lshift(r_set, s_set, s_limbsize, shift);     // r_set = s_set + shift
     if (r_limbsize > s_limbsize) {
         r_set[s_limbsize] = limb_overflow;
     }
@@ -85,7 +85,7 @@ static inline void schur_number_translation2(mp_limb_t *r_set, const mp_limb_t *
             shift = GMP_NUMB_BITS - 1;
         }
         
-        mpn_lshift(r_set, r_set, r_limbsize, shift);     // r_set = work + shift
+        mpn_lshift(r_set, r_set, r_limbsize, shift);     // r_set = r_set + shift
         
         n -= shift;
     }
