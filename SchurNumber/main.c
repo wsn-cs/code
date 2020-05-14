@@ -9,7 +9,6 @@
 #include <unistd.h>
 #include <time.h>
 #include <libgen.h>
-//#include <ctype.h>
 
 #include "schurNumberMethods.h"
 #include "../schurNumberGlobal/schurNumberIOAction.h"
@@ -152,7 +151,7 @@ int main(int argc, const char * argv[]) {
                     actionfunc = schurNumberSaveDistinctSumPartition;
                     break;
                     
-                case 'w':
+                case 'r':
                     actionfunc = schurNumberSaveDistinctRestrictedSumPartition;
                     break;
                     
@@ -249,12 +248,10 @@ int main(int argc, const char * argv[]) {
     action_s.save = &save_str;
     
     // Gestion de la taille limite des partitions cherchées qui n'excéderont pas [1, nlimit-1]
-    if (!nlimit) {
+    if (!nlimit || (nlimit > GMP_NUMB_BITS * limballoc)) {
         nlimit = GMP_NUMB_BITS * limballoc;
     } else {
-        if (nlimit > GMP_NUMB_BITS * limballoc) {
-            nlimit = GMP_NUMB_BITS * limballoc;
-        }
+        action_s.nmax = nlimit;
     }
     
     // Lancement du code
