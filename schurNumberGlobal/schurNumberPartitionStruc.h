@@ -14,7 +14,7 @@
 
 #define ADD_POINT(set, x) (set)[(x) / GMP_NUMB_BITS] |= ((unsigned long)1 << ((x) % GMP_NUMB_BITS))
 
-#define DELETE_POINT(set, x) (set)[(x) / GMP_NUMB_BITS] ^= ((unsigned long)1 << ((x) % GMP_NUMB_BITS))
+#define DELETE_POINT(set, x) (set)[(x) / GMP_NUMB_BITS] &= ~((unsigned long)1 << ((x) % GMP_NUMB_BITS))
 
 #define GET_POINT(set, x) ((set)[(x) / GMP_NUMB_BITS] & ((unsigned long)1 << ((x) % GMP_NUMB_BITS)))
 

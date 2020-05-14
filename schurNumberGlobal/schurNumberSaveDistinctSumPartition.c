@@ -50,6 +50,7 @@ static inline void find_dichotomic_index(mp_limb_t *sumset_array, mp_limb_t *sum
             *i2_p = *i1_p;
         } else {
             *i1_p = size;
+            *i2_p = size + 1;
         }
         return;
     }
