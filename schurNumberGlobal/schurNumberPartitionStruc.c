@@ -66,51 +66,43 @@ void schur_number_partition_dealloc(schur_number_partition_t *partitionstruc) {
     free(partitioninvert);
 }
 
-static inline void schur_number_translation2(mp_limb_t *r_set, const mp_limb_t *s_set, mp_size_t r_limbsize, mp_size_t s_limbsize, unsigned long n) {
-    /* Calcule s_set + n de taille s_limbsize et place le résultat dans r_set de taille r_limbsize. */
-    
-    unsigned int shift = n % GMP_NUMB_BITS;
-    if (!shift) {
-        shift = GMP_NUMB_BITS - 1;
-    }
-    mp_limb_t limb_overflow = mpn_lshift(r_set, s_set, s_limbsize, shift);     // r_set = s_set + shift
-    if (r_limbsize > s_limbsize) {
-        r_set[s_limbsize] = limb_overflow;
-    }
-    n -= shift;
-    
-    while (n > 0) {
-        shift = n % GMP_NUMB_BITS;
-        if (!shift) {
-            shift = GMP_NUMB_BITS - 1;
-        }
-        
-        mpn_lshift(r_set, r_set, r_limbsize, shift);     // r_set = r_set + shift
-        
-        n -= shift;
-    }
-}
 
 void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work) {
     /* Cette fonction calcule set1 + set2 - x et le place dans r_set, qui doit pouvoir contenir tous les éléments.
      Le pointeur work doit pointer vers un tableau pouvant contenir r_limbsize. */
     unsigned long nsize = limbsize * GMP_NUMB_BITS;
     
-    // Parcourir d'abord les éléments de set1 strictement inférieurs à x
-    for (unsigned long n = 0; n < x; n++) {
-        if (GET_POINT(set1, n)) {
-            // Calculer set2 - (x - n)
-            schur_number_ntranslation(work, set2, limbsize, x - n);
-            // Ajouter work à r_set
-            mpn_ior_n(r_set, r_set, work, r_limbsize);
+    if (x) {
+        mpn_copyd(work, set2, limbsize);
+        mpn_zero(work, r_limbsize - limbsize);
+        
+        unsigned long nlast = x + 1;    // Dernier point de set1 trouvé, de sorte que work = set2 - (x - nlast + 1)
+        
+        // Parcourir d'abord les éléments de set1 strictement inférieurs à x
+        for (unsigned long n = 0; n < x; n++) {
+            if (GET_POINT(set1, n)) {
+                // Calculer set2 - (x - n + 1) = set2 - (x - nlast + 1) - (nlast - n) = work - (nlast - n)
+                schur_number_ntranslation(work, work, r_limbsize, nlast - n);
+                nlast = n;
+                
+                // Ajouter work à r_set
+                mpn_ior_n(r_set, r_set, work, r_limbsize);
+            }
         }
     }
+    
+    mpn_copyd(work, set2, limbsize);
+    mpn_zero(work, r_limbsize - limbsize);
+    
+    unsigned long nlast = x;    // Dernier point de set1 trouvé, de sorte que work = set2 + (nlast - x)
     
     // Parcourir ensuite les éléments de set1 supérieurs à x
     for (unsigned long n = x; n < nsize; n++) {
         if (GET_POINT(set1, n)) {
-            // Calculer set2 + (n - x)
-            schur_number_translation2(work, set2, r_limbsize, limbsize, n - x);
+            // Calculer set2 + (n - x) = set2 + (n - nlast) + (nlast - x) = work + (nlast - x)
+            schur_number_translation(work, work, r_limbsize, n - nlast);
+            nlast = n;
+            
             // Ajouter work à r_set
             mpn_ior_n(r_set, r_set, work, r_limbsize);
         }
@@ -123,26 +115,40 @@ void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, m
     unsigned long nsize = limbsize * GMP_NUMB_BITS;
     unsigned long r_nsize = r_limbsize * GMP_NUMB_BITS;
     
-    // Parcourir d'abord les éléments de set1 strictement inférieurs à x
-    for (unsigned long n = 0; n < x; n++) {
-        if (GET_POINT(set1, n)) {
-            // Calculer set2 - (x - n)
-            schur_number_ntranslation(work, set2, limbsize, x - n);
-            
-            if (2 * (x - n) < nsize) {
-                DELETE_POINT(work, 2 * (x - n));
+    if (x) {
+        mpn_copyd(work, set2, limbsize);
+        mpn_zero(work, r_limbsize - limbsize);
+        
+        unsigned long nlast = x + 1;    // Dernier point de set1 trouvé, de sorte que work = set2 - (x - nlast + 1)
+        
+        // Parcourir les éléments de set1 strictement inférieurs à x
+        for (unsigned long n = x; n > 0; n--) {
+            if (GET_POINT(set1, n)) {
+                // Calculer set2 - (x - n + 1) = set2 - (x - nlast + 1) - (nlast - n) = work - (nlast - n)
+                schur_number_ntranslation(work, work, r_limbsize, nlast - n);
+                nlast = n;
+                
+                if (2 * (x - n) < nsize) {
+                    DELETE_POINT(work, 2 * (x - n));
+                }
+                // Ajouter work à r_set
+                mpn_ior_n(r_set, r_set, work, r_limbsize);
             }
-            // Ajouter work à r_set
-            mpn_ior_n(r_set, r_set, work, r_limbsize);
         }
     }
     
-    // Parcourir ensuite les éléments de set1 supérieurs à x
+    mpn_copyd(work, set2, limbsize);
+    mpn_zero(work, r_limbsize - limbsize);
+    
+    unsigned long nlast = x;    // Dernier point de set1 trouvé, de sorte que work = set2 + (nlast - x)
+    
+    // Parcourir les éléments de set1 supérieurs à x
     for (unsigned long n = x; n < nsize; n++) {
         // Parcourir les éléments de set1
         if (GET_POINT(set1, n)) {
-            // Calculer set2 + (n - x)
-            schur_number_translation2(work, set2, r_limbsize, limbsize, n - x);
+            // Calculer set2 + (n - x) = set2 + (n - nlast) + (nlast - x) = work + (nlast - x)
+            schur_number_translation(work, work, r_limbsize, n - nlast);
+            nlast = n;
             
             if (2 * (n - x) < r_nsize) {
                 DELETE_POINT(work, 2 * (n - x));
@@ -152,6 +158,7 @@ void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, m
         }
     }
 }
+
 
 void schur_number_set_revert(mp_limb_t *r_set, mp_limb_t *set, mp_size_t limbsize) {
     /* Cette fonction renverse set et place le résultat dans r_set. */
