@@ -58,7 +58,7 @@ unsigned long schurNumberWeakStackedBranchBound2(schur_number_partition_t *parti
     for (unsigned long j = 0; j < pmax; j++) {
         sumpartition[j] = calloc(sizeof(mp_limb_t) * limballoc, nlimit);    // Tableau contenant la pile des sommes de l'ensembles j
         sums_ptr[j] = sumpartition[j];                                      // Pointeur vers le sommet de la pile des sommes de l'ensembles j
-        schurNumberWeakSumset(sums_ptr[j], partition[j], partition[j], limballoc, limballoc, 0);
+        schurNumberWeakSumset(sums_ptr[j], partition[j], partition[j], limballoc, limballoc, 0, work1);
     }
     
     unsigned long iter_num = action->iter_num;  // Nombre d'itérations
@@ -243,7 +243,7 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
     for (unsigned long j = 0; j < pmax; j++) {
         sumpartition[j] = calloc(sizeof(mp_limb_t) * limballoc, nlimit);    // Tableau contenant la pile des sommes de l'ensembles j
         sums_ptr[j] = sumpartition[j];                                      // Pointeur vers le sommet de la pile des sommes de l'ensembles j
-        schurNumberWeakSumset(sums_ptr[j], partition[j], partition[j], limballoc, limballoc, 0);
+        schurNumberWeakSumset(sums_ptr[j], partition[j], partition[j], limballoc, limballoc, 0, work1);
         
         unsigned long cardinal = 0;
         for (unsigned long k = 0; k < limballoc; k++) {

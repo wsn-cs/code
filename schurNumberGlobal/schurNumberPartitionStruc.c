@@ -91,11 +91,12 @@ static inline void schur_number_translation2(mp_limb_t *r_set, const mp_limb_t *
     }
 }
 
-void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x) {
-    /* Cette fonction calcule set1 + set2 - x et le place dans r_set, qui doit pouvoir contenir tous les éléments. */
+void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work) {
+    /* Cette fonction calcule set1 + set2 - x et le place dans r_set, qui doit pouvoir contenir tous les éléments.
+     Le pointeur work doit pointer vers un tableau pouvant contenir r_limbsize. */
     unsigned long nsize = limbsize * GMP_NUMB_BITS;
     
-    mp_limb_t *work = calloc(r_limbsize, sizeof(mp_limb_t));
+    //mp_limb_t *work = calloc(r_limbsize, sizeof(mp_limb_t));
     
     for (unsigned long n = 0; n < nsize; n++) {
         // Parcourir les éléments de set1
@@ -112,15 +113,14 @@ void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_si
             mpn_ior_n(r_set, r_set, work, r_limbsize);
         }
     }
-    free(work);
+    //free(work);
 }
 
-void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x) {
-    /* Cette fonction calcule set1 + set2 - x et le place dans r_set, qui doit pouvoir contenir tous les éléments. */
+void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work) {
+    /* Cette fonction calcule set1 + set2 - x et le place dans r_set, qui doit pouvoir contenir tous les éléments.
+     Le pointeur work doit pointer vers un tableau pouvant contenir r_limbsize. */
     unsigned long nsize = limbsize * GMP_NUMB_BITS;
     unsigned long r_nsize = r_limbsize * GMP_NUMB_BITS;
-    
-    mp_limb_t *work = calloc(r_limbsize, sizeof(mp_limb_t));
     
     for (unsigned long n = 0; n < nsize; n++) {
         // Parcourir les éléments de set1
@@ -146,7 +146,6 @@ void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, m
             mpn_ior_n(r_set, r_set, work, r_limbsize);
         }
     }
-    free(work);
 }
 
 void schur_number_set_revert(mp_limb_t *r_set, mp_limb_t *set, mp_size_t limbsize) {

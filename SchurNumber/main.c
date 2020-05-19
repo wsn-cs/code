@@ -30,7 +30,7 @@
 
 void usage(char *cmdname) {
     fprintf(stderr,
-           "usage: %s [-abcehtu] [-p (1|a|b)] [-m method] set_number [begin_partition]\n"\
+           "usage: %s [-abcehtu] [-p (a|b|s|r|num)] [-m method] set_number [begin_partition]\n"\
             "\t-a: Equivalent to -bucet\n"\
             "\t-b: Print number of sum-free partitions of [1, S(p)]\n"\
             "\t-u: Print number of sum-free partitions which are not prolongeable\n"\
@@ -41,7 +41,7 @@ void usage(char *cmdname) {
             "\t-m method: Select a method\n"\
             "\t-t: Print execution's time\n"\
             "\t-h: Print usage message\n"\
-            "\t-p (1|a|b): Show 1 best partition, all not prolongeable partitions or only best found partitions\n",
+            "\t-p (a|b|s|r|num): Show num best partitions, all not prolongeable partitions or only best found partitions\n",
            basename(cmdname));
 }
 

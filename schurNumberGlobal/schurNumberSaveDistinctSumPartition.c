@@ -111,7 +111,7 @@ unsigned long schurNumberSaveDistinctSumPartition(mp_limb_t **partition, unsigne
             
             /* Regarder si la somme de la partition a déjà été trouvée. */
             mp_size_t limbsize = ((unsigned long)n>>6) + 1;
-            schurNumberSumset(work, partition[p - 1], partition[p - 1], 2 * limbsize, limbsize, 0);
+            schurNumberSumset(work, partition[p - 1], partition[p - 1], 2 * limbsize, limbsize, 0, work + 2 * limbsize);
             
             fflush(sum_partition_stream);
             fflush(sorted_index_sum_partition_stream);
@@ -209,7 +209,7 @@ unsigned long schurNumberSaveDistinctRestrictedSumPartition(mp_limb_t **partitio
             
             /* Regarder si la somme de la partition a déjà été trouvée. */
             mp_size_t limbsize = ((unsigned long)n>>6) + 1;
-            schurNumberWeakSumset(work, partition[p - 1], partition[p - 1], 2 * limbsize, limbsize, 0);
+            schurNumberWeakSumset(work, partition[p - 1], partition[p - 1], 2 * limbsize, limbsize, 0, work + 2 * limbsize);
             
             fflush(sum_partition_stream);
             fflush(sorted_index_sum_partition_stream);
