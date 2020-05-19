@@ -16,7 +16,7 @@
 #include "../schurNumberGlobal/schurNumberThreads.h"
 
 #ifdef schurNumberThreads_h
-    #define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit) schurNumberThreadsLaunch(partitionstruc, methodfunc, action, constraint_partition, constraint_size)
+    #define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit) schurNumberThreadsLaunch(partitionstruc, methodfunc, action, nlimit, constraint_partition, constraint_size)
 #else
     #define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit, load_balancing_opt) do {\
             schurNumberSaveThreadRegister((action)->save);\

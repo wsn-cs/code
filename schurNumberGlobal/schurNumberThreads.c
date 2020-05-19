@@ -28,11 +28,7 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
     while (count <= 2 * NUM_THREADS && has_improved) {
         // Recherche des partitions
         for (unsigned long i = 0; i < count; i++) {
-#ifdef schurNumberConstrainedBuild_h
             methodfunc(&(work_partitionstruc_array[i]), &action_s, n + 4, constraint_partition, constraint_size);
-#else
-            methodfunc(&(work_partitionstruc_array[i]), &action_s, n + 4);
-#endif
         }
         fflush(action_s.limbsize_stream);
         fflush(action_s.partition_stream);
@@ -43,7 +39,7 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
             }
             free(work_partitionstruc_array);
         }
-        has_improved = (action_s.nmax == n+4);
+        has_improved = (action_s.nmax > n);
         
         // Mise à jour des variables
         count = action_s.count;
@@ -144,12 +140,7 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
         unsigned long n;
         unsigned long nlimit = arg->nlimit;
         
-        #ifdef schurNumberConstrainedBuild_h
         n = arg->func(partitionstruc, action, nlimit, constraint_partition, constraint_size);
-        #else
-        n = arg->func(partitionstruc, action, nlimit);
-        #endif
-        
         
         if (n > nbest) {
             nbest = n;

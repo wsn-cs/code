@@ -19,11 +19,7 @@
 #define NUM_THREADS 4
 #endif
 
-#ifdef schurNumberConstrainedBuild_h
 typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit, mp_limb_t **constraint_partition, mp_size_t constraint_size);
-#else
-typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
-#endif
 
 struct schur_number_task_arg_struc {
     unsigned long p;            // Nombre de huches allouées
