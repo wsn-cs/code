@@ -96,24 +96,25 @@ void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_si
      Le pointeur work doit pointer vers un tableau pouvant contenir r_limbsize. */
     unsigned long nsize = limbsize * GMP_NUMB_BITS;
     
-    //mp_limb_t *work = calloc(r_limbsize, sizeof(mp_limb_t));
-    
-    for (unsigned long n = 0; n < nsize; n++) {
-        // Parcourir les éléments de set1
+    // Parcourir d'abord les éléments de set1 strictement inférieurs à x
+    for (unsigned long n = 0; n < x; n++) {
         if (GET_POINT(set1, n)) {
-            if (n < x) {
-                // Calculer set2 - (x - n)
-                schur_number_ntranslation(work, set2, limbsize, x - n);
-                
-            } else {
-                // Calculer set2 + (n - x)
-                schur_number_translation2(work, set2, r_limbsize, limbsize, n - x);
-            }
+            // Calculer set2 - (x - n)
+            schur_number_ntranslation(work, set2, limbsize, x - n);
             // Ajouter work à r_set
             mpn_ior_n(r_set, r_set, work, r_limbsize);
         }
     }
-    //free(work);
+    
+    // Parcourir ensuite les éléments de set1 supérieurs à x
+    for (unsigned long n = x; n < nsize; n++) {
+        if (GET_POINT(set1, n)) {
+            // Calculer set2 + (n - x)
+            schur_number_translation2(work, set2, r_limbsize, limbsize, n - x);
+            // Ajouter work à r_set
+            mpn_ior_n(r_set, r_set, work, r_limbsize);
+        }
+    }
 }
 
 void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work) {
@@ -122,25 +123,29 @@ void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, m
     unsigned long nsize = limbsize * GMP_NUMB_BITS;
     unsigned long r_nsize = r_limbsize * GMP_NUMB_BITS;
     
-    for (unsigned long n = 0; n < nsize; n++) {
+    // Parcourir d'abord les éléments de set1 strictement inférieurs à x
+    for (unsigned long n = 0; n < x; n++) {
+        if (GET_POINT(set1, n)) {
+            // Calculer set2 - (x - n)
+            schur_number_ntranslation(work, set2, limbsize, x - n);
+            
+            if (2 * (x - n) < nsize) {
+                DELETE_POINT(work, 2 * (x - n));
+            }
+            // Ajouter work à r_set
+            mpn_ior_n(r_set, r_set, work, r_limbsize);
+        }
+    }
+    
+    // Parcourir ensuite les éléments de set1 supérieurs à x
+    for (unsigned long n = x; n < nsize; n++) {
         // Parcourir les éléments de set1
         if (GET_POINT(set1, n)) {
-            if (n < x) {
-                // Calculer set2 - (x - n)
-                schur_number_ntranslation(work, set2, limbsize, x - n);
-                
-                if (2 * (x - n) < nsize) {
-                    DELETE_POINT(work, 2 * (x - n));
-                }
-                
-            } else {
-                // Calculer set2 + (n - x)
-                schur_number_translation2(work, set2, r_limbsize, limbsize, n - x);
-                
-                if (2 * (n - x) < r_nsize) {
-                    DELETE_POINT(work, 2 * (n - x));
-                }
-                
+            // Calculer set2 + (n - x)
+            schur_number_translation2(work, set2, r_limbsize, limbsize, n - x);
+            
+            if (2 * (n - x) < r_nsize) {
+                DELETE_POINT(work, 2 * (n - x));
             }
             // Ajouter work à r_set
             mpn_ior_n(r_set, r_set, work, r_limbsize);
