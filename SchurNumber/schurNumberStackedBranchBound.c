@@ -250,7 +250,7 @@ unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitions
             popcounts[i * limballoc + limbsize - 1] ++;
             
             i = 0;
-            if (n > nsize) {
+            if (n >= nsize) {
                 limbsize++;
                 nsize += GMP_NUMB_BITS;
             }
