@@ -74,7 +74,7 @@ void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_si
     
     if (x) {
         mpn_copyd(work, set2, limbsize);
-        mpn_zero(work, r_limbsize - limbsize);
+        mpn_zero(work + limbsize, r_limbsize - limbsize);
         
         unsigned long nlast = x + 1;    // Dernier point de set1 trouvé, de sorte que work = set2 - (x - nlast + 1)
         
@@ -92,7 +92,7 @@ void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_si
     }
     
     mpn_copyd(work, set2, limbsize);
-    mpn_zero(work, r_limbsize - limbsize);
+    mpn_zero(work + limbsize, r_limbsize - limbsize);
     
     unsigned long nlast = x;    // Dernier point de set1 trouvé, de sorte que work = set2 + (nlast - x)
     
@@ -118,7 +118,7 @@ void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, m
     
     if (x) {
         mpn_copyd(work, set2, limbsize);
-        mpn_zero(work, r_limbsize - limbsize);
+        mpn_zero(work + limbsize, r_limbsize - limbsize);
         
         unsigned long nlast = x + 1;    // Dernier point de set1 trouvé, de sorte que work = set2 - (x - nlast + 1)
         
@@ -139,7 +139,7 @@ void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, m
     }
     
     mpn_copyd(work, set2, limbsize);
-    mpn_zero(work, r_limbsize - limbsize);
+    mpn_zero(work + limbsize, r_limbsize - limbsize);
     
     unsigned long nlast = x;    // Dernier point de set1 trouvé, de sorte que work = set2 + (nlast - x)
     
