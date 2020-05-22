@@ -18,7 +18,7 @@
 
 #define GET_POINT(set, x) ((set)[(x) / GMP_NUMB_BITS] & ((unsigned long)1 << ((x) % GMP_NUMB_BITS)))
 
-#define PARTITION_2_LIMBSIZE(p) (((1 << (2 * (p) - 1)) >> 6) + 1)
+#define PARTITION_2_LIMBSIZE(p) (((1 << (2 * (p) - 1)) / GMP_NUMB_BITS) + 1)
 
 #define INTEGER_2_LIMBSIZE(n) ((n) / GMP_NUMB_BITS) + 1
 
@@ -45,6 +45,7 @@ unsigned long schurNumberPartitionSetString(schur_number_partition_t *partition,
 
 void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work);
 void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work);
+void schurNumberWeakSumset2(mp_limb_t *r_set, mp_limb_t *set, mp_size_t r_limbsize, mp_size_t limbsize, mp_limb_t *work);
 
 void schur_number_set_revert(mp_limb_t *r_set, mp_limb_t *set, mp_size_t limbsize);
 

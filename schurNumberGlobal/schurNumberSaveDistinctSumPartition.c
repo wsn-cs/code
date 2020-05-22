@@ -34,23 +34,21 @@ static inline void find_dichotomic_index(mp_limb_t *sumset_array, mp_limb_t *sum
     
     cmp_r = mpn_cmp(&(sumset_array[limbsize * sorted_indexes[0]]), sumset, limbsize);
     if (cmp_r >= 0) {
-        if (!cmp_r) {
-            *i2_p = 0;
-        } else {
+        *i2_p = 0;
+        if (cmp_r) {
             *i1_p = -1;
-            *i2_p = 0;
         }
         return;
     }
     
     cmp_r = mpn_cmp(&(sumset_array[limbsize * sorted_indexes[size - 1]]), sumset, limbsize);
     if (cmp_r <= 0) {
-        if (!cmp_r) {
-            *i1_p = size-1;
-            *i2_p = *i1_p;
-        } else {
+        if (cmp_r) {
             *i1_p = size;
             *i2_p = size + 1;
+        } else {
+            *i1_p = size-1;
+            *i2_p = *i1_p;
         }
         return;
     }
@@ -208,8 +206,9 @@ unsigned long schurNumberSaveDistinctRestrictedSumPartition(mp_limb_t **partitio
             mp_limb_t *work = action->work;
             
             /* Regarder si la somme de la partition a déjà été trouvée. */
-            mp_size_t limbsize = ((unsigned long)n>>6) + 1;
-            schurNumberWeakSumset(work, partition[p - 1], partition[p - 1], 2 * limbsize, limbsize, 0, work + 2 * limbsize);
+            mp_size_t limbsize = action->limbsize;
+            schurNumberWeakSumset(work, partition[p - 1], partition[p - 1], 2 * limbsize, limbsize, 0, &(work[2 * limbsize]));
+            //schurNumberWeakSumset2(work, partition[p - 1], 2 * limbsize, limbsize, work + 2 * limbsize);
             
             fflush(sum_partition_stream);
             fflush(sorted_index_sum_partition_stream);

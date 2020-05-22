@@ -29,6 +29,7 @@ struct schurNumberIOAction {
     char *limbsize_buffer;      // Tampon contenant les nombres de limbes par ensembles de la partition
     size_t limbsize_size;       // Taille du tampon en octet
     FILE *limbsize_stream;      // Flux associé au tampon
+    mp_size_t limbsize;
     
     char *partition_buffer;     // Tampon contenant les partitions
     size_t partition_size;      // Taille du tampon en octet

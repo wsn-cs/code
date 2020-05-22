@@ -109,6 +109,7 @@ void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_si
     }
 }
 
+
 void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work) {
     /* Cette fonction calcule set1 + set2 - x et le place dans r_set, qui doit pouvoir contenir tous les éléments.
      Le pointeur work doit pointer vers un tableau pouvant contenir r_limbsize. */
@@ -144,7 +145,6 @@ void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, m
     
     // Parcourir les éléments de set1 supérieurs à x
     for (unsigned long n = x; n < nsize; n++) {
-        // Parcourir les éléments de set1
         if (GET_POINT(set1, n)) {
             // Calculer set2 + (n - x) = set2 + (n - nlast) + (nlast - x) = work + (nlast - x)
             schur_number_translation(work, work, r_limbsize, n - nlast);

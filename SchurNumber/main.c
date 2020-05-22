@@ -253,6 +253,7 @@ int main(int argc, const char * argv[]) {
     } else {
         action_s.nmax = nlimit;
     }
+    action_s.limbsize = limballoc;
     
     // Lancement du code
     time0 = clock();
