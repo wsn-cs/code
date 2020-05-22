@@ -45,12 +45,12 @@ void schurNumberActionAlloc(schur_number_action_t *action, unsigned long p, unsi
     action->count_limit = 0;
     set_size_limit(&(action->size_limit));
     
-    //action->limbsize_buffer = NULL;
-    //action->limbsize_size = 0;
+    action->limbsize_buffer = NULL;
+    action->limbsize_size = 0;
     action->limbsize_stream = open_memstream(&(action->limbsize_buffer), &(action->limbsize_size));
     
-    //action->partition_buffer = NULL;
-    //action->partition_size = 0;
+    action->partition_buffer = NULL;
+    action->partition_size = 0;
     action->partition_stream = open_memstream(&(action->partition_buffer), &(action->partition_size));
     
     action->action_flag = SCHUR_NUMBER_DEFAULT;
