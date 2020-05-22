@@ -142,6 +142,11 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
         
         n = arg->func(partitionstruc, action, nlimit, constraint_partition, constraint_size);
         
+        if (n == partitionstruc->n) {
+            // La partition n'est pas prolongeable
+            action->func(partitionstruc->partition, n, action);
+        }
+        
         if (n > nbest) {
             nbest = n;
         }
