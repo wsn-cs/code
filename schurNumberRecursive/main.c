@@ -16,7 +16,7 @@
 #include "../schurNumberGlobal/schurNumberThreads.h"
 
 #ifdef schurNumberThreads_h
-    #define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit) schurNumberThreadsLaunch(partitionstruc, methodfunc, action, nlimit, constraint_partition, constraint_size)
+    #define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit) schur_number_threads_launch(partitionstruc, methodfunc, action, nlimit, constraint_partition, constraint_size)
 #else
     #define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit, load_balancing_opt) do {\
             schurNumberSaveThreadRegister((action)->save);\
@@ -149,34 +149,34 @@ int main(int argc, const char * argv[]) {
     if (print_range) {
         if (isdigit(*print_range)) {
             part_count_limit = atol(print_range);
-            actionfunc = schurNumberSaveSomePartition;
+            actionfunc = schur_number_save_some_partition;
         } else {
             switch (*print_range) {
                 case 'a':
-                    actionfunc = schurNumberSaveAllPartition;
+                    actionfunc = schur_number_save_all_partition;
                     break;
                     
                 case 'b':
-                    actionfunc = schurNumberSaveBestPartition;
+                    actionfunc = schur_number_save_best_partition;
                     break;
                     
                 default:
-                    actionfunc = schurNumberDefaultAction;
+                    actionfunc = schur_number_default_action;
                     break;
             }
         }
         free(print_range);
     } else {
-        actionfunc = schurNumberDefaultAction;
+        actionfunc = schur_number_default_action;
     }
     
-    schurNumberActionAlloc(&action_s, p, actionfunc);
+    schur_number_action_alloc(&action_s, p, actionfunc);
     action_s.count_limit = part_count_limit;
     
     // Allocation de la partition de contrainte
     mp_limb_t **constraint_partition = calloc(sizeof(mp_limb_t *), p);
     
-    mp_size_t constraint_size = (schurNumberGetPartition(p, constraint_partition, NULL, 1, arg_ptr, format) >> 6) + 1;
+    mp_size_t constraint_size = (schur_number_get_partition(p, constraint_partition, NULL, 1, arg_ptr, format) >> 6) + 1;
     
     arg_ptr += p;
     argc2 -= p;
@@ -199,7 +199,7 @@ int main(int argc, const char * argv[]) {
         
         for (unsigned long j = 0; j < p_init; j++) {
             
-            unsigned long nmax = schurNumberGetSet(partition_s.partition[j], partition_s.partitioninvert[j], limballoc, *arg_ptr, format);
+            unsigned long nmax = schur_number_get_set(partition_s.partition[j], partition_s.partitioninvert[j], limballoc, *arg_ptr, format);
             if (n_init < nmax) {
                 n_init = nmax;
             }
@@ -221,17 +221,17 @@ int main(int argc, const char * argv[]) {
     schur_number_method_t methodfunc;
     switch (method) {
         case '1':
-            methodfunc = schurNumberConstrainedBuild;
+            methodfunc = schur_number_constrained_build;
             break;
             
         default:
-            methodfunc = schurNumberConstrainedBuild;
+            methodfunc = schur_number_constrained_build;
             break;
     }
     
     // Création de la sauvegarde temporaire
     schur_number_intermediate_save_t save_str;
-    schurNumberSaveAlloc(&save_str, p, partition_s.n);
+    schur_number_save_alloc(&save_str, p, partition_s.n);
     action_s.save = &save_str;
     
     // Gestion de la taille limite des partitions cherchées qui n'excéderont pas [1, nlimit-1]
@@ -250,12 +250,12 @@ int main(int argc, const char * argv[]) {
 
     
     // Destruction de la sauvegarde temporaire
-    schurNumberSaveDealloc(&save_str);
+    schur_number_save_dealloc(&save_str);
     
     // Affichage des résultats
     
     if (print_range) {
-        schurNumberActionPrintPartitions(&action_s);
+        schur_number_action_print_partitions(&action_s);
     }
     
     if (timeOption) {
@@ -263,7 +263,7 @@ int main(int argc, const char * argv[]) {
     }
     
     if (testedPartitionNumberOption) {
-        printf("Nombre de partitions testées: %lu\n", schurNumberActionTotalIterations(&action_s));
+        printf("Nombre de partitions testées: %lu\n", schur_number_action_total_iterations(&action_s));
     }
     
     if (threadPartitionNumberOption) {
@@ -275,18 +275,18 @@ int main(int argc, const char * argv[]) {
     }
     
     if (unprolongeableSfPartitionNumbersOption) {
-        printf("Nombre de partitions non prolongeables: %lu\n", schurNumberActionTotalCountAll(&action_s));
+        printf("Nombre de partitions non prolongeables: %lu\n", schur_number_action_total_count_all(&action_s));
     }
     
     if (bestPartitionNumbersOption) {
-        printf("Nombre de partitions de taille maximale: %lu\n", schurNumberActionTotalCountMax(&action_s));
+        printf("Nombre de partitions de taille maximale: %lu\n", schur_number_action_total_count_max(&action_s));
     }
     
-    printf("Taille maximale : %lu\n", schurNumberActionTotalNMax(&action_s));
+    printf("Taille maximale : %lu\n", schur_number_action_total_Nmax(&action_s));
     
     // Nettoyage
     schur_number_partition_dealloc(&partition_s);
-    schurNumberActionDealloc(&action_s);
+    schur_number_action_dealloc(&action_s);
     
     return 0;
 }

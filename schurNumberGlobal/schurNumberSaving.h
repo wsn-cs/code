@@ -54,15 +54,15 @@ struct schur_number_intermediate_save_struc {
 
 typedef struct schur_number_intermediate_save_struc schur_number_intermediate_save_t;
 
-int schurNumberSaveAlloc(schur_number_intermediate_save_t *save, unsigned long p, unsigned long n0);
-void schurNumberSaveDealloc(schur_number_intermediate_save_t *save);
+int schur_number_save_alloc(schur_number_intermediate_save_t *save, unsigned long p, unsigned long n0);
+void schur_number_save_dealloc(schur_number_intermediate_save_t *save);
 
-void schurNumberSaveThreadRegister(schur_number_intermediate_save_t *save);
-void schurNumberSavePartitionPoolRegister(schur_number_intermediate_save_t *save, size_t part_pool_count, unsigned long n0);
-void schurNumberSaveNewExplorationRegister(schur_number_intermediate_save_t *save);
+void schur_number_save_thread_register(schur_number_intermediate_save_t *save);
+void schur_number_save_partition_pool_register(schur_number_intermediate_save_t *save, size_t part_pool_count, unsigned long n0);
+void schur_number_save_newexploration_register(schur_number_intermediate_save_t *save);
 
-unsigned long schurNumberSaveBestUpgrade(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition);
+unsigned long schur_number_save_best_upgrade(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition);
 
-unsigned long schurNumberSaveProgressionUpdate(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition);
+unsigned long schur_number_save_progression_update(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition);
 
 #endif /* schurNumberSaving_h */

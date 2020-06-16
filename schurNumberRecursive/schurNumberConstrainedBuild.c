@@ -8,7 +8,7 @@
 
 #include "schurNumberConstrainedBuild.h"
 
-unsigned long schurNumberConstrainedBuild(schur_number_partition_t *partitionstruc, struct schurNumberIOAction *action, unsigned long nlimit, mp_limb_t **constraint_partition, mp_size_t constraint_size) {
+unsigned long schur_number_constrained_build(schur_number_partition_t *partitionstruc, struct schurNumberIOAction *action, unsigned long nlimit, mp_limb_t **constraint_partition, mp_size_t constraint_size) {
     /*
      Cette fonction trouve toutes les partitions B tels que B - B ne rencontre pas A = constraint_partition, en partant de la partition initiale contenue dans partitionstruc. Chaque ensemble de constraint_partition possède constraint_size limbes.
      

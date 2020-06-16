@@ -17,7 +17,7 @@
 
 #ifdef schurNumberThreads_h
 
-#define schurNumberLaunch(methodfunc, partitionstruc, action, nlimit) schurNumberThreadsLaunch(partitionstruc, methodfunc, action, NULL, 0)
+#define schurNumberLaunch(methodfunc, partitionstruc, action, nlimit) schur_number_threads_launch(partitionstruc, methodfunc, action, NULL, 0)
 
 #else
 
@@ -141,24 +141,24 @@ int main(int argc, const char * argv[]) {
     if (print_range) {
         if (isdigit(*print_range)) {
             part_count_limit = atol(print_range);
-            actionfunc = schurNumberSaveSomePartition;
+            actionfunc = schur_number_save_some_partition;
         } else {
             switch (*print_range) {
                 case 'a':
-                    actionfunc = schurNumberSaveAllPartition;
+                    actionfunc = schur_number_save_all_partition;
                     break;
                     
                 default:
-                    actionfunc = schurNumberDefaultAction;
+                    actionfunc = schur_number_default_action;
                     break;
             }
         }
         free(print_range);
     } else {
-        actionfunc = schurNumberDefaultAction;
+        actionfunc = schur_number_default_action;
     }
     
-    schurNumberActionAlloc(&action_s, p, actionfunc);
+    schur_number_action_alloc(&action_s, p, actionfunc);
     action_s.count_limit = part_count_limit;
     
     // Allocation de la partition
@@ -180,7 +180,7 @@ int main(int argc, const char * argv[]) {
         
         for (unsigned long j = 0; j < p_init; j++) {
             
-            unsigned long nmax = schurNumberGetSet(partition_s.partition[j], partition_s.partitioninvert[j], limballoc, *arg_ptr, format);
+            unsigned long nmax = schur_number_get_set(partition_s.partition[j], partition_s.partitioninvert[j], limballoc, *arg_ptr, format);
             if (n_init < nmax) {
                 n_init = nmax;
             }
@@ -199,21 +199,21 @@ int main(int argc, const char * argv[]) {
     schur_number_method_t methodfunc;
     switch (method) {
         case '1':
-            methodfunc = schurNumberWeakPuncturedInterval;
+            methodfunc = schur_number_weak_punctured_interval;
             break;
             
         case 'w':
-            methodfunc = schurNumberWeakPuncturedInterval;
+            methodfunc = schur_number_weak_punctured_interval;
             break;
             
         default:
-            methodfunc = schurNumberWeakPuncturedInterval;
+            methodfunc = schur_number_weak_punctured_interval;
             break;
     }
     
     // Création de la sauvegarde temporaire
     schur_number_intermediate_save_t save_str;
-    schurNumberSaveAlloc(&save_str, p, partition_s.n);
+    schur_number_save_alloc(&save_str, p, partition_s.n);
     action_s.save = &save_str;
     
     // Lancement du code
@@ -222,12 +222,12 @@ int main(int argc, const char * argv[]) {
     time1 = clock();
     
     // Detruction de la sauvegarde temporaire
-    schurNumberSaveDealloc(&save_str);
+    schur_number_save_dealloc(&save_str);
     
     // Affichage des résultats
     
     if (print_range) {
-        schurNumberActionPrintPartitions(&action_s);
+        schur_number_action_print_partitions(&action_s);
     }
     
     if (timeOption) {
@@ -250,7 +250,7 @@ int main(int argc, const char * argv[]) {
     
     // Nettoyage
     schur_number_partition_dealloc(&partition_s);
-    schurNumberActionDealloc(&action_s);
+    schur_number_action_dealloc(&action_s);
     
     return 0;
 }

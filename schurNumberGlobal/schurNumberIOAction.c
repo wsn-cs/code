@@ -35,7 +35,7 @@
 
 #endif
 
-void schurNumberActionAlloc(schur_number_action_t *action, unsigned long p, unsigned long (*func)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action)) {
+void schur_number_action_alloc(schur_number_action_t *action, unsigned long p, unsigned long (*func)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action)) {
     action->p = p;
     action->count = 0;
     action->nmax = 0;
@@ -55,7 +55,7 @@ void schurNumberActionAlloc(schur_number_action_t *action, unsigned long p, unsi
     
     action->action_flag = SCHUR_NUMBER_DEFAULT;
     
-    if ((func == schurNumberSaveDistinctSumPartition) || (func == schurNumberSaveDistinctRestrictedSumPartition)) {
+    if ((func == schur_number_save_distinct_sum_partition) || (func == schur_number_save_distinct_restrictedsum_partition)) {
         action->sum_partition_stream = open_memstream(&(action->sum_partition_buffer), &(action->sum_partition_size));
         action->sorted_index_sum_partition_stream = open_memstream(&(action->sorted_index_sum_partition_buffer), &(action->sorted_index_sum_partition_size));
         action->work = calloc(PARTITION_2_LIMBSIZE(p), 4 * sizeof(mp_limb_t));
@@ -76,7 +76,7 @@ void schurNumberActionAlloc(schur_number_action_t *action, unsigned long p, unsi
     action->gathered_actions = NULL;
 }
 
-void schurNumberActionDealloc(schur_number_action_t *action) {
+void schur_number_action_dealloc(schur_number_action_t *action) {
     
     fclose(action->limbsize_stream);
     fclose(action->partition_stream);
@@ -96,13 +96,13 @@ void schurNumberActionDealloc(schur_number_action_t *action) {
     if (actions) {
         unsigned long count = action->count_gathered_actions;
         for (unsigned long i = 0; i < count; i++) {
-            schurNumberActionDealloc(actions[i]);
+            schur_number_action_dealloc(actions[i]);
         }
         free(actions);
     }
 }
 
-void schurNumberActionGatherCopy(schur_number_action_t *action_r, schur_number_action_t **actions, size_t n_actions) {
+void schur_number_action_gather_copy(schur_number_action_t *action_r, schur_number_action_t **actions, size_t n_actions) {
     /*Réunit les n_actions actions dans l'unique action_r, en copiant les multiples tampons dans celui de action_r.*/
     unsigned long nmax = action_r->nmax;
     unsigned long iter_num = action_r->iter_num;
@@ -128,7 +128,7 @@ void schurNumberActionGatherCopy(schur_number_action_t *action_r, schur_number_a
         count_all += action_s->count_all;
         iter_num += action_s->iter_num;
         
-        if (func == schurNumberSaveAllPartition) {
+        if (func == schur_number_save_all_partition) {
             fflush(action_s->limbsize_stream);
             fflush(action_s->partition_stream);
             
@@ -139,7 +139,7 @@ void schurNumberActionGatherCopy(schur_number_action_t *action_r, schur_number_a
         }
     }
     
-    if (func == schurNumberSaveBestPartition || func == schurNumberSaveSomePartition) {
+    if (func == schur_number_save_best_partition || func == schur_number_save_some_partition) {
         
         if (action_r->nmax < nmax) {
             rewind(limbsize_stream);
@@ -169,7 +169,7 @@ void schurNumberActionGatherCopy(schur_number_action_t *action_r, schur_number_a
     action_r->count = count;
 }
 
-void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number_action_t **actions, size_t n_actions) {
+void schur_number_action_gather_nocopy(schur_number_action_t *action_r, schur_number_action_t **actions, size_t n_actions) {
     /*Réunit les n_actions actions_s dans l'unique action_r, sans copier les multiples tampons dans celui de action_r.
      Les actions_s sont automatiquement libérées.*/
     unsigned long nmax = action_r->nmax;
@@ -190,14 +190,14 @@ void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number
     
     if (gathered_actions) {
         
-        if (func == schurNumberSaveBestPartition || func == schurNumberSaveSomePartition) {
+        if (func == schur_number_save_best_partition || func == schur_number_save_some_partition) {
             
             if (action_r->nmax < nmax) {
                 // Remplacer le nmax de action_r
-                schurNumberSaveBestPartition(NULL, nmax, action_r);
+                schur_number_save_best_partition(NULL, nmax, action_r);
                 
                 for (size_t i = 0; i < old_n_actions; i++) {
-                    schurNumberSaveBestPartition(NULL, nmax, actions[i]);
+                    schur_number_save_best_partition(NULL, nmax, actions[i]);
                 }
             }
             
@@ -205,7 +205,7 @@ void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number
                 schur_number_action_t *action = actions[i];
                 
                 if (action->nmax < nmax) {
-                    schurNumberSaveBestPartition(NULL, nmax, actions[i]);
+                    schur_number_save_best_partition(NULL, nmax, actions[i]);
                 }
                 
                 gathered_actions[i + old_n_actions] = action;
@@ -223,15 +223,15 @@ void schurNumberActionGatherNoCopy(schur_number_action_t *action_r, schur_number
         action_r->count_gathered_actions += n_actions;
         
     } else {
-        schurNumberActionGatherCopy(action_r, actions, n_actions);
+        schur_number_action_gather_copy(action_r, actions, n_actions);
         
         for (unsigned long i = 0; i < n_actions; i++) {
-            schurNumberActionDealloc(actions[i]);
+            schur_number_action_dealloc(actions[i]);
         }
     }
 }
 
-unsigned long schurNumberDefaultAction(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
+unsigned long schur_number_default_action(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
     /*Met seulement à jour les indicateurs statistiques.*/
     
     schur_number_intermediate_save_t *save = action->save;
@@ -240,16 +240,16 @@ unsigned long schurNumberDefaultAction(mp_limb_t **partition, unsigned long n, s
         action->count_all++;
         
         if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
-            unsigned long nbest = schurNumberSaveProgressionUpdate(save, n, partition);
+            unsigned long nbest = schur_number_save_progression_update(save, n, partition);
             if (nbest > action->nmax) {
-                schurNumberSaveSomePartition(NULL, nbest, action);
+                schur_number_save_some_partition(NULL, nbest, action);
             }
         }
     }
     
     if (n > action->nmax) {
         if (save) {
-            action->nmax = schurNumberSaveBestUpgrade(save, n, partition);
+            action->nmax = schur_number_save_best_upgrade(save, n, partition);
         } else {
             action->nmax = n;
         }
@@ -263,7 +263,7 @@ unsigned long schurNumberDefaultAction(mp_limb_t **partition, unsigned long n, s
     return action->nmax;
 }
 
-unsigned long schurNumberSaveSomePartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
+unsigned long schur_number_save_some_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
     /*Compare n avec nmax. Si n ≥ nmax, le nmax est mis à jour et la partition remplace les précédentes.
      Cette action limite la quantité de partition grâce à count_limit.*/
     unsigned long  p = action->p;
@@ -276,9 +276,9 @@ unsigned long schurNumberSaveSomePartition(mp_limb_t **partition, unsigned long 
         action->count_all++;
         
         if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
-            unsigned long nbest = schurNumberSaveProgressionUpdate(save, n, partition);
+            unsigned long nbest = schur_number_save_progression_update(save, n, partition);
             if (nbest > action->nmax) {
-                schurNumberSaveSomePartition(NULL, nbest, action);
+                schur_number_save_some_partition(NULL, nbest, action);
             }
         }
     }
@@ -288,7 +288,7 @@ unsigned long schurNumberSaveSomePartition(mp_limb_t **partition, unsigned long 
         rewind(limbsize_stream);
         rewind(partition_stream);
         if (save) {
-            action->nmax = schurNumberSaveBestUpgrade(save, n, partition);
+            action->nmax = schur_number_save_best_upgrade(save, n, partition);
         } else {
             action->nmax = n;
         }
@@ -315,7 +315,7 @@ unsigned long schurNumberSaveSomePartition(mp_limb_t **partition, unsigned long 
     return action->nmax;
 }
 
-unsigned long schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
+unsigned long schur_number_save_best_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
     /*Compare n avec nmax. Si n ≥ nmax, le nmax est mis à jour et la partition est ajoutée aux partitions.*/
     unsigned long  p = action->p;
     FILE *limbsize_stream = action->limbsize_stream;
@@ -327,9 +327,9 @@ unsigned long schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long 
         action->count_all++;
         
         if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
-            unsigned long nbest = schurNumberSaveProgressionUpdate(save, n, partition);
+            unsigned long nbest = schur_number_save_progression_update(save, n, partition);
             if (nbest > action->nmax) {
-                schurNumberSaveSomePartition(NULL, nbest, action);
+                schur_number_save_some_partition(NULL, nbest, action);
             }
         }
     }
@@ -339,7 +339,7 @@ unsigned long schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long 
         rewind(limbsize_stream);
         rewind(partition_stream);
         if (save) {
-            action->nmax = schurNumberSaveBestUpgrade(save, n, partition);
+            action->nmax = schur_number_save_best_upgrade(save, n, partition);
         } else {
             action->nmax = n;
         }
@@ -366,14 +366,14 @@ unsigned long schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long 
     return action->nmax;
 }
 
-unsigned long schurNumberSaveAllPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
+unsigned long schur_number_save_all_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
     /*La partition est ajoutée aux autres.*/
     
     schur_number_intermediate_save_t *save = action->save;
     
     if (n > action->nmax) {
         if (save) {
-            action->nmax = schurNumberSaveBestUpgrade(save, n, partition);
+            action->nmax = schur_number_save_best_upgrade(save, n, partition);
         } else {
             action->nmax = n;
         }
@@ -402,9 +402,9 @@ unsigned long schurNumberSaveAllPartition(mp_limb_t **partition, unsigned long n
         action->count_all ++;
         
         if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
-            unsigned long nbest = schurNumberSaveProgressionUpdate(save, n, partition);
+            unsigned long nbest = schur_number_save_progression_update(save, n, partition);
             if (nbest > action->nmax) {
-                schurNumberSaveSomePartition(NULL, nbest, action);
+                schur_number_save_some_partition(NULL, nbest, action);
             }
         }
     }
@@ -439,7 +439,7 @@ size_t schurNumberPrintPartitionBuffer(unsigned long p, char *limbsize_buffer, c
     return k;
 }
 
-size_t schurNumberActionPrintPartitions(schur_number_action_t *action) {
+size_t schur_number_action_print_partitions(schur_number_action_t *action) {
     /*Affiche toutes les partitions présentes dans action.*/
     unsigned long p = action->p;
     
@@ -450,55 +450,55 @@ size_t schurNumberActionPrintPartitions(schur_number_action_t *action) {
     
     schur_number_action_t **actions = action->gathered_actions;
     for (size_t k = 0; k < action->count_gathered_actions; k++) {
-        total_count += schurNumberActionPrintPartitions(actions[k]);
+        total_count += schur_number_action_print_partitions(actions[k]);
     }
     
     return total_count;
 }
 
-unsigned long schurNumberActionTotalIterations(const schur_number_action_t *action) {
+unsigned long schur_number_action_total_iterations(const schur_number_action_t *action) {
     /* Renvoie le nombre total d'itérations effectuées. */
     unsigned long iternum = action->iter_num;
     
     schur_number_action_t **actions = action->gathered_actions;
     for (unsigned long i = 0; i < action->count_gathered_actions; i++) {
-        iternum += schurNumberActionTotalIterations(actions[i]);
+        iternum += schur_number_action_total_iterations(actions[i]);
     }
     
     return iternum;
 }
 
-unsigned long schurNumberActionTotalCountAll(const schur_number_action_t *action) {
+unsigned long schur_number_action_total_count_all(const schur_number_action_t *action) {
     /* Renvoie le nombre de partitions trouvées parmi toutes les actions. */
     unsigned long count = action->count_all;
     
     schur_number_action_t **actions = action->gathered_actions;
     for (unsigned long i = 0; i < action->count_gathered_actions; i++) {
-        count += schurNumberActionTotalCountAll(actions[i]);
+        count += schur_number_action_total_count_all(actions[i]);
     }
     
     return count;
 }
 
-unsigned long schurNumberActionTotalCountMax(const schur_number_action_t *action) {
+unsigned long schur_number_action_total_count_max(const schur_number_action_t *action) {
     /* Renvoie le nombre de partitions de taille maximale trouvées parmi toutes les actions. */
     unsigned long count = action->count_max;
     
     schur_number_action_t **actions = action->gathered_actions;
     for (unsigned long i = 0; i < action->count_gathered_actions; i++) {
-        count += schurNumberActionTotalCountMax(actions[i]);
+        count += schur_number_action_total_count_max(actions[i]);
     }
     
     return count;
 }
 
-unsigned long schurNumberActionTotalNMax(const schur_number_action_t *action) {
+unsigned long schur_number_action_total_Nmax(const schur_number_action_t *action) {
     /* Renvoie la plus grande taille de partitions trouvée parmi toutes les actions. */
     unsigned long nmax = action->nmax;
     
     schur_number_action_t **actions = action->gathered_actions;
     for (unsigned long i = 0; i < action->count_gathered_actions; i++) {
-        unsigned long n = schurNumberActionTotalNMax(actions[i]);
+        unsigned long n = schur_number_action_total_Nmax(actions[i]);
         if (n > nmax) {
             nmax = n;
         }

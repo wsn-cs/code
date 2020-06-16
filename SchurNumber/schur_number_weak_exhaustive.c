@@ -160,7 +160,7 @@ unsigned long schurNumberWeakExhaustive2(schur_number_partition_t *partitionstru
     return nbest;
 }
 
-unsigned long schurNumberWeakExhaustive(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit) {
+unsigned long schur_number_weak_exhaustive(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit) {
     /*
      Cette fonction calcule successivement les nombres de Schur faibles WS(p) pour p<= pmax, en partant de la partition initiale contenue dans partitionstruc. Elle remplit le tableau nbests, et compte le nombre d'itérations dans iternum.
      
@@ -205,7 +205,7 @@ unsigned long schurNumberWeakExhaustive(schur_number_partition_t *partitionstruc
         while (notSumFree && i < p) {
             // Tester si l'ensemble obtenu en ajoutant n+1 à la huche i est faiblement sans-somme
             iter_num++;
-            mpn_copyi(work1, wsfpartitioninvert[i] + (limballoc - limbsize), limballoc);
+            mpn_copyi(work1, wsfpartitioninvert[i] + (limballoc - limbsize), limbsize);
             
             // Retirer éventuellement (n + 1)/2
             if (n % 2 && GET_POINT(work1, nsize - (n>>1))) {
@@ -213,17 +213,7 @@ unsigned long schurNumberWeakExhaustive(schur_number_partition_t *partitionstruc
             }
             
             // Calculer (n+1) - huche i = (nsize + 1 - wsfpartitioninvert[i]) - (nsize - n) en effectuant une succession de décalage vers la droite
-            unsigned long nrem = nsize - n;
-            while (nrem > 0) {
-                unsigned int shift = nrem % GMP_NUMB_BITS;
-                if (!shift) {
-                    shift = GMP_NUMB_BITS - 1;
-                }
-                
-                mpn_rshift(work1, work1, limbsize, shift);     // work1 -= shift
-                
-                nrem -= shift;
-            }
+            schur_number_ntranslation(work1, work1, limbsize, nsize - n);
             
             // Intersecter la somme avec la huche initiale
             mpn_and_n(work2, work1, wsfpartition[i], limbsize);

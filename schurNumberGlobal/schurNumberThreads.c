@@ -8,7 +8,7 @@
 
 #include "schurNumberThreads.h"
 
-size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, schur_number_partition_t **partitionstruc_array_ptr, schur_number_method_t methodfunc, mp_limb_t **constraint_partition, mp_size_t constraint_size) {
+size_t schur_number_partition_pool(schur_number_partition_t *beginpartitionstruc, schur_number_partition_t **partitionstruc_array_ptr, schur_number_method_t methodfunc, mp_limb_t **constraint_partition, mp_size_t constraint_size) {
     /*Cette fonction crée une liste de partitions initiales à utiliser comme thread poll.
      Les partitions sont énumérées selon la méthode jusqu'à n = 4.
      Elle renvoie le nombre de partitions initiales, et alloue la mémoire associée à partitionstruc_array.*/
@@ -18,7 +18,7 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
     unsigned long nalloc = limballoc * GMP_NUMB_BITS;
     
     schur_number_action_t action_s;
-    schurNumberActionAlloc(&action_s, p, schurNumberSaveBestPartition);
+    schur_number_action_alloc(&action_s, p, schur_number_save_best_partition);
     
     size_t count = 1;
     schur_number_partition_t *work_partitionstruc_array = beginpartitionstruc;
@@ -83,12 +83,12 @@ size_t schurNumberPartitionPool(schur_number_partition_t *beginpartitionstruc, s
     *partitionstruc_array_ptr = work_partitionstruc_array;
     
     //schurNumberActionPrintPartitions(&action_s);
-    schurNumberActionDealloc(&action_s);
+    schur_number_action_dealloc(&action_s);
     
     return count;
 }
 
-void schurNumberPartitionPoolDealloc(schur_number_partition_t **partitionstruc_array_ptr, size_t count) {
+void schur_number_partition_pool_dealloc(schur_number_partition_t **partitionstruc_array_ptr, size_t count) {
     /*Libère la mémoire associée à partitionstruc_array_ptr, qui contient count partitionstruc à libérer.*/
     for (unsigned long i = 0; i < count; i++) {
         schur_number_partition_dealloc(&(*partitionstruc_array_ptr)[i]);
@@ -96,7 +96,7 @@ void schurNumberPartitionPoolDealloc(schur_number_partition_t **partitionstruc_a
     free(*partitionstruc_array_ptr);
 }
 
-void schurNumberThreadTask(schur_number_task_arg_t *arg) {
+void schur_number_thread_task(schur_number_task_arg_t *arg) {
     /*Lance la fonction sur une des partitions dans partitionstruc_array.*/
     
     // Initialisation des variables
@@ -120,10 +120,11 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
     
     unsigned long nbest = 0;
     unsigned long i;
+    unsigned long nlimit = arg->nlimit;
     
     // Enregistrement du thread
     schur_number_intermediate_save_t *save = action->save;
-    schurNumberSaveThreadRegister(save);
+    schur_number_save_thread_register(save);
 
     // Lire l'indice courant
     pthread_mutex_lock(mutex);
@@ -135,10 +136,9 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
         // Lance la procédure
         schur_number_partition_t *partitionstruc = &(partitionstruc_array[i]);
         
-        schurNumberSaveNewExplorationRegister(save);
+        schur_number_save_newexploration_register(save);
         
         unsigned long n;
-        unsigned long nlimit = arg->nlimit;
         
         n = arg->func(partitionstruc, action, nlimit, constraint_partition, constraint_size);
         
@@ -179,7 +179,7 @@ void schurNumberThreadTask(schur_number_task_arg_t *arg) {
     }
 }
 
-unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc, schur_number_method_t methodfunc, schur_number_action_t *action, unsigned long nlimit, mp_limb_t **constraint_partition, mp_size_t constraint_size) {
+unsigned long schur_number_threads_launch(schur_number_partition_t *partitionstruc, schur_number_method_t methodfunc, schur_number_action_t *action, unsigned long nlimit, mp_limb_t **constraint_partition, mp_size_t constraint_size) {
     /*Cette fonction initialise plusieurs threads. La répartition se fait en spécifiant différentes partitions de départ pour n = 4.*/
     
     pthread_t threads[NUM_THREADS - 1];
@@ -191,13 +191,13 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
     unsigned long p = partitionstruc->pmax;
     
     // Création des partitions initiales.
-    size_t count = schurNumberPartitionPool(partitionstruc, &partitionstruc_array, methodfunc, constraint_partition, constraint_size); // Nombre de partitions dans partitionstruc_array
+    size_t count = schur_number_partition_pool(partitionstruc, &partitionstruc_array, methodfunc, constraint_partition, constraint_size); // Nombre de partitions dans partitionstruc_array
     size_t current_index = 0;                                                                   // Indice de la partition à traiter
     unsigned long nbest = 0;
     
     // Répercussion dans la sauvegarde
     schur_number_intermediate_save_t *save = action->save;
-    schurNumberSavePartitionPoolRegister(save, count, partitionstruc_array->n);
+    schur_number_save_partition_pool_register(save, count, partitionstruc_array->n);
     
     // Création de la mutex associée
     pthread_mutex_t mutex_s;
@@ -213,7 +213,7 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
         arg->partitionstruc_array = partitionstruc_array;
         
         actions[i] = calloc(1, sizeof(schur_number_action_t));
-        schurNumberActionAlloc(actions[i], p, action->func);
+        schur_number_action_alloc(actions[i], p, action->func);
         actions[i]->count_limit = action->count_limit;
         actions[i]->nmax = action->nmax;
         arg->action = actions[i];
@@ -226,7 +226,7 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
         actions[i]->save = save;
         
         // Création du thread
-        pthread_create(&threads[i], NULL, schurNumberThreadTask, arg);
+        pthread_create(&threads[i], NULL, schur_number_thread_task, arg);
     }
     
     // Création de l'argument à appeler
@@ -244,23 +244,17 @@ unsigned long schurNumberThreadsLaunch(schur_number_partition_t *partitionstruc,
     arg->mutex = &mutex_s;
     
     // Exécution de la fonction
-    schurNumberThreadTask(arg);
+    schur_number_thread_task(arg);
     
     // Regroupement
     for (unsigned int i = 0; i < NUM_THREADS - 1; i++) {
         pthread_join(threads[i], NULL);
     }
     
-    //schurNumberActionGatherCopy(action, actions, NUM_THREADS - 1);
-    schurNumberActionGatherNoCopy(action, actions, NUM_THREADS - 1);
-    
-//    for (unsigned int i = 0; i < NUM_THREADS - 1; i++) {
-//        schurNumberActionDealloc(actions[i]);
-//        free(actions[i]);
-//    }
+    schur_number_action_gather_nocopy(action, actions, NUM_THREADS - 1);
     
     // Nettoyage
-    schurNumberPartitionPoolDealloc(&partitionstruc_array, count);
+    schur_number_partition_pool_dealloc(&partitionstruc_array, count);
     pthread_mutex_destroy(&mutex_s);
     
     return 0;

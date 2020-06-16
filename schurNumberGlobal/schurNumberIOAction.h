@@ -59,25 +59,25 @@ typedef struct schurNumberIOAction schur_number_action_t;
 
 typedef unsigned long (*schur_number_action_func_t)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 
-void schurNumberActionAlloc(schur_number_action_t *action, unsigned long p, unsigned long (*func)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action));
-void schurNumberActionDealloc(schur_number_action_t *action);
+void schur_number_action_alloc(schur_number_action_t *action, unsigned long p, unsigned long (*func)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action));
+void schur_number_action_dealloc(schur_number_action_t *action);
 
-size_t schurNumberActionPrintPartitions(schur_number_action_t *action);
+size_t schur_number_action_print_partitions(schur_number_action_t *action);
 
-unsigned long schurNumberActionTotalIterations(const schur_number_action_t *action);
-unsigned long schurNumberActionTotalCountAll(const schur_number_action_t *action);
-unsigned long schurNumberActionTotalCountMax(const schur_number_action_t *action);
-unsigned long schurNumberActionTotalNMax(const schur_number_action_t *action);
+unsigned long schur_number_action_total_iterations(const schur_number_action_t *action);
+unsigned long schur_number_action_total_count_all(const schur_number_action_t *action);
+unsigned long schur_number_action_total_count_max(const schur_number_action_t *action);
+unsigned long schur_number_action_total_Nmax(const schur_number_action_t *action);
 
-void schurNumberActionGatherCopy(schur_number_action_t *r_action, schur_number_action_t **actions, size_t n_actions);
-void schurNumberActionGatherNoCopy(schur_number_action_t *r_action, schur_number_action_t **actions, size_t n_actions);
+void schur_number_action_gather_copy(schur_number_action_t *r_action, schur_number_action_t **actions, size_t n_actions);
+void schur_number_action_gather_nocopy(schur_number_action_t *r_action, schur_number_action_t **actions, size_t n_actions);
 
-unsigned long schurNumberDefaultAction(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
-unsigned long schurNumberSaveSomePartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
-unsigned long schurNumberSaveBestPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
-unsigned long schurNumberSaveAllPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schur_number_default_action(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schur_number_save_some_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schur_number_save_best_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schur_number_save_all_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 
-unsigned long schurNumberSaveDistinctSumPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
-unsigned long schurNumberSaveDistinctRestrictedSumPartition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schur_number_save_distinct_sum_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schur_number_save_distinct_restrictedsum_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 
 #endif /* schurNumberIOAction_h */

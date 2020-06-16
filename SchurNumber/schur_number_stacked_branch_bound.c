@@ -1,8 +1,8 @@
 //
-//  schurNumberWeakStackedBranchBound.c
+//  schurNumberStackedBranchBound.c
 //  SchurNumber
 //
-//  Created by rubis on 07/04/2020.
+//  Created by rubis on 22/03/2020.
 //  Copyright © 2020 rubis. All rights reserved.
 //
 
@@ -10,7 +10,7 @@
 #include "gmp-impl.h"
 #include "longlong.h"
 
-unsigned long schurNumberWeakStackedBranchBound2(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit) {
+unsigned long schur_number_stacked_branch_bound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit) {
     /*
      Cette fonction calcule successivement les nombres de Schur S(p) pour p<= pmax, en partant de la partition initiale contenue dans partitionstruc.
      Elle se limite à explorer les partitions de taille <= nlimit.
@@ -20,194 +20,13 @@ unsigned long schurNumberWeakStackedBranchBound2(schur_number_partition_t *parti
      alors k appartient à l'ensemble; sinon il n'y appartient pas.
      
      Pour tester si il est possible d'ajouter n+1 à l'ensemble P sans-somme,
-     on effectue un & entre les [n/2] premiers bits et les [n/2] derniers.
-     Si le résultat est 0, il est possible d'ajouter n+1.
+     on regarde si n+1 appartient à P+P, qui est mis à jour à chaque ajout d'un nouvel entier.
+     Les valeurs successives de P+P sont suavegardées dans une pile.
      
      Lorsqu'un entier n n'a pu être inséré dans aucune huches, on revient au sup sur les huches
      du plus petit n'≥[n/2]+1 tel que n' et n-n' appartiennent simultanément à cette huche.
      
-     De plus, les sommes faibles de la partition sont conservées en mémoire dans le tableau sumpartition, de sorte qu'à chaque itération, il est possible de réaliser leur intersection pour borner la taille de la partition faiblement sans-somme en construction.
-     */
-    
-    // Initialisation de la partition à calculer
-    mp_limb_t **partition = partitionstruc->partition;
-    mp_size_t limballoc = partitionstruc->limballoc;            // Nombre de limbes alloué à chaque ensemble de partition
-    mp_size_t limbsize = partitionstruc->limbsize;              // Nombre de limbes utilisés par les ensembles de partition
-    unsigned long nsize = GMP_NUMB_BITS * limbsize - 1;      // Plus grand entier pouvant être contenu dans limbsize limbes
-    unsigned long nalloc = GMP_NUMB_BITS * limballoc - 1;    // Plus grand entier pouvant être contenu dans limballoc limbes
-    
-    // Initialisation des ensembles intermédiaires
-    mp_limb_t *work1 = calloc(sizeof(mp_limb_t), limballoc);
-    
-    // Initialisation des variables
-    const unsigned long n0 = partitionstruc->n;       // Taille de la partition initiale
-    unsigned long n = n0;                       // Taille de l'intervalle
-    unsigned long nbest = n0;                   // Taille de la plus grande partition trouvée
-    unsigned long i = 0;                        // Huche où placer l'entier suivant
-    unsigned long p = partitionstruc->p;        // Nombre de huches non vides
-    unsigned long pmax = partitionstruc->pmax;  // Nombre de huches total
-    char notSumFree = 1;
-    char is_new_branch = 1;
-    
-    // Initialisation du tableau contenant la pile des sommes restreintes de la partition
-    mp_limb_t **sumpartition = calloc(sizeof(mp_limb_t *), pmax);
-    mp_limb_t **sums_ptr = calloc(sizeof(mp_limb_t *), pmax);
-    
-    unsigned long nmax = nalloc;    // Plus grand entier pouvant être atteint par cette partition
-    
-    for (unsigned long j = 0; j < pmax; j++) {
-        sumpartition[j] = calloc(sizeof(mp_limb_t) * limballoc, nlimit);    // Tableau contenant la pile des sommes de l'ensembles j
-        sums_ptr[j] = sumpartition[j];                                      // Pointeur vers le sommet de la pile des sommes de l'ensembles j
-        schurNumberWeakSumset(sums_ptr[j], partition[j], partition[j], limballoc, limballoc, 0, work1);
-    }
-    
-    unsigned long iter_num = action->iter_num;  // Nombre d'itérations
-    
-    // Itération jusqu'à énumérer toutes les partions sans-somme à au plus pmax huches
-    while (n >= n0) {
-        // Placer n+1 dans une des huches en conservant le caractère faiblement sans-somme
-        
-        if (p == pmax) {
-            // Effectuer l'intersection des sommes pour obtenir un majorant sur la plus grande partition sans-somme
-            mpn_copyd(work1, *sums_ptr, limballoc);
-            for (unsigned long j = 1; j < p; j++) {
-                mpn_and_n(work1, work1, sums_ptr[j], limballoc);
-            }
-            nmax = nalloc;
-            if (!mpn_zero_p(work1, limballoc)) {
-                nmax = mpn_scan1(work1, limballoc);
-            }
-            
-            if (nmax <= nbest) {
-                notSumFree = 0;
-            }
-        }
-        
-        while (notSumFree && i < p) {
-            // Regarder si n+1 appartient à la somme de l'ensemble i
-            
-            iter_num++;
-            notSumFree = !!(GET_POINT(sums_ptr[i], n+1));
-            if (notSumFree != 0 && notSumFree != 1) {
-                printf("%hhd\n", notSumFree);
-            }
-            
-            i += notSumFree;
-        }
-        
-        if (notSumFree || n >= nlimit || nmax <= nbest) {
-            // L'entier n+1 n'a pu être placé dans aucune huche
-            
-            if (p < pmax && i <= p && n < nlimit) {
-                // Remplir une nouvelle huche
-                
-                n++;
-                ADD_POINT(partition[p], n);
-                
-                sums_ptr[p] = sumpartition[p];
-                
-                i = 0;
-                if (n > nsize) {
-                    limbsize++;
-                    nsize += GMP_NUMB_BITS;
-                }
-                p++;
-                is_new_branch = 1;
-                
-            } else {
-                
-                if (is_new_branch) {
-                    // Agir sur la partition
-                    action->func(partition, n, action);
-                    if (n > nbest) {
-                        nbest = n;
-                    }
-                    //schurNumberPrintPartition(p, n, partition);
-                }
-                is_new_branch = 0;
-                
-                // Déterminer la huche contenant n
-                i = 0;
-                while (i < p && !GET_POINT(partition[i], n)) {
-                    i++;
-                }
-                
-                // Retirer n de la partition
-                DELETE_POINT(partition[i], n);
-                
-                // Dépiler la somme
-                mpn_zero(sums_ptr[i], limballoc);
-                if (sums_ptr[i] > sumpartition[i]) {
-                    sums_ptr[i] -= limballoc;
-                }
-                
-                while (0 < p && mpn_zero_p(partition[p - 1], limbsize)) {
-                    // Supprimer la dernière huche
-                    p--;
-                    mpn_zero(sums_ptr[p], limballoc);
-                }
-                
-                if (!(n % GMP_NUMB_BITS)) {
-                    limbsize--;
-                    nsize = GMP_NUMB_BITS * limbsize - 1;
-                }
-                n--;
-                
-                i++;
-            }
-        } else {
-            // Adjoindre n+1 à la huche i et incrémenter n
-            n++;
-            //printf("%lu\n", n);
-            
-            mp_limb_t *sumset = sums_ptr[i] + limballoc;
-            schur_number_translation(sumset, partition[i], limballoc, n);
-            mpn_ior_n(sumset, sumset, sums_ptr[i], limballoc);
-            sums_ptr[i] = sumset;
-            
-            ADD_POINT(partition[i], n);
-            
-            i = 0;
-            if (n >= nsize) {
-                limbsize++;
-                nsize += GMP_NUMB_BITS;
-            }
-            is_new_branch = 1;
-        }
-        notSumFree = 1;
-    }
-    
-    // Nettoyage
-    free(work1);
-    
-    for (unsigned long j = 0; j < pmax; j++) {
-        free(sumpartition[j]);
-    }
-    free(sumpartition);
-    free(sums_ptr);
-    
-    action->iter_num = iter_num;
-    
-    return nbest;
-}
-
-unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit) {
-    /*
-     Cette fonction calcule successivement les nombres de Schur S(p) pour p<= pmax, en partant de la partition initiale contenue dans partitionstruc.
-     Elle se limite à explorer les partitions de taille <= nlimit.
-     
-     La partition est représentée comme un tableau de grands entiers sfpartition.
-     Chaque grand entier représente un ensemble grâce à ses bits: si le bit k vaut 1,
-     alors k appartient à l'ensemble; sinon il n'y appartient pas.
-     
-     Pour tester si il est possible d'ajouter n+1 à l'ensemble P sans-somme,
-     on effectue un & entre les [n/2] premiers bits et les [n/2] derniers.
-     Si le résultat est 0, il est possible d'ajouter n+1.
-     
-     Lorsqu'un entier n n'a pu être inséré dans aucune huches, on revient au sup sur les huches
-     du plus petit n'≥[n/2]+1 tel que n' et n-n' appartiennent simultanément à cette huche.
-     
-     De plus, les sommes faibles de la partition sont conservées en mémoire dans le tableau sumpartition, de sorte qu'à chaque itération, il est possible de réaliser leur intersection pour borner la taille de la partition faiblement sans-somme en construction.
+     De plus, les sommes de la partition sont conservées en mémoire dans le tableau sumpartition, de sorte qu'à chaque itération, il est possible de réaliser leur intersection pour borner la taille de la partition sans-somme en construction.
      */
     
     // Initialisation de la partition à calculer
@@ -243,7 +62,7 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
     for (unsigned long j = 0; j < pmax; j++) {
         sumpartition[j] = calloc(sizeof(mp_limb_t) * limballoc, nlimit);    // Tableau contenant la pile des sommes de l'ensembles j
         sums_ptr[j] = sumpartition[j];                                      // Pointeur vers le sommet de la pile des sommes de l'ensembles j
-        schurNumberWeakSumset(sums_ptr[j], partition[j], partition[j], limballoc, limballoc, 0, work1);
+        schur_number_sumset(sums_ptr[j], partition[j], partition[j], limballoc, limballoc, 0, work1);
         
         unsigned long cardinal = 0;
         for (unsigned long k = 0; k < limballoc; k++) {
@@ -271,11 +90,6 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
             if (!mpn_zero_p(work1, limballoc)) {
                 nmax = mpn_scan1(work1, limballoc);
             }
-            
-            if (nmax <= nbest) {
-                notSumFree = 0;
-                nblocking = n;
-            }
         }
         
         while (notSumFree && i < p) {
@@ -288,30 +102,15 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
                 // Déterminer nblocking en cas de blocage
                 // Il s'agit du plus petit m tel que la somme de l'ensemble i à l'étape m rencontre n
                 
-                mp_limb_t *blockingsumset = sums_ptr[i];
+                mp_limb_t *blockingsumset = sums_ptr[i] - limballoc;
                 mp_limb_t *sumset0 = sumpartition[i];
                 
-                unsigned long c = cardinals[i];         // Numéro de l'entier m dans l'ensemble i, commençant à 0
+                unsigned long c = cardinals[i] - 1;             // Numéro de l'entier m dans l'ensemble i, commençant à 0
                 
                 while (blockingsumset >= sumset0 && GET_POINT(blockingsumset, n+1)) {
                     c--;
                     blockingsumset -= limballoc;
                 }
-                
-                // Test
-                /*unsigned long sum_pcnt = 0;
-                for (unsigned long k = 0; k < limballoc; k++) {
-                    sum_pcnt += popcounts[i * limballoc + k];
-                }
-                if (sum_pcnt != cardinals[i]) {
-                    printf("Cardinal : %lu \t Popcount : %lu\n", cardinals[i], sum_pcnt);
-                    for (unsigned long k = 0; k < limballoc; k++) {
-                        printf("%hhd ", popcounts[i * limballoc + k]);
-                    }
-                    printf("\n");
-                    schurNumberPrintSet(STDOUT_FILENO, n, partition[i]);
-                    printf("\n");
-                }*/
                 
                 // Déterminer de façon décroissante le limbe contenant l'entier bloquant
                 mp_limb_t *limb_ptr = partition[i] + limbsize - 1;
@@ -350,8 +149,11 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
                 ADD_POINT(partition[p], n);
                 cardinals[p] = 1;
                 popcounts[p * limballoc + limbsize - 1] = 1;
-
-                sums_ptr[p] = sumpartition[p];
+                
+                mp_limb_t *sumptr = sumpartition[p];
+                //mp_limb_t *sumptr = sums_ptr[p];
+                ADD_POINT(sumptr, 2 * n);
+                sums_ptr[p] = sumptr;
                 
                 i = 0;
                 if (n > nsize) {
@@ -373,7 +175,6 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
                     if (n >= nlimit) {
                         nblocking = n;
                     }
-                    //schurNumberPrintPartition(p, n, partition);
                 }
                 is_new_branch = 0;
                 
@@ -386,8 +187,8 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
                 // Revenir à une partition de [1, nblocking-1]
                 
                 // Masquer tous les bits au-delà de nblocking en construisant un masque
-                mp_size_t blockinglimbsize = (nblocking / GMP_NUMB_BITS) + 1;    // Nombre de limbes nécessaires pour contenir nblocking
                 
+                mp_size_t blockinglimbsize = (nblocking / GMP_NUMB_BITS) + 1;    // Nombre de limbes nécessaires pour contenir nblocking
                 schur_number_setinterval_1(work1, limbsize, blockinglimbsize, nblocking); // work1 = [1, nblocking-1]
                 
                 // Appliquer le masque
@@ -397,16 +198,20 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
                 
                 // Dépiler les sommes
                 for (unsigned long i = 0; i < p; i++) {
-                    mp_bitcnt_t cardinal = mpn_popcount(partition[i], blockinglimbsize);
+                    // Il faut déterminer le nombre d'éléments de [nblocking, n] contenu dans l'ensemble i
+                    mp_bitcnt_t cardinal = mpn_popcount(partition[i], blockinglimbsize);    // Nombre d'éléments dans A_i ∩ [1, nblocking-1]
                     
                     if (cardinal < cardinals[i]) {
                         mp_bitcnt_t limb_diff = (cardinals[i] - cardinal - 1) * limballoc;
                         sums_ptr[i] -= limb_diff;
+                        //mpn_zero(sums_ptr[i], limb_diff);
                         mpn_zero(sums_ptr[i], limb_diff + limballoc);
                         sums_ptr[i] -= (!!cardinal) * limballoc;
+                        //sums_ptr[i] -= limballoc;
                         
                         cardinals[i] = cardinal;
                         
+                        //popcounts[i * limballoc + blockinglimbsize - 1] -= cardinals[i] - cardinal;
                         char popcnt;
                         popc_limb(popcnt, partition[i][blockinglimbsize - 1]);
                         popcounts[i * limballoc + blockinglimbsize - 1] = popcnt;
@@ -434,14 +239,12 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
         } else {
             // Adjoindre n+1 à la huche i et incrémenter n
             n++;
-            //printf("%lu\n", n);
+            ADD_POINT(partition[i], n);
             
             mp_limb_t *sumset = sums_ptr[i] + limballoc;
             schur_number_translation(sumset, partition[i], limballoc, n);
             mpn_ior_n(sumset, sumset, sums_ptr[i], limballoc);
             sums_ptr[i] = sumset;
-            
-            ADD_POINT(partition[i], n);
             
             cardinals[i]++;
             popcounts[i * limballoc + limbsize - 1] ++;
@@ -452,7 +255,7 @@ unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partit
                 nsize += GMP_NUMB_BITS;
             }
             is_new_branch = 1;
-            nblocking = 1;
+            nblocking = n;
         }
         notSumFree = 1;
     }

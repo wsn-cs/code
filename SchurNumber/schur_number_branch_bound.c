@@ -8,7 +8,7 @@
 
 #include "schurNumberMethods.h"
 
-unsigned long schurNumberBranchBound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit) {
+unsigned long schur_number_branch_bound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit) {
     /*
      Cette fonction calcule successivement les nombres de Schur S(p) pour p<= pmax, en partant de la partition initiale contenue dans partitionstruc.
      Elle se limite à explorer les partitions de taille <= nlimit.
@@ -59,18 +59,7 @@ unsigned long schurNumberBranchBound(schur_number_partition_t *partitionstruc, s
             mp_limb_t *work0 = partitioninvert[i] + (limballoc - limbsize);
             
             // Calculer (n+1) - huche i = (nsize + 1 - partitioninvert[i]) - (nsize - n) en effectuant une succession de décalage vers la droite
-            unsigned long nrem = nsize - n;
-            while (nrem > 0) {
-                unsigned int shift = nrem % GMP_NUMB_BITS;
-                if (!shift) {
-                    shift = GMP_NUMB_BITS - 1;
-                }
-                
-                mpn_rshift(work1, work0, limbsize, shift);     // work1 = work0 - shift
-                work0 = work1;
-                
-                nrem -= shift;
-            }
+            schur_number_ntranslation(work1, work0, limbsize, nsize - n);
             
             // Intersecter la somme avec la huche initiale
             mpn_and_n(work2, work1, partition[i], limbsize);

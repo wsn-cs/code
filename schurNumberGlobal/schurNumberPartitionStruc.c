@@ -67,7 +67,7 @@ void schur_number_partition_dealloc(schur_number_partition_t *partitionstruc) {
 }
 
 
-void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work) {
+void schur_number_sumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work) {
     /* Cette fonction calcule set1 + set2 - x et le place dans r_set, qui doit pouvoir contenir tous les éléments.
      Le pointeur work doit pointer vers un tableau pouvant contenir r_limbsize. */
     unsigned long nsize = limbsize * GMP_NUMB_BITS;
@@ -110,7 +110,7 @@ void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_si
 }
 
 
-void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work) {
+void schur_number_restricted_sumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work) {
     /* Cette fonction calcule set1 + set2 - x et le place dans r_set, qui doit pouvoir contenir tous les éléments.
      Le pointeur work doit pointer vers un tableau pouvant contenir r_limbsize. */
     unsigned long nsize = limbsize * GMP_NUMB_BITS;

@@ -8,7 +8,7 @@
 
 #include "schurNumberWeakPuncturedInterval.h"
 
-unsigned long schurNumberWeakPuncturedInterval(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit) {
+unsigned long schur_number_weak_punctured_interval(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit) {
     /* Cette fonction essaie de combler l'intervalle [n0+1, nlimit] après avoir fixé une partition A de [1, n0] en respectant le caractère faiblement sans-somme. */
     
     // Initialisation de la partition à calculer

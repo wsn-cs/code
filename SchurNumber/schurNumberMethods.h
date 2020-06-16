@@ -19,17 +19,16 @@ Elles sont construites selon le schéma suivant:
 
 mp_bitcnt_t mpn_rscan1 (mp_srcptr up, mp_bitcnt_t starting_bit);
 
-unsigned long schurNumberWeakExhaustive(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
-//unsigned long schurNumberWeakExhaustive2(schur_number_partition_t *partitionstruc, schur_number_action_t *action);
+unsigned long schur_number_weak_exhaustive(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
 
-unsigned long schurNumberExhaustive(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
+unsigned long schur_number_exhaustive(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
 
-unsigned long schurNumberWeakBranchBound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
+unsigned long schur_number_weak_branch_bound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
 
-unsigned long schurNumberBranchBound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
+unsigned long schur_number_branch_bound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
 
-unsigned long schurNumberStackedBranchBound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
+unsigned long schur_number_stacked_branch_bound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
 
-unsigned long schurNumberWeakStackedBranchBound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
+unsigned long schur_number_weak_stacked_branch_bound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
 
 #endif /* schurNumberMethods_h */

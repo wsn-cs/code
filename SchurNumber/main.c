@@ -12,11 +12,11 @@
 
 #include "schurNumberMethods.h"
 #include "../schurNumberGlobal/schurNumberIOAction.h"
-#include "../schurNumberGlobal/schurNumberThreads.h"
+//#include "../schurNumberGlobal/schurNumberThreads.h"
 
 #ifdef schurNumberThreads_h
 
-    #define schurNumberLaunch(methodfunc, partitionstruc, action, nlimit) schurNumberThreadsLaunch(partitionstruc, methodfunc, action, nlimit, NULL, 0)
+    #define schurNumberLaunch(methodfunc, partitionstruc, action, nlimit) schur_number_threads_launch(partitionstruc, methodfunc, action, nlimit, NULL, 0)
 
 #else
 
@@ -136,36 +136,36 @@ int main(int argc, const char * argv[]) {
     if (print_range) {
         if (isdigit(*print_range)) {
             part_count_limit = atol(print_range);
-            actionfunc = schurNumberSaveSomePartition;
+            actionfunc = schur_number_save_some_partition;
         } else {
             switch (*print_range) {
                 case 'a':
-                    actionfunc = schurNumberSaveAllPartition;
+                    actionfunc = schur_number_save_all_partition;
                     break;
                     
                 case 'b':
-                    actionfunc = schurNumberSaveBestPartition;
+                    actionfunc = schur_number_save_best_partition;
                     break;
                     
                 case 's':
-                    actionfunc = schurNumberSaveDistinctSumPartition;
+                    actionfunc = schur_number_save_distinct_sum_partition;
                     break;
                     
                 case 'r':
-                    actionfunc = schurNumberSaveDistinctRestrictedSumPartition;
+                    actionfunc = schur_number_save_distinct_restrictedsum_partition;
                     break;
                     
                 default:
-                    actionfunc = schurNumberDefaultAction;
+                    actionfunc = schur_number_default_action;
                     break;
             }
         }
         free(print_range);
     } else {
-        actionfunc = schurNumberDefaultAction;
+        actionfunc = schur_number_default_action;
     }
     
-    schurNumberActionAlloc(&action_s, p, actionfunc);
+    schur_number_action_alloc(&action_s, p, actionfunc);
     action_s.count_limit = part_count_limit;
     
     // Allocation de la partition
@@ -188,7 +188,7 @@ int main(int argc, const char * argv[]) {
         
         for (unsigned long j = 0; j < p_init; j++) {
             
-            unsigned long nmax = schurNumberGetSet(partition_s.partition[j], partition_s.partitioninvert[j], limballoc, *set_str_ptr, format);
+            unsigned long nmax = schur_number_get_set(partition_s.partition[j], partition_s.partitioninvert[j], limballoc, *set_str_ptr, format);
             if (n_init < nmax) {
                 n_init = nmax;
             }
@@ -210,41 +210,41 @@ int main(int argc, const char * argv[]) {
     schur_number_method_t methodfunc;
     switch (method) {
         case '1':
-            methodfunc = schurNumberExhaustive;
+            methodfunc = schur_number_exhaustive;
             break;
             
         case '2':
-            methodfunc = schurNumberBranchBound;
+            methodfunc = schur_number_branch_bound;
             break;
             
         case '3':
-            methodfunc = schurNumberStackedBranchBound;
+            methodfunc = schur_number_stacked_branch_bound;
             break;
             
         case '4':
-            methodfunc = schurNumberWeakExhaustive;
+            methodfunc = schur_number_weak_exhaustive;
             break;
             
         case '5':
-            methodfunc = schurNumberWeakBranchBound;
+            methodfunc = schur_number_weak_branch_bound;
             break;
             
         case '6':
-            methodfunc = schurNumberWeakStackedBranchBound;
+            methodfunc = schur_number_weak_stacked_branch_bound;
             break;
             
         case 'w':
-            methodfunc = schurNumberWeakExhaustive;
+            methodfunc = schur_number_weak_exhaustive;
             break;
             
         default:
-            methodfunc = schurNumberExhaustive;
+            methodfunc = schur_number_exhaustive;
             break;
     }
     
     // Création de la sauvegarde temporaire
     schur_number_intermediate_save_t save_str;
-    schurNumberSaveAlloc(&save_str, p, partition_s.n);
+    schur_number_save_alloc(&save_str, p, partition_s.n);
     action_s.save = &save_str;
     
     // Gestion de la taille limite des partitions cherchées qui n'excéderont pas [1, nlimit-1]
@@ -261,12 +261,12 @@ int main(int argc, const char * argv[]) {
     time1 = clock();
     
     // Destruction de la sauvegarde temporaire
-    schurNumberSaveDealloc(&save_str);
+    schur_number_save_dealloc(&save_str);
     
     // Affichage des résultats
     
     if (print_range) {
-        schurNumberActionPrintPartitions(&action_s);
+        schur_number_action_print_partitions(&action_s);
     }
     
     if (timeOption) {
@@ -274,7 +274,7 @@ int main(int argc, const char * argv[]) {
     }
     
     if (testedPartitionNumberOption) {
-        printf("Nombre de partitions testées: %lu\n", schurNumberActionTotalIterations(&action_s));
+        printf("Nombre de partitions testées: %lu\n", schur_number_action_total_iterations(&action_s));
     }
     
     if (threadPartitionNumberOption) {
@@ -286,18 +286,18 @@ int main(int argc, const char * argv[]) {
     }
     
     if (unprolongeableSfPartitionNumbersOption) {
-        printf("Nombre de partitions non prolongeables: %lu\n", schurNumberActionTotalCountAll(&action_s));
+        printf("Nombre de partitions non prolongeables: %lu\n", schur_number_action_total_count_all(&action_s));
     }
     
     if (bestSfPartitionNumbersOption) {
-        printf("Nombre de partitions de taille maximale: %lu\n", schurNumberActionTotalCountMax(&action_s));
+        printf("Nombre de partitions de taille maximale: %lu\n", schur_number_action_total_count_max(&action_s));
     }
     
-    printf("Nombre de Schur S(%lu) ≥ %lu\n", p, schurNumberActionTotalNMax(&action_s));
+    printf("Nombre de Schur S(%lu) ≥ %lu\n", p, schur_number_action_total_Nmax(&action_s));
     
     // Nettoyage
     schur_number_partition_dealloc(&partition_s);
-    schurNumberActionDealloc(&action_s);
+    schur_number_action_dealloc(&action_s);
     
     return 0;
 }

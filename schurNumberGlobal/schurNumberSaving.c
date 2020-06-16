@@ -35,7 +35,7 @@ int schurNumberSaveFileOpen(schur_number_save_file_t *save_file_p) {
     return fd;
 }
 
-int schurNumberSaveAlloc(schur_number_intermediate_save_t *save, unsigned long p, unsigned long n0) {
+int schur_number_save_alloc(schur_number_intermediate_save_t *save, unsigned long p, unsigned long n0) {
     /* Cette fonction crée un fichier temporaire où sauvegarder les partitions intermédiaires générées au cours de l'exécution du programme.
      Elle renvoie le descripteur de fichier associé. */
     int fd = schurNumberSaveFileOpen(&save->file);
@@ -85,7 +85,7 @@ void schurNumberSaveFileClose(schur_number_save_file_t *save_file_p) {
     free(save_file_p->filename);
 }
 
-void schurNumberSaveDealloc(schur_number_intermediate_save_t *save) {
+void schur_number_save_dealloc(schur_number_intermediate_save_t *save) {
     mpz_clear(save->estimated_iternum);
     mpz_clear(save->total_estimated_iternum);
     mpz_clear(save->branch_estimated_iternum);
@@ -104,7 +104,7 @@ void schurNumberSaveDealloc(schur_number_intermediate_save_t *save) {
     pthread_mutex_destroy(&save->mutex_s);
 }
 
-void schurNumberSaveThreadRegister(schur_number_intermediate_save_t *save) {
+void schur_number_save_thread_register(schur_number_intermediate_save_t *save) {
     /* Tout thread doit appeler cette fonction pour s'enregistrer avant d'effectuer la moindre sauvegarde.
      La variable thread_estimated_iternum doit pointer vers un entier mpz déjà initialisée. Celui-ci est enregistré dans la clef save->key.*/
     
@@ -114,7 +114,7 @@ void schurNumberSaveThreadRegister(schur_number_intermediate_save_t *save) {
     pthread_setspecific(save->key, thread_estimated_iternum_p);
 }
 
-void schurNumberSavePartitionPoolRegister(schur_number_intermediate_save_t *save, size_t part_pool_count, unsigned long n0) {
+void schur_number_save_partition_pool_register(schur_number_intermediate_save_t *save, size_t part_pool_count, unsigned long n0) {
     /*Cette fonction enregistre dans save la présence d'un partitionpool.*/
     
     mpz_ui_pow_ui(save->branch_estimated_iternum, save->p, save->nbest_estimated - n0 + 1);
@@ -125,7 +125,7 @@ void schurNumberSavePartitionPoolRegister(schur_number_intermediate_save_t *save
     save->iremainding = part_pool_count;
 }
 
-void schurNumberSaveNewExplorationRegister(schur_number_intermediate_save_t *save) {
+void schur_number_save_newexploration_register(schur_number_intermediate_save_t *save) {
     /* Cette fonction est à appeler à chaque fois q'un thread entame l'exploration à partir d'une nouvelle partition.
      Elle enregistre l'indice associé au thread dans la clef save->key. */
     pthread_key_t key = save->key;
@@ -158,7 +158,7 @@ void schurNumberEstimatedRemaindingIteration(mpz_t iternum_estimated, unsigned l
     }
 }
 
-unsigned long schurNumberSaveBestUpgrade(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition) {
+unsigned long schur_number_save_best_upgrade(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition) {
     /* Met à jour la meilleure partition trouvée si il y a lieu.
      La fonction renvoie le nbest mis à jour, ce qui permet une éventuelle synchronisation entre threads. */
     
@@ -190,7 +190,7 @@ unsigned long schurNumberSaveBestUpgrade(schur_number_intermediate_save_t *save,
     pthread_mutex_unlock(&save->mutex_s);
     
     if (should_update) {
-        schurNumberSaveProgressionUpdate(save, n, partition);
+        schur_number_save_progression_update(save, n, partition);
     }
     
     return nbest;
@@ -238,7 +238,7 @@ void schurNumberSaveToFile(schur_number_intermediate_save_t *save) {
     fsync(fd);
 }
 
-unsigned long schurNumberSaveProgressionUpdate(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition) {
+unsigned long schur_number_save_progression_update(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition) {
     /* Cette fonction met à jour les informations liées à la progression du programme.
      Elle renvoie le nbest de save, ce qui permet une éventuelle synchronisation entre threads. */
     

@@ -12,6 +12,6 @@
 #include "../schurNumberGlobal/schurNumberPartitionStruc.h"
 #include "../schurNumberGlobal/schurNumberIOAction.h"
 
-unsigned long schurNumberWeakPuncturedInterval(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
+unsigned long schur_number_weak_punctured_interval(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
 
 #endif /* schurNumberWeakPuncturedInterval_h */

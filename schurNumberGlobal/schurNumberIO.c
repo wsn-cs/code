@@ -49,7 +49,7 @@ unsigned long schurNumberGetSetMaximum(char *str, int format) {
     return nmax;
 }
 
-unsigned long schurNumberGetSet(mp_limb_t *set, mp_limb_t *setinvert, mp_size_t limballoc, char *str, int format) {
+unsigned long schur_number_get_set(mp_limb_t *set, mp_limb_t *setinvert, mp_size_t limballoc, char *str, int format) {
     /*Remplit l'ensemble d'entiers set grâce à la chaîne de caractères str et renvoie le plus grand élément trouvé. La variable set doit pointée vers un tableau de taille suffisante pour contenir l'ensemble, et de même pour setinvert sauf si il s'agit du pointeur nul.*/
     unsigned long nmax = 0;
     switch (format) {
@@ -96,7 +96,7 @@ unsigned long schurNumberGetSet(mp_limb_t *set, mp_limb_t *setinvert, mp_size_t 
     return nmax;
 }
 
-unsigned long schurNumberGetPartition(unsigned long p, mp_limb_t **partition, mp_limb_t **partitioninvert, mp_size_t limballoc, char **str, int format) {
+unsigned long schur_number_get_partition(unsigned long p, mp_limb_t **partition, mp_limb_t **partitioninvert, mp_size_t limballoc, char **str, int format) {
     /*Remplit la variable partition à partir du tableau de p chaînes de caractères *str. La variable partition doit pointée vers un tableau à p entrées, et de même pour partitioninvert sauf si il s'agit du pointeur nul.
      Spécifier une valeur de limballoc assure que chaque ensemble aura une taille d'au moins limballoc limbes.
      La fonction renvoie la taille de la partition.*/
@@ -117,16 +117,16 @@ unsigned long schurNumberGetPartition(unsigned long p, mp_limb_t **partition, mp
         partition[i] = calloc(sizeof(mp_limb_t), limbsize);
         if (partitioninvert) {
             partitioninvert[i] = calloc(sizeof(mp_limb_t), limbsize);
-            schurNumberGetSet(partition[i], partitioninvert[i], limbsize, str[i], format);
+            schur_number_get_set(partition[i], partitioninvert[i], limbsize, str[i], format);
         } else {
-            schurNumberGetSet(partition[i], NULL, limbsize, str[i], format);
+            schur_number_get_set(partition[i], NULL, limbsize, str[i], format);
         }
     }
     
     return n;
 }
 
-void schurNumberPrintSet(int fd, unsigned long n, mp_limb_t *set) {
+void schur_number_print_set(int fd, unsigned long n, mp_limb_t *set) {
     /*Affiche le contenu de l'ensemble d'entiers set inclus dans l'intervalle [1, n].*/
     
     for (unsigned long i = 1; i <= n; i++) {
@@ -142,7 +142,7 @@ void schur_number_dprint_partition(int fd, unsigned long p, unsigned long n, mp_
     
     for (unsigned long i=0; i<p; i++) {
         dprintf(fd, "\t");
-        schurNumberPrintSet(fd, n, partition[i]);
+        schur_number_print_set(fd, n, partition[i]);
         dprintf(fd, "\n");
     }
 }
