@@ -59,8 +59,7 @@ int main(int argc, const char * argv[]) {
     char method = 0;
     char *print_range = NULL;
     int format = SCHUR_NUMBER_ELEMENT_FORMAT;
-    clock_t time0;
-    clock_t time1;
+    struct timespec time0, time1;
     
     // Analyse des options
     while ((c = getopt(argc, argv, "abcehm:p:tu")) != -1) {
@@ -217,9 +216,11 @@ int main(int argc, const char * argv[]) {
     action_s.save = &save_str;
     
     // Lancement du code
-    time0 = clock();
+    clock_gettime(CLOCK_MONOTONIC, &time0);
+    
     schur_number_launch(methodfunc, &partition_s, &action_s, 2 * partition_s.n);
-    time1 = clock();
+    
+    clock_gettime(CLOCK_MONOTONIC, &time1);
     
     // Detruction de la sauvegarde temporaire
     schur_number_save_dealloc(&save_str);
@@ -231,7 +232,7 @@ int main(int argc, const char * argv[]) {
     }
     
     if (timeOption) {
-        printf("Durée: %lu CPU_time = %f seconds \n", time1 - time0, ((double)(time1 - time0)) / CLOCKS_PER_SEC);
+        printf("Durée : %f secondes\n", difftime(time1.tv_sec, time0.tv_sec) + (double)(time1.tv_nsec - time0.tv_nsec) / 1000000000.0);
     }
     
     if (testedPartitionNumberOption) {
