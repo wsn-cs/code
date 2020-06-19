@@ -16,10 +16,10 @@
 #include "../schurNumberGlobal/schurNumberThreads.h"
 
 #ifdef schurNumberThreads_h
-    #define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit) schur_number_threads_launch(partitionstruc, methodfunc, action, nlimit, constraint_partition, constraint_size)
+    #define schur_number_launch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit) schur_number_threads_launch(partitionstruc, methodfunc, action, nlimit, constraint_partition, constraint_size)
 #else
-    #define schurNumberLaunch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit, load_balancing_opt) do {\
-            schurNumberSaveThreadRegister((action)->save);\
+    #define schur_number_launch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit, load_balancing_opt) do {\
+            schur_number_save_thread_register((action)->save);\
             methodfunc(partitionstruc, action, nlimit, constraint_partition, constraint_size);\
         } while(0)
 #endif
@@ -245,7 +245,7 @@ int main(int argc, const char * argv[]) {
     
     // Lancement du code
     time0 = clock();
-    schurNumberLaunch(methodfunc, &partition_s, &action_s, constraint_partition, constraint_size, nlimit);
+    schur_number_launch(methodfunc, &partition_s, &action_s, constraint_partition, constraint_size, nlimit);
     time1 = clock();
 
     

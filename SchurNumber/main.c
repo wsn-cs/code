@@ -12,17 +12,17 @@
 
 #include "schurNumberMethods.h"
 #include "../schurNumberGlobal/schurNumberIOAction.h"
-//#include "../schurNumberGlobal/schurNumberThreads.h"
+#include "../schurNumberGlobal/schurNumberThreads.h"
 
 #ifdef schurNumberThreads_h
 
-    #define schurNumberLaunch(methodfunc, partitionstruc, action, nlimit) schur_number_threads_launch(partitionstruc, methodfunc, action, nlimit, NULL, 0)
+    #define schur_number_launch(methodfunc, partitionstruc, action, nlimit) schur_number_threads_launch(partitionstruc, methodfunc, action, nlimit, NULL, 0)
 
 #else
 
     typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
-    #define schurNumberLaunch(methodfunc, partitionstruc, action, nlimit) do {\
-        schurNumberSaveThreadRegister((action)->save);\
+    #define schur_number_launch(methodfunc, partitionstruc, action, nlimit) do {\
+        schur_number_save_thread_register((action)->save);\
         methodfunc(partitionstruc, action, nlimit);\
         } while(0)
 
@@ -257,7 +257,7 @@ int main(int argc, const char * argv[]) {
     
     // Lancement du code
     time0 = clock();
-    schurNumberLaunch(methodfunc, &partition_s, &action_s, nlimit);
+    schur_number_launch(methodfunc, &partition_s, &action_s, nlimit);
     time1 = clock();
     
     // Destruction de la sauvegarde temporaire
