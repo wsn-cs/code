@@ -43,44 +43,37 @@ void schur_number_partition_dealloc(schur_number_partition_t *partitionstruc);
 
 unsigned long schurNumberPartitionSetString(schur_number_partition_t *partition, char **str, size_t str_size, int format);
 
-void schurNumberSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work);
-void schurNumberWeakSumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work);
+void schur_number_sumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work);
+void schur_number_restricted_sumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work);
 void schurNumberWeakSumset2(mp_limb_t *r_set, mp_limb_t *set, mp_size_t r_limbsize, mp_size_t limbsize, mp_limb_t *work);
 
 void schur_number_set_revert(mp_limb_t *r_set, mp_limb_t *set, mp_size_t limbsize);
 
 static inline void schur_number_translation(mp_limb_t *r_set, const mp_limb_t *s_set, mp_size_t limbsize, unsigned long n) {
-    /* Calcule s_set + n et place le résultat dans r_set. */
-    const mp_limb_t *work = s_set;
+    /* Calcule s_set + n et place le résultat dans r_set. Cela suppose que r_set possède lui aussi limbsize limbes.*/
     
-    while (n > 0) {
-        unsigned int shift = n % GMP_NUMB_BITS;
-        if (!shift) {
-            shift = GMP_NUMB_BITS - 1;
-        }
-        
-        mpn_lshift(r_set, work, limbsize, shift);     // r_set = work + shift
-        work = r_set;
-        
-        n -= shift;
+    // Division euclidenne n = q * GMP_NUMB_BITS + r
+    unsigned long q = n / GMP_NUMB_BITS;
+    unsigned int r = n % GMP_NUMB_BITS;
+    
+    // s_set + n = (s_set + q * GMP_NUMB_BITS) + r
+    if (limbsize > q) {
+        mpn_lshift(r_set + q, s_set, limbsize - q, r);
+    } else {
+        mpn_zero(r_set, limbsize);
     }
 }
 
-static inline void schur_number_ntranslation(mp_limb_t *r_set, const mp_limb_t *set, mp_size_t limbsize, unsigned long n) {
+static inline void schur_number_ntranslation(mp_limb_t *r_set, const mp_limb_t *s_set, mp_size_t limbsize, unsigned long n) {
     /* Calcule set - n et place le résultat dans r_set. */
-    const mp_limb_t *work = set;
     
-    while (n > 0) {
-        unsigned int shift = n % GMP_NUMB_BITS;
-        if (!shift) {
-            shift = GMP_NUMB_BITS - 1;
-        }
-        
-        mpn_rshift(r_set, work, limbsize, shift);     // r_set = work - shift
-        work = r_set;
-        
-        n -= shift;
-    }
+    // Division euclidenne n = q * GMP_NUMB_BITS + r
+    unsigned long q = n / GMP_NUMB_BITS;
+    unsigned int r = n % GMP_NUMB_BITS;
+    
+    // s_set - n = (s_set - q * GMP_NUMB_BITS) - r
+    mpn_zero(r_set + limbsize - q, q);
+    mpn_rshift(r_set, s_set + q, limbsize - q, r);
 }
 
 static inline void schur_number_setinterval_1(mp_limb_t *set, mp_size_t limbsize, mp_size_t blockingsize, unsigned long n) {
