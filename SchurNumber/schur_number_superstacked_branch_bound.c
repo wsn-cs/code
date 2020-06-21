@@ -146,55 +146,64 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
             // Gérer les contraintes dûes aux co-sommes
             nmax = nalloc;
             
-            for (unsigned long j = 0; j < p; j++) {
-                mpn_and_n(work1, cosums_inf_ptr[j], cosums_sup_ptr[j], limballoc);
+            char has_improved = 1;
+            
+            while (has_improved) {
+                has_improved = 0;
                 
-                mpn_zero(work2, limballoc);
-                schur_number_setinterval_1(work2, limballoc, (n / GMP_NUMB_BITS) + 1, n);
-                mpn_andn_n(work1, work1, work2, limballoc);
-                
-                //schur_number_setinterval_s(work2, limballoc, (nbest / GMP_NUMB_BITS) + 1, nbest);
-                mpn_zero(work2, limballoc);
-                ADD_POINT(work2, nbest);
-                mpn_neg(work2, work2, limballoc);
-                mpn_andn_n(work1, work1, work2, limballoc);
-                
-                if (!mpn_zero_p(work1, limballoc)) {
-                    while (!mpn_zero_p(work1, limballoc)) {
-                        unsigned long x = mpn_scan1(work1, n);
-                        
-                        // Regarder si x peut être ajouté
-                        if (GET_POINT(sums_ptr[j], x)) {
-                            if (nmax > x) {
-                                nmax = x;
+                for (unsigned long j = 0; j < p; j++) {
+                    mpn_and_n(work1, cosums_inf_ptr[j], cosums_sup_ptr[j], limballoc);
+                    
+                    mpn_zero(work2, limballoc);
+                    schur_number_setinterval_1(work2, limballoc, (n / GMP_NUMB_BITS) + 1, n);
+                    mpn_andn_n(work1, work1, work2, limballoc);
+                    
+                    //schur_number_setinterval_s(work2, limballoc, (nbest / GMP_NUMB_BITS) + 1, nbest);
+                    mpn_zero(work2, limballoc);
+                    ADD_POINT(work2, nbest);
+                    mpn_neg(work2, work2, limballoc);
+                    mpn_andn_n(work1, work1, work2, limballoc);
+                    
+                    if (!mpn_zero_p(work1, limballoc)) {
+                        while (!mpn_zero_p(work1, limballoc)) {
+                            unsigned long x = mpn_scan1(work1, n);
+                            
+                            // Regarder si x peut être ajouté
+                            if (GET_POINT(sums_ptr[j], x)) {
+                                if (nmax > x) {
+                                    nmax = x;
+                                }
+                                break;
+                            } else {
+                                if (!GET_POINT(partition[j], x)) {
+                                    has_improved = 1;
+                                }
+                                // Ajouter le point
+                                ADD_POINT(partition[j], x);
+                                ADD_POINT(partitioninvert[j], nalloc - x + 1);
+                                
+                                // Le répercuter sur la somme
+                                mpn_zero(work2, limballoc);
+                                schur_number_translation(work2, partition[j], limballoc, x);
+                                mpn_ior_n(sums_ptr[j], sums_ptr[j], work2, limballoc);
+                                
+                                mpn_zero(work2, limballoc);
+                                schur_number_ntranslation(work2, partitioninvert[j], limballoc, nalloc - x + 1);
+                                mpn_ior_n(sums_ptr[j], sums_ptr[j], work2, limballoc);
                             }
-                            break;
-                        } else {
-                            // Ajouter le point
-                            ADD_POINT(partition[j], x);
-                            ADD_POINT(partitioninvert[j], nalloc - x + 1);
-                            
-                            // Le répercuter sur la somme
-                            mpn_zero(work2, limballoc);
-                            schur_number_translation(work2, partition[j], limballoc, x);
-                            mpn_ior_n(sums_ptr[j], sums_ptr[j], work2, limballoc);
-                            
-                            mpn_zero(work2, limballoc);
-                            schur_number_ntranslation(work2, partitioninvert[j], limballoc, nalloc - x + 1);
-                            mpn_ior_n(sums_ptr[j], sums_ptr[j], work2, limballoc);
+                            DELETE_POINT(work1, x);
                         }
-                        DELETE_POINT(work1, x);
-                    }
-                    
-                    
-                    // Modifier les co-sommes inférieures
-                    for (unsigned long k = j; k < p - 1; k++) {
-                        mpn_and_n(cosums_inf_ptr[k + 1], cosums_inf_ptr[k], sums_ptr[k], limballoc);
-                    }
-                    
-                    // Modifier les co-sommes supérieures
-                    for (unsigned long k = j; k > 0; k--) {
-                        mpn_and_n(cosums_sup_ptr[k - 1], cosums_sup_ptr[k], sums_ptr[k], limballoc);
+                        
+                        
+                        // Modifier les co-sommes inférieures
+                        for (unsigned long k = j; k < p - 1; k++) {
+                            mpn_and_n(cosums_inf_ptr[k + 1], cosums_inf_ptr[k], sums_ptr[k], limballoc);
+                        }
+                        
+                        // Modifier les co-sommes supérieures
+                        for (unsigned long k = j; k > 0; k--) {
+                            mpn_and_n(cosums_sup_ptr[k - 1], cosums_sup_ptr[k], sums_ptr[k], limballoc);
+                        }
                     }
                 }
             }
