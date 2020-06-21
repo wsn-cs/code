@@ -12,7 +12,7 @@
 
 #include "schurNumberMethods.h"
 #include "../schurNumberGlobal/schurNumberIOAction.h"
-#include "../schurNumberGlobal/schurNumberThreads.h"
+//#include "../schurNumberGlobal/schurNumberThreads.h"
 
 #ifdef schurNumberThreads_h
 
@@ -237,7 +237,7 @@ int main(int argc, const char * argv[]) {
             break;
             
         default:
-            methodfunc = schur_number_exhaustive;
+            methodfunc = schur_number_superstacked_branch_bound;
             break;
     }
     
