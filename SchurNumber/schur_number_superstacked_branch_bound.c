@@ -145,26 +145,24 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
         if (p == pmax) {
             // Gérer les contraintes dûes aux co-sommes
             nmax = nalloc;
-
-            //schurNumberPrintPartition(p, nbest, partition);
-
+            
             for (unsigned long j = 0; j < p; j++) {
                 mpn_and_n(work1, cosums_inf_ptr[j], cosums_sup_ptr[j], limballoc);
-
+                
                 mpn_zero(work2, limballoc);
                 schur_number_setinterval_1(work2, limballoc, (n / GMP_NUMB_BITS) + 1, n);
                 mpn_andn_n(work1, work1, work2, limballoc);
-
+                
                 //schur_number_setinterval_s(work2, limballoc, (nbest / GMP_NUMB_BITS) + 1, nbest);
                 mpn_zero(work2, limballoc);
                 ADD_POINT(work2, nbest);
                 mpn_neg(work2, work2, limballoc);
                 mpn_andn_n(work1, work1, work2, limballoc);
-
+                
                 if (!mpn_zero_p(work1, limballoc)) {
                     while (!mpn_zero_p(work1, limballoc)) {
                         unsigned long x = mpn_scan1(work1, n);
-
+                        
                         // Regarder si x peut être ajouté
                         if (GET_POINT(sums_ptr[j], x)) {
                             if (nmax > x) {
@@ -175,33 +173,35 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
                             // Ajouter le point
                             ADD_POINT(partition[j], x);
                             ADD_POINT(partitioninvert[j], nalloc - x + 1);
-
+                            
                             // Le répercuter sur la somme
                             mpn_zero(work2, limballoc);
                             schur_number_translation(work2, partition[j], limballoc, x);
                             mpn_ior_n(sums_ptr[j], sums_ptr[j], work2, limballoc);
-
+                            
                             mpn_zero(work2, limballoc);
                             schur_number_ntranslation(work2, partitioninvert[j], limballoc, nalloc - x + 1);
                             mpn_ior_n(sums_ptr[j], sums_ptr[j], work2, limballoc);
                         }
                         DELETE_POINT(work1, x);
                     }
-
-
+                    
+                    
                     // Modifier les co-sommes inférieures
                     for (unsigned long k = j; k < p - 1; k++) {
                         mpn_and_n(cosums_inf_ptr[k + 1], cosums_inf_ptr[k], sums_ptr[k], limballoc);
                     }
-
+                    
                     // Modifier les co-sommes supérieures
                     for (unsigned long k = j; k > 0; k--) {
                         mpn_and_n(cosums_sup_ptr[k - 1], cosums_sup_ptr[k], sums_ptr[k], limballoc);
                     }
                 }
             }
+
             if (nmax <= nbest) {
-                notSumFree = 0;
+                notSumFree = 1;
+                i = p;
                 nblocking = n;
             }
         }
@@ -232,7 +232,6 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
                 }
                 
                 m += find_nblocking(n + 1, sumpartition[i], limballoc, n - m + 1);
-                //unsigned long m = n;
                 
                 if (m > nblocking) {
                     nblocking = m;
@@ -242,7 +241,7 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
             i += notSumFree;
         }
         
-        if (notSumFree || n >= nlimit || nmax <= nbest) {
+        if (notSumFree || n >= nlimit) {
             // L'entier n+1 n'a pu être placé dans aucune huche
             
             if (p < pmax && i <= p && n < nlimit) {
@@ -293,12 +292,11 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
                 }
                 p++;
                 is_new_branch = 1;
-                //nblocking = n;
                 nblocking = n0;
                 
-                /*if (nbest < 3 * (n-1)) {
+                if (nbest < 3 * (n-1)) {
                     nbest = 3 * (n-1);
-                }*/
+                }
                 
             } else {
                 
@@ -348,7 +346,6 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
                     }
                     
                     for (unsigned long j = 0; j < p - 1; j++) {
-                        unsigned long min = setmin[p-1];
                         cosums_sup_ptr[j] -= limb_diff;
                         mpn_zero(cosums_sup_ptr[j], limb_diff + limballoc);
                         cosums_sup_ptr[j] -= is_not_empty * limballoc;
@@ -467,7 +464,6 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
                 nsize += GMP_NUMB_BITS;
             }
             is_new_branch = 1;
-            //nblocking = n;
             nblocking = n0;
         }
         notSumFree = 1;

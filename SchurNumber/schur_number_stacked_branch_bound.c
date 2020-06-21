@@ -89,6 +89,11 @@ unsigned long schur_number_stacked_branch_bound(schur_number_partition_t *partit
             nmax = nalloc;
             if (!mpn_zero_p(work1, limballoc)) {
                 nmax = mpn_scan1(work1, limballoc);
+                if (nmax <= nbest) {
+                    notSumFree = 1;
+                    i = p;
+                    nblocking = n;
+                }
             }
         }
         
@@ -139,7 +144,7 @@ unsigned long schur_number_stacked_branch_bound(schur_number_partition_t *partit
             i += notSumFree;
         }
         
-        if (notSumFree || n >= nlimit || nmax <= nbest) {
+        if (notSumFree || n >= nlimit) {
             // L'entier n+1 n'a pu être placé dans aucune huche
             
             if (p < pmax && i <= p && n < nlimit) {
@@ -162,7 +167,7 @@ unsigned long schur_number_stacked_branch_bound(schur_number_partition_t *partit
                 }
                 p++;
                 is_new_branch = 1;
-                nblocking = 1;
+                nblocking = n0;
                 
             } else {
                 
@@ -255,7 +260,7 @@ unsigned long schur_number_stacked_branch_bound(schur_number_partition_t *partit
                 nsize += GMP_NUMB_BITS;
             }
             is_new_branch = 1;
-            nblocking = n;
+            nblocking = n0;
         }
         notSumFree = 1;
     }
