@@ -142,6 +142,10 @@ void schurNumberEstimatedRemaindingIteration(mpz_t iternum_estimated, unsigned l
     /* Cette fonction estime le nombre d'itérations qu'il restera à parcourir sur l'arbre.
      Cette estimation s'obtient en dénombrant le nombre de combinaison qu'il reste à effectuer pour énumérer les partitions de nbound sachant que nous sommes parvenus à partition. */
     
+    if (nbound <= n) {
+        nbound = n+1;
+    }
+    
     mpz_t num_configuration;        // Nombre de configurations possibles en partant de l'étape n pour atteindre nbound
     mpz_init2(num_configuration, nbound - n - 1);
     mpz_ui_pow_ui(num_configuration, p, nbound - n - 1);
