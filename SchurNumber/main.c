@@ -233,7 +233,7 @@ int main(int argc, const char * argv[]) {
             break;
             
         case 'w':
-            methodfunc = schur_number_weak_exhaustive;
+            methodfunc = schur_number_weak_superstacked_branch_bound;
             break;
             
         default:

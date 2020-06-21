@@ -33,4 +33,6 @@ unsigned long schur_number_weak_stacked_branch_bound(schur_number_partition_t *p
 
 unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
 
+unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
+
 #endif /* schurNumberMethods_h */
