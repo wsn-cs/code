@@ -82,21 +82,13 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
     unsigned long nmax = nalloc;    // Plus grand entier pouvant être atteint par cette partition
     
     unsigned long *cardinals = calloc(sizeof(unsigned long), pmax);     // Tableau contenant les cardinaux des ensembles de partition
-    char *popcounts = calloc(limballoc, pmax);                          // Tableau dont l'élément j * limballoc + k compte le nombre de bit dans le limbe k de partition[j]
     
     for (unsigned long j = 0; j < pmax; j++) {
         sumpartition[j] = calloc(sizeof(mp_limb_t) * limballoc, nlimit);    // Tableau contenant la pile des sommes de l'ensembles j
         sums_ptr[j] = sumpartition[j];                                      // Pointeur vers le sommet de la pile des sommes de l'ensembles j
         schur_number_restricted_sumset(sums_ptr[j], partition[j], partition[j], limballoc, limballoc, 0, work1);
         
-        unsigned long cardinal = 0;
-        for (unsigned long k = 0; k < limballoc; k++) {
-            mp_bitcnt_t poplimb;
-            popc_limb(poplimb, *(partition[j] + k));
-            popcounts[j * limballoc + k] = poplimb;
-            cardinal += poplimb;
-        }
-        cardinals[j] = cardinal;
+        cardinals[j] = mpn_popcount(partition[j], limballoc);
     }
     
     unsigned long *setmin = calloc(pmax, sizeof(unsigned long));    // Tableau contenant les plus petits éléments de chaque partie
@@ -254,7 +246,6 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
                 n++;
                 ADD_POINT(partition[p], n);
                 cardinals[p] = 1;
-                popcounts[p * limballoc + limbsize - 1] = 1;
                 setmin[p] = n;
                 
                 // Mettre à jour la somme
@@ -373,21 +364,8 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
                         cosums_inf_ptr[i] -= (!!cardinal) * limballoc;
                     }
                     
-                    
-                    if (cardinal < cardinals[i]) {
-                        // Mettre à jour les informations cardinales
-                        cardinals[i] = cardinal;
-                        
-                        char popcnt;
-                        popc_limb(popcnt, partition[i][blockinglimbsize - 1]);
-                        popcounts[i * limballoc + blockinglimbsize - 1] = popcnt;
-                        
-                        for (unsigned long k = blockinglimbsize; k < limbsize; k++) {
-                            popcounts[i * limballoc + k] = 0;
-                        }
-                        
-                    }
-                    
+                    // Mettre à jour les informations cardinales
+                    cardinals[i] = cardinal;
                 }
                 
                 while (0 < p && !setmin[p - 1]) {
@@ -452,7 +430,6 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
             
             // Mettre à jour les cardinaux
             cardinals[i]++;
-            popcounts[i * limballoc + limbsize - 1] ++;
             
             i = 0;
             if (n >= nsize) {
@@ -470,7 +447,6 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
     free(work2);
     
     free(cardinals);
-    free(popcounts);
     free(setmin);
     
     for (unsigned long j = 0; j < pmax; j++) {
