@@ -39,11 +39,11 @@ size_t schur_number_partition_pool(schur_number_partition_t *beginpartitionstruc
             }
             free(work_partitionstruc_array);
         }
-        has_improved = (action_s.nmax > n);
+        has_improved = (action_s.nbest > n);
         
         // Mise à jour des variables
         count = action_s.count;
-        n = action_s.nmax;
+        n = action_s.nbest;
         mp_size_t limbsize = (n >> 6) + 1;
         work_partitionstruc_array = calloc(sizeof(schur_number_partition_t), count);
         has_to_be_freed = 1;
@@ -215,7 +215,7 @@ unsigned long schur_number_threads_launch(schur_number_partition_t *partitionstr
         actions[i] = calloc(1, sizeof(schur_number_action_t));
         schur_number_action_alloc(actions[i], p, action->func);
         actions[i]->count_limit = action->count_limit;
-        actions[i]->nmax = action->nmax;
+        actions[i]->nbest = action->nbest;
         arg->action = actions[i];
         
         arg->nlimit = nlimit;

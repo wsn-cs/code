@@ -17,7 +17,7 @@ enum schur_number_action_flag {SCHUR_NUMBER_DEFAULT, SCHUR_NUMBER_INTERMEDIATE_P
 struct schurNumberIOAction {
     unsigned long p;        // Nombre d'ensembles par partition
     
-    unsigned long nmax;     // Plus grande taille des partitions
+    unsigned long nbest;     // Plus grande taille des partitions
     unsigned long iter_num; // Nombre d'itérations
     size_t count_max;       // Nombre de partitions de taille maximales
     size_t count_all;       // Nombre de partitions non prolongeables
@@ -73,6 +73,8 @@ void schur_number_action_gather_copy(schur_number_action_t *r_action, schur_numb
 void schur_number_action_gather_nocopy(schur_number_action_t *r_action, schur_number_action_t **actions, size_t n_actions);
 
 unsigned long schur_number_default_action(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schur_number_default_action_sync(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schur_number_sync_action(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 unsigned long schur_number_save_some_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 unsigned long schur_number_save_best_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 unsigned long schur_number_save_all_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);

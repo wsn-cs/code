@@ -250,7 +250,7 @@ int main(int argc, const char * argv[]) {
     if (!nlimit || (nlimit > GMP_NUMB_BITS * limballoc)) {
         nlimit = GMP_NUMB_BITS * limballoc;
     } else {
-        action_s.nmax = nlimit;
+        action_s.nbest = nlimit;
     }
     action_s.limbsize = limballoc;
     

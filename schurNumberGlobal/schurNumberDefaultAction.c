@@ -18,17 +18,17 @@ unsigned long schur_number_default_action(mp_limb_t **partition, unsigned long n
         
         if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
             unsigned long nbest = schur_number_save_progression_update(save, n, partition);
-            if (nbest > action->nmax) {
+            if (nbest > action->nbest) {
                 schur_number_save_some_partition(NULL, nbest, action);
             }
         }
     }
     
-    if (n > action->nmax) {
+    if (n > action->nbest) {
         if (save) {
-            action->nmax = schur_number_save_best_upgrade(save, n, partition);
+            action->nbest = schur_number_save_best_upgrade(save, n, partition);
         } else {
-            action->nmax = n;
+            action->nbest = n;
         }
         action->count_max = 0;
     }
@@ -41,7 +41,7 @@ unsigned long schur_number_default_action(mp_limb_t **partition, unsigned long n
 }
 
 unsigned long schur_number_save_some_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
-    /*Compare n avec nmax. Si n ≥ nmax, le nmax est mis à jour et la partition remplace les précédentes.
+    /*Compare n avec nbest. Si n ≥ nbest, le nbest est mis à jour et la partition remplace les précédentes.
      Cette action limite la quantité de partition grâce à count_limit.*/
     unsigned long  p = action->p;
     FILE *limbsize_stream = action->limbsize_stream;
@@ -54,26 +54,26 @@ unsigned long schur_number_save_some_partition(mp_limb_t **partition, unsigned l
         
         if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
             unsigned long nbest = schur_number_save_progression_update(save, n, partition);
-            if (nbest > action->nmax) {
+            if (nbest > action->nbest) {
                 schur_number_save_some_partition(NULL, nbest, action);
             }
         }
     }
     
-    if (n > action->nmax) {
+    if (n > action->nbest) {
         /*Vider partitions*/
         rewind(limbsize_stream);
         rewind(partition_stream);
         if (save) {
-            action->nmax = schur_number_save_best_upgrade(save, n, partition);
+            action->nbest = schur_number_save_best_upgrade(save, n, partition);
         } else {
-            action->nmax = n;
+            action->nbest = n;
         }
         action->count = 0;
         action->count_max = 0;
     }
     
-    if (n == action->nmax && partition) {
+    if (n == action->nbest && partition) {
         if (action->count < action->count_limit) {
             /*Ajouter la partition.*/
             mp_size_t limbsize = ((unsigned long)n>>6) + 1;
@@ -89,11 +89,11 @@ unsigned long schur_number_save_some_partition(mp_limb_t **partition, unsigned l
         action->count_max ++;
     }
     
-    return action->nmax;
+    return action->nbest;
 }
 
 unsigned long schur_number_save_best_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
-    /*Compare n avec nmax. Si n ≥ nmax, le nmax est mis à jour et la partition est ajoutée aux partitions.*/
+    /*Compare n avec nbest. Si n ≥ nbest, le nbest est mis à jour et la partition est ajoutée aux partitions.*/
     unsigned long  p = action->p;
     FILE *limbsize_stream = action->limbsize_stream;
     FILE *partition_stream = action->partition_stream;
@@ -105,26 +105,26 @@ unsigned long schur_number_save_best_partition(mp_limb_t **partition, unsigned l
         
         if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
             unsigned long nbest = schur_number_save_progression_update(save, n, partition);
-            if (nbest > action->nmax) {
+            if (nbest > action->nbest) {
                 schur_number_save_some_partition(NULL, nbest, action);
             }
         }
     }
     
-    if (n > action->nmax) {
+    if (n > action->nbest) {
         /*Vider partitions*/
         rewind(limbsize_stream);
         rewind(partition_stream);
         if (save) {
-            action->nmax = schur_number_save_best_upgrade(save, n, partition);
+            action->nbest = schur_number_save_best_upgrade(save, n, partition);
         } else {
-            action->nmax = n;
+            action->nbest = n;
         }
         action->count = 0;
         action->count_max = 0;
     }
     
-    if (n == action->nmax && partition) {
+    if (n == action->nbest && partition) {
         if (action->partition_size < action->size_limit) {
             /*Ajouter la partition.*/
             mp_size_t limbsize = ((unsigned long)n>>6) + 1;
@@ -140,7 +140,7 @@ unsigned long schur_number_save_best_partition(mp_limb_t **partition, unsigned l
         action->count_max ++;
     }
     
-    return action->nmax;
+    return action->nbest;
 }
 
 unsigned long schur_number_save_all_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
@@ -148,11 +148,11 @@ unsigned long schur_number_save_all_partition(mp_limb_t **partition, unsigned lo
     
     schur_number_intermediate_save_t *save = action->save;
     
-    if (n > action->nmax) {
+    if (n > action->nbest) {
         if (save) {
-            action->nmax = schur_number_save_best_upgrade(save, n, partition);
+            action->nbest = schur_number_save_best_upgrade(save, n, partition);
         } else {
-            action->nmax = n;
+            action->nbest = n;
         }
         action->count_max = 0;
     }
@@ -163,7 +163,7 @@ unsigned long schur_number_save_all_partition(mp_limb_t **partition, unsigned lo
             unsigned long  p = action->p;
             FILE *limbsize_stream = action->limbsize_stream;
             FILE *partition_stream = action->partition_stream;
-            mp_size_t limbsize = ((action->nmax)>>6) + 1;
+            mp_size_t limbsize = ((action->nbest)>>6) + 1;
             
             fwrite(&limbsize, sizeof(mp_size_t), 1, limbsize_stream);
             
@@ -173,18 +173,18 @@ unsigned long schur_number_save_all_partition(mp_limb_t **partition, unsigned lo
             
             action->count ++;
         }
-        if (n == action->nmax) {
+        if (n == action->nbest) {
             action->count_max ++;
         }
         action->count_all ++;
         
         if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
             unsigned long nbest = schur_number_save_progression_update(save, n, partition);
-            if (nbest > action->nmax) {
+            if (nbest > action->nbest) {
                 schur_number_save_some_partition(NULL, nbest, action);
             }
         }
     }
     
-    return action->nmax;
+    return action->nbest;
 }

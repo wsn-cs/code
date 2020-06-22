@@ -38,7 +38,7 @@
 void schur_number_action_alloc(schur_number_action_t *action, unsigned long p, unsigned long (*func)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action)) {
     action->p = p;
     action->count = 0;
-    action->nmax = 0;
+    action->nbest = 0;
     action->iter_num = 0;
     action->count_all = 0;
     action->count_max = 0;
@@ -104,7 +104,7 @@ void schur_number_action_dealloc(schur_number_action_t *action) {
 
 void schur_number_action_gather_copy(schur_number_action_t *action_r, schur_number_action_t **actions, size_t n_actions) {
     /*Réunit les n_actions actions dans l'unique action_r, en copiant les multiples tampons dans celui de action_r.*/
-    unsigned long nmax = action_r->nmax;
+    unsigned long nmax = action_r->nbest;
     unsigned long iter_num = action_r->iter_num;
     size_t count_all = action_r->count_all;
     size_t count_max = action_r->count_max;
@@ -116,12 +116,12 @@ void schur_number_action_gather_copy(schur_number_action_t *action_r, schur_numb
     for (unsigned long i = 0; i < n_actions; i++) {
         schur_number_action_t *action_s = actions[i];
         
-        if (action_s->nmax > nmax) {
-            nmax = action_s->nmax;
+        if (action_s->nbest > nmax) {
+            nmax = action_s->nbest;
             count_max = 0;
         }
         
-        if (action_s->nmax == nmax) {
+        if (action_s->nbest == nmax) {
             count_max += action_s->count_max;
         }
         
@@ -141,7 +141,7 @@ void schur_number_action_gather_copy(schur_number_action_t *action_r, schur_numb
     
     if (func == schur_number_save_best_partition || func == schur_number_save_some_partition) {
         
-        if (action_r->nmax < nmax) {
+        if (action_r->nbest < nmax) {
             rewind(limbsize_stream);
             rewind(partition_stream);
             count = 0;
@@ -150,7 +150,7 @@ void schur_number_action_gather_copy(schur_number_action_t *action_r, schur_numb
         for (unsigned long i = 0; i < n_actions; i++) {
             schur_number_action_t *action_s = actions[i];
             
-            if (action_s->nmax == nmax) {
+            if (action_s->nbest == nmax) {
                 fflush(action_s->limbsize_stream);
                 fflush(action_s->partition_stream);
                 
@@ -162,7 +162,7 @@ void schur_number_action_gather_copy(schur_number_action_t *action_r, schur_numb
         }
     }
     
-    action_r->nmax = nmax;
+    action_r->nbest = nmax;
     action_r->count_all = count_all;
     action_r->count_max = count_max;
     action_r->iter_num = iter_num;
@@ -172,17 +172,17 @@ void schur_number_action_gather_copy(schur_number_action_t *action_r, schur_numb
 void schur_number_action_gather_nocopy(schur_number_action_t *action_r, schur_number_action_t **actions, size_t n_actions) {
     /*Réunit les n_actions actions_s dans l'unique action_r, sans copier les multiples tampons dans celui de action_r.
      Les actions_s sont automatiquement libérées.*/
-    unsigned long nmax = action_r->nmax;
+    unsigned long nmax = action_r->nbest;
     schur_number_action_func_t func = action_r->func;
     
     size_t old_n_actions = action_r->count_gathered_actions; // Nombre de tampons déjà présents au sein de action_r
     
-    // Déterminer le nmax global et le nombre d'actions l'atteignant
+    // Déterminer le nbest global et le nombre d'actions l'atteignant
     for (unsigned long i = 0; i < n_actions; i++) {
         schur_number_action_t *action = actions[i];
         
-        if (action->nmax > nmax) {
-            nmax = action->nmax;
+        if (action->nbest > nmax) {
+            nmax = action->nbest;
         }
     }
     
@@ -192,8 +192,8 @@ void schur_number_action_gather_nocopy(schur_number_action_t *action_r, schur_nu
         
         if (func == schur_number_save_best_partition || func == schur_number_save_some_partition) {
             
-            if (action_r->nmax < nmax) {
-                // Remplacer le nmax de action_r
+            if (action_r->nbest < nmax) {
+                // Remplacer le nbest de action_r
                 schur_number_save_best_partition(NULL, nmax, action_r);
                 
                 for (size_t i = 0; i < old_n_actions; i++) {
@@ -204,7 +204,7 @@ void schur_number_action_gather_nocopy(schur_number_action_t *action_r, schur_nu
             for (size_t i = 0; i < n_actions; i++) {
                 schur_number_action_t *action = actions[i];
                 
-                if (action->nmax < nmax) {
+                if (action->nbest < nmax) {
                     schur_number_save_best_partition(NULL, nmax, actions[i]);
                 }
                 
@@ -313,7 +313,7 @@ unsigned long schur_number_action_total_count_max(const schur_number_action_t *a
 
 unsigned long schur_number_action_total_Nmax(const schur_number_action_t *action) {
     /* Renvoie la plus grande taille de partitions trouvée parmi toutes les actions. */
-    unsigned long nmax = action->nmax;
+    unsigned long nmax = action->nbest;
     
     schur_number_action_t **actions = action->gathered_actions;
     for (unsigned long i = 0; i < action->count_gathered_actions; i++) {

@@ -67,7 +67,7 @@ static inline void find_dichotomic_index(mp_limb_t *sumset_array, mp_limb_t *sum
 }
 
 unsigned long schur_number_save_distinct_sum_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
-    /* Ajoute la partition si sa somme n'a pas déjà été trouvée, et si n == nmax. */
+    /* Ajoute la partition si sa somme n'a pas déjà été trouvée, et si n == nbest. */
     unsigned long  p = action->p;
     FILE *limbsize_stream = action->limbsize_stream;
     FILE *partition_stream = action->partition_stream;
@@ -82,28 +82,28 @@ unsigned long schur_number_save_distinct_sum_partition(mp_limb_t **partition, un
         
         if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
             unsigned long nbest = schur_number_save_progression_update(save, n, partition);
-            if (nbest > action->nmax) {
+            if (nbest > action->nbest) {
                 schur_number_save_distinct_sum_partition(NULL, nbest, action);
             }
         }
     }
     
-    if (n > action->nmax) {
+    if (n > action->nbest) {
         /*Vider partitions*/
         rewind(limbsize_stream);
         rewind(partition_stream);
         rewind(sum_partition_stream);
         rewind(sorted_index_sum_partition_stream);
         if (save) {
-            action->nmax = schur_number_save_best_upgrade(save, n, partition);
+            action->nbest = schur_number_save_best_upgrade(save, n, partition);
         } else {
-            action->nmax = n;
+            action->nbest = n;
         }
         action->count = 0;
         action->count_max = 0;
     }
     
-    if (n == action->nmax && partition && action->count < action->count_limit) {
+    if (n == action->nbest && partition && action->count < action->count_limit) {
         if (action->partition_size < action->size_limit) {
             mp_limb_t *work = action->work;
             
@@ -161,11 +161,11 @@ unsigned long schur_number_save_distinct_sum_partition(mp_limb_t **partition, un
         action->count_max ++;
     }
     
-    return action->nmax;
+    return action->nbest;
 }
 
 unsigned long schur_number_save_distinct_restrictedsum_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
-    /* Ajoute la partition si sa somme restreinte n'a pas déjà été trouvée, et si n == nmax. */
+    /* Ajoute la partition si sa somme restreinte n'a pas déjà été trouvée, et si n == nbest. */
     unsigned long  p = action->p;
     FILE *limbsize_stream = action->limbsize_stream;
     FILE *partition_stream = action->partition_stream;
@@ -180,28 +180,28 @@ unsigned long schur_number_save_distinct_restrictedsum_partition(mp_limb_t **par
         
         if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
             unsigned long nbest = schur_number_save_progression_update(save, n, partition);
-            if (nbest > action->nmax) {
+            if (nbest > action->nbest) {
                 schur_number_save_distinct_sum_partition(NULL, nbest, action);
             }
         }
     }
     
-    if (n > action->nmax) {
+    if (n > action->nbest) {
         /*Vider partitions*/
         rewind(limbsize_stream);
         rewind(partition_stream);
         rewind(sum_partition_stream);
         rewind(sorted_index_sum_partition_stream);
         if (save) {
-            action->nmax = schur_number_save_best_upgrade(save, n, partition);
+            action->nbest = schur_number_save_best_upgrade(save, n, partition);
         } else {
-            action->nmax = n;
+            action->nbest = n;
         }
         action->count = 0;
         action->count_max = 0;
     }
     
-    if (n == action->nmax && partition) {
+    if (n == action->nbest && partition) {
         if (action->partition_size < action->size_limit) {
             mp_limb_t *work = action->work;
             
@@ -260,6 +260,6 @@ unsigned long schur_number_save_distinct_restrictedsum_partition(mp_limb_t **par
         action->count_max ++;
     }
     
-    return action->nmax;
+    return action->nbest;
 }
 

@@ -173,11 +173,11 @@ unsigned long schur_number_save_best_upgrade(schur_number_intermediate_save_t *s
     unsigned long nbest = save->nbest;
     
     if (n > nbest) {
-        unsigned long p = save->p;
         
         if (partition) {
             // Sauvegarde de partition dans best_partition
             mp_size_t limbsize = INTEGER_2_LIMBSIZE(n);
+            unsigned long p = save->p;
             
             for (unsigned long i = 0; i < p; i++) {
                 mpn_copyd(save->best_partition[i], partition[i], limbsize);

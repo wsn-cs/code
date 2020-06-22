@@ -247,7 +247,7 @@ int main(int argc, const char * argv[]) {
         printf("Nombre de partitions de taille maximale: %lu\n", action_s.count_max);
     }
     
-    printf("Taille maximale : %lu\n", action_s.nmax);
+    printf("Taille maximale : %lu\n", action_s.nbest);
     
     // Nettoyage
     schur_number_partition_dealloc(&partition_s);
