@@ -62,8 +62,8 @@ unsigned long schur_number_default_action_sync(mp_limb_t **partition, unsigned l
         unsigned long nbest_global  = schur_number_save_best_upgrade(save, n, partition);
         if (nbest_global > nbest) {
             //action->func(NULL, nbest_global, action);
-            action->count_max = 0;
             action->nbest = nbest_global;
+            action->count_max = 0;
         }
     } else {
         if (n > nbest) {
@@ -89,7 +89,6 @@ unsigned long schur_number_sync_action(mp_limb_t **partition, unsigned long n, s
         unsigned long nbest = action->nbest;
         unsigned long nbest_global  = schur_number_save_best_upgrade(save, n, partition);
         if (nbest_global > nbest) {
-            //action->func(NULL, nbest_global, action);
             action->count_max = 0;
             action->nbest = nbest_global;
         }
@@ -169,15 +168,25 @@ unsigned long schur_number_save_best_partition(mp_limb_t **partition, unsigned l
         }
     }
     
-    if (n > action->nbest) {
+    unsigned long nbest = action->nbest;
+    
+    if (save) {
+        unsigned long nbest_global  = schur_number_save_best_upgrade(save, n, partition);
+        if (nbest_global > nbest) {
+            action->nbest = nbest_global;
+            action->count_max = 0;
+        }
+    } else {
+        if (n > nbest) {
+            action->nbest = n;
+            action->count_max = 0;
+        }
+    }
+    
+    if (action->nbest > nbest) {
         /*Vider partitions*/
         rewind(limbsize_stream);
         rewind(partition_stream);
-        if (save) {
-            action->nbest = schur_number_save_best_upgrade(save, n, partition);
-        } else {
-            action->nbest = n;
-        }
         action->count = 0;
         action->count_max = 0;
     }
@@ -206,13 +215,19 @@ unsigned long schur_number_save_all_partition(mp_limb_t **partition, unsigned lo
     
     schur_number_intermediate_save_t *save = action->save;
     
-    if (n > action->nbest) {
-        if (save) {
-            action->nbest = schur_number_save_best_upgrade(save, n, partition);
-        } else {
-            action->nbest = n;
+    unsigned long nbest = action->nbest;
+    
+    if (save) {
+        unsigned long nbest_global  = schur_number_save_best_upgrade(save, n, partition);
+        if (nbest_global > nbest) {
+            action->nbest = nbest_global;
+            action->count_max = 0;
         }
-        action->count_max = 0;
+    } else {
+        if (n > nbest) {
+            action->nbest = n;
+            action->count_max = 0;
+        }
     }
     
     if (partition) {

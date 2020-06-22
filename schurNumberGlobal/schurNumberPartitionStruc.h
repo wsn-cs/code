@@ -45,7 +45,6 @@ unsigned long schurNumberPartitionSetString(schur_number_partition_t *partition,
 
 void schur_number_sumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work);
 void schur_number_restricted_sumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work);
-void schurNumberWeakSumset2(mp_limb_t *r_set, mp_limb_t *set, mp_size_t r_limbsize, mp_size_t limbsize, mp_limb_t *work);
 
 void schur_number_set_revert(mp_limb_t *r_set, mp_limb_t *set, mp_size_t limbsize);
 
