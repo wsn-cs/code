@@ -33,11 +33,69 @@ unsigned long schur_number_default_action(mp_limb_t **partition, unsigned long n
         action->count_max = 0;
     }
     
-    if (n == action->nmax && partition) {
+    if (n == action->nbest && partition) {
         action->count_max++;
     }
     
-    return action->nmax;
+    return action->nbest;
+}
+
+unsigned long schur_number_default_action_sync(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
+    /*Met seulement à jour les indicateurs statistiques, et effectue une synchronisation de nbest entre threads en vérifiant systématiquement le nbest de save.*/
+    
+    schur_number_intermediate_save_t *save = action->save;
+    
+    if (partition) {
+        action->count_all++;
+        
+        if (save && !(action->count_all % SCHUR_NUMBER_SAVE_FREQUENCY)) {
+            unsigned long nbest = schur_number_save_progression_update(save, n, partition);
+            if (nbest > action->nbest) {
+                schur_number_save_some_partition(NULL, nbest, action);
+            }
+        }
+    }
+    
+    unsigned long nbest = action->nbest;
+    
+    if (save) {
+        unsigned long nbest_global  = schur_number_save_best_upgrade(save, n, partition);
+        if (nbest_global > nbest) {
+            //action->func(NULL, nbest_global, action);
+            action->count_max = 0;
+            action->nbest = nbest_global;
+        }
+    } else {
+        if (n > nbest) {
+            //action->func(NULL, n, action);
+            action->nbest = n;
+            action->count_max = 0;
+        }
+    }
+    
+    if (n == action->nbest && partition) {
+        action->count_max++;
+    }
+    
+    return action->nbest;
+}
+
+unsigned long schur_number_sync_action(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {
+    /*Met seulement à jour les indicateurs statistiques, et effectue une synchronisation de nbest entre threads en vérifiant systématiquement le nbest de save.*/
+    
+    schur_number_intermediate_save_t *save = action->save;
+    
+    if (save) {
+        unsigned long nbest = action->nbest;
+        unsigned long nbest_global  = schur_number_save_best_upgrade(save, n, partition);
+        if (nbest_global > nbest) {
+            //action->func(NULL, nbest_global, action);
+            action->count_max = 0;
+            action->nbest = nbest_global;
+        }
+    }
+    
+    return action->nbest;
 }
 
 unsigned long schur_number_save_some_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action) {

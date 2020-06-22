@@ -322,10 +322,7 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
                 
                 if (is_new_branch) {
                     // Agir sur la partition
-                    action->func(partition, n, action);
-                    if (n > nbest) {
-                        nbest = n;
-                    }
+                    nbest = action->func(partition, n, action);
                     if (n >= nlimit) {
                         nblocking = n;
                     }
