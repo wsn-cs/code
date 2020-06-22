@@ -54,6 +54,7 @@ int main(int argc, const char * argv[]) {
     char threadPartitionNumberOption = 0;
     unsigned long nlimit = 0;
     char method = 0;
+    char is_weak = 0;
     char *print_range = NULL;
     int format = SCHUR_NUMBER_ELEMENT_FORMAT;
     struct timespec time0, time1;
@@ -221,18 +222,22 @@ int main(int argc, const char * argv[]) {
             break;
             
         case '4':
+            is_weak = 1;
             methodfunc = schur_number_weak_exhaustive;
             break;
             
         case '5':
+            is_weak = 1;
             methodfunc = schur_number_weak_branch_bound;
             break;
             
         case '6':
+            is_weak = 1;
             methodfunc = schur_number_weak_stacked_branch_bound;
             break;
             
         case 'w':
+            is_weak = 1;
             methodfunc = schur_number_weak_superstacked_branch_bound;
             break;
             
@@ -294,7 +299,11 @@ int main(int argc, const char * argv[]) {
         printf("Nombre de partitions de taille maximale: %lu\n", schur_number_action_total_count_max(&action_s));
     }
     
-    printf("Nombre de Schur S(%lu) ≥ %lu\n", p, schur_number_action_total_Nmax(&action_s));
+    if (is_weak) {
+        printf("Nombre de Schur WS(%lu) ≥ %lu\n", p, schur_number_action_total_Nmax(&action_s));
+    } else {
+        printf("Nombre de Schur S(%lu) ≥ %lu\n", p, schur_number_action_total_Nmax(&action_s));
+    }
     
     // Nettoyage
     schur_number_partition_dealloc(&partition_s);
