@@ -161,7 +161,7 @@ int main(int argc, const char * argv[]) {
         }
         free(print_range);
     } else {
-        actionfunc = schur_number_default_action;
+        actionfunc = schur_number_default_action_sync;
     }
     
     schur_number_action_alloc(&action_s, p, actionfunc);

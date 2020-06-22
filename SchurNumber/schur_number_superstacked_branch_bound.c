@@ -75,6 +75,15 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
     char notSumFree = 1;
     char is_new_branch = 1;
     
+    unsigned long pow3 = 1;                     // Puissance 3^(pmax - p)
+    unsigned long pdiff = pmax - p;
+    //unsigned long pdiff = 1;
+    while (pdiff > 0) {
+        pow3 *= 3;
+        pdiff--;
+    }
+    nbest = n0 * pow3;
+    
     // Initialisation du tableau contenant la pile des sommes restreintes de la partition
     mp_limb_t **sumpartition = calloc(sizeof(mp_limb_t *), pmax);
     mp_limb_t **sums_ptr = calloc(sizeof(mp_limb_t *), pmax);
@@ -303,9 +312,11 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
                 is_new_branch = 1;
                 nblocking = n0;
                 
-                if (nbest < 3 * (n-1)) {
-                    nbest = 3 * (n-1);
+                if (nbest < pow3 * (n-1) + 1) {
+                    //nbest = schur_number_sync_action(NULL, pow3 * (n-1) + 1, action);
+                    nbest = pow3 * (n-1) + 1;
                 }
+                pow3 /= 3;
                 
             } else {
                 
@@ -407,6 +418,7 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
                 while (0 < p && !setmin[p - 1]) {
                     // Supprimer la dernière huche
                     p--;
+                    pow3 *= 3;
                 }
                 
                 n = nblocking - 1;
