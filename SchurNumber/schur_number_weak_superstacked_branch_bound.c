@@ -100,9 +100,13 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
     }
     
     unsigned long *setmin = calloc(pmax, sizeof(unsigned long));    // Tableau contenant les plus petits éléments de chaque partie
+    unsigned long sum_min = 0;                                      // Somme des plus petits éléments, utile pour avoir une borne inférieure de nbest
     for (unsigned long j = 0; j < p; j++) {
         setmin[j] = mpn_scan1(partition[j], 1);
+        sum_min += setmin[j];
     }
+    //nbest = (n0 << (pmax - p)) + sum_min;
+    nbest = schur_number_sync_action(NULL, (n << (pmax - p)) + sum_min, action);
     
     // Initialisation du tableau contenant la pile des co-sommes Cj = intersection des Ak + Ak, k ≠ j
     // Pour plus d'efficacité, la co-somme est scindée en deux parties = les k < j  et les k > j
@@ -277,6 +281,12 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
                     }
                 }
                 
+                nbest = schur_number_sync_action(NULL, (n << (pmax - p)) + sum_min, action);
+                /*if (nbest < (n << (pmax - p)) + sum_min) {
+                    nbest = (n << (pmax - p)) + sum_min;
+                }*/
+                sum_min += n;
+                
                 i = 0;
                 if (n > nsize) {
                     limbsize++;
@@ -285,10 +295,6 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
                 p++;
                 is_new_branch = 1;
                 nblocking = n0;
-                
-                if (nbest < 2 * n) {
-                    nbest = 2 * n;
-                }
                 
             } else {
                 
@@ -351,6 +357,7 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
                         limb_diff = (n - nblocking) * limballoc;
                     } else {
                         limb_diff = (n - setmin[i]) * limballoc;
+                        sum_min -= setmin[i];
                         setmin[i] = 0;
                     }
                     
