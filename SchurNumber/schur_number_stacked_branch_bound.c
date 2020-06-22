@@ -34,7 +34,6 @@ unsigned long schur_number_stacked_branch_bound(schur_number_partition_t *partit
     mp_size_t limballoc = partitionstruc->limballoc;            // Nombre de limbes alloué à chaque ensemble de partition
     mp_size_t limbsize = partitionstruc->limbsize;              // Nombre de limbes utilisés par les ensembles de partition
     unsigned long nsize = GMP_NUMB_BITS * limbsize - 1;      // Plus grand entier pouvant être contenu dans limbsize limbes
-    unsigned long nalloc = GMP_NUMB_BITS * limballoc - 1;    // Plus grand entier pouvant être contenu dans limballoc limbes
     
     // Initialisation des ensembles intermédiaires
     mp_limb_t *work1 = calloc(sizeof(mp_limb_t), limballoc);
@@ -53,8 +52,6 @@ unsigned long schur_number_stacked_branch_bound(schur_number_partition_t *partit
     // Initialisation du tableau contenant la pile des sommes restreintes de la partition
     mp_limb_t **sumpartition = calloc(sizeof(mp_limb_t *), pmax);
     mp_limb_t **sums_ptr = calloc(sizeof(mp_limb_t *), pmax);
-    
-    unsigned long nmax = nalloc;    // Plus grand entier pouvant être atteint par cette partition
     
     unsigned long *cardinals = calloc(sizeof(unsigned long), pmax);     // Tableau contenant les cardinaux des ensembles de partition
     char *popcounts = calloc(limballoc, pmax);                          // Tableau dont l'élément j * limballoc + k compte le nombre de bit dans le limbe k de partition[j]
@@ -86,10 +83,8 @@ unsigned long schur_number_stacked_branch_bound(schur_number_partition_t *partit
             for (unsigned long j = 1; j < p; j++) {
                 mpn_and_n(work1, work1, sums_ptr[j], limballoc);
             }
-            nmax = nalloc;
             if (!mpn_zero_p(work1, limballoc)) {
-                nmax = mpn_scan1(work1, limballoc);
-                if (nmax <= nbest) {
+                if (mpn_scan1(work1, limballoc) <= nbest) {
                     notSumFree = 1;
                     i = p;
                     nblocking = n;
