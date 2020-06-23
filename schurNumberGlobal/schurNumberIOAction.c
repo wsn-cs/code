@@ -231,6 +231,26 @@ void schur_number_action_gather_nocopy(schur_number_action_t *action_r, schur_nu
     }
 }
 
+size_t schur_number_action_buffer_detach(schur_number_action_t *action, mp_size_t **limbsize_buffer_ptr, mp_limb_t **partition_buffer_ptr) {
+    /* Cette fonction détache ses tampons (i.e. elle ferme les flots associés et en crée des nouveaux) et renvoie le nombre de partitions dans ces derniers. De ce fait, l'appelant devient propriétaire des tampons et est responsable de leur libération. */
+    fclose(action->limbsize_stream);
+    fclose(action->partition_stream);
+    
+    *limbsize_buffer_ptr = action->limbsize_buffer;
+    *partition_buffer_ptr = action->partition_buffer;
+    size_t count = action->count;
+    
+    action->limbsize_size = 0;
+    action->limbsize_stream = open_memstream(&(action->limbsize_buffer), &(action->limbsize_size));
+    
+    action->partition_size = 0;
+    action->partition_stream = open_memstream(&(action->partition_buffer), &(action->partition_size));
+    
+    action->count = 0;
+    
+    return count;
+}
+
 size_t schurNumberPrintPartitionBuffer(unsigned long p, char *limbsize_buffer, char *partition_buffer, size_t count) {
     /*Affiche dans stdout les count partitions à p ensembles contenues dans partition_buffer, et de taille en limbes précisée dans limbsize_buffer.*/
     

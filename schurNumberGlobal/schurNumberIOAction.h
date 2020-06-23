@@ -72,6 +72,8 @@ unsigned long schur_number_action_total_Nmax(const schur_number_action_t *action
 void schur_number_action_gather_copy(schur_number_action_t *r_action, schur_number_action_t **actions, size_t n_actions);
 void schur_number_action_gather_nocopy(schur_number_action_t *r_action, schur_number_action_t **actions, size_t n_actions);
 
+size_t schur_number_action_buffer_detach(schur_number_action_t *action, mp_size_t **limbsize_buffer_ptr, mp_limb_t **partition_buffer_ptr);
+
 unsigned long schur_number_default_action(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 unsigned long schur_number_default_action_sync(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 unsigned long schur_number_sync_action(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
