@@ -26,6 +26,10 @@
 
 typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit, mp_limb_t **constraint_partition, mp_size_t constraint_size);
 
+inline schur_number_method_t initial_build_method(schur_number_method_t func) {
+    return func;
+}
+
 void usage(char *cmdname) {
     fprintf(stderr,
             "usage: %s [-abcehtu] [-p (a|b|num)] [-m method] set_number constraint_partition [begin_partition]\n"\

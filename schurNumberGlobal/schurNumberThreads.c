@@ -32,6 +32,8 @@ size_t schur_number_initiate_partition_queue(schur_number_task_arg_t *arg) {
         }
     }
     
+    schur_number_method_t func = initial_build_method(arg->func);
+    
     // Changer l'action
     schur_number_action_func_t action_func = action->func;
     schur_number_intermediate_save_t *save = action->save;
@@ -44,7 +46,7 @@ size_t schur_number_initiate_partition_queue(schur_number_task_arg_t *arg) {
         unsigned long nbest = n;
         // Recherche des partitions
         while (schur_partition_queue_get_partition(partition_queue, partitionstruc)) {
-            unsigned long nfound = arg->func(partitionstruc, action, n + 4, constraint_partition, constraint_size);
+            unsigned long nfound = func(partitionstruc, action, n + 4, constraint_partition, constraint_size);
             if (nfound > nbest) {
                 nbest = nfound;
             }

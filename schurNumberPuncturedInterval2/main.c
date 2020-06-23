@@ -29,6 +29,10 @@ typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partiti
 
 #endif
 
+inline schur_number_method_t initial_build_method(schur_number_method_t func) {
+    return func;
+}
+
 void usage(char *cmdname) {
     fprintf(stderr,
             "usage: %s [-abcehtu] [-p (a|b|num)] [-m method] set_number n1 n2 partition\n"\

@@ -16,17 +16,25 @@
 
 #ifdef schurNumberThreads_h
 
-    #define schur_number_launch(methodfunc, partitionstruc, action, nlimit) schur_number_threads_launch(partitionstruc, methodfunc, action, nlimit, NULL, 0)
+#define schur_number_launch(methodfunc, partitionstruc, action, nlimit) schur_number_threads_launch(partitionstruc, methodfunc, action, nlimit, NULL, 0)
 
 #else
 
-    typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
-    #define schur_number_launch(methodfunc, partitionstruc, action, nlimit) do {\
-        schur_number_save_thread_register((action)->save);\
-        methodfunc(partitionstruc, action, nlimit);\
-        } while(0)
+typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
+#define schur_number_launch(methodfunc, partitionstruc, action, nlimit) do {\
+    schur_number_save_thread_register((action)->save);\
+    methodfunc(partitionstruc, action, nlimit);\
+    } while(0)
 
 #endif
+
+inline schur_number_method_t initial_build_method(schur_number_method_t func) {
+    schur_number_method_t build_func = schur_number_branch_bound;
+    if (IS_WEAK_METHOD(func)) {
+        build_func = schur_number_weak_branch_bound;
+    }
+    return build_func;
+}
 
 void usage(char *cmdname) {
     fprintf(stderr,
