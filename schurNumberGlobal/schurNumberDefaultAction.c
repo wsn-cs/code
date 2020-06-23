@@ -56,19 +56,20 @@ unsigned long schur_number_default_action_sync(mp_limb_t **partition, unsigned l
         }
     }
     
-    unsigned long nbest = action->nbest;
-    
-    if (save) {
-        unsigned long nbest_global  = schur_number_save_best_upgrade(save, n, partition);
-        if (nbest_global > nbest) {
+    // Regarder si nbest doit être modifié
+    if (n > action->nbest) {
+        //action->func(NULL, n, action);
+        action->nbest = n;
+        action->count_max = 0;
+        if (save) {
+            action->nbest = schur_number_save_best_upgrade(save, n, partition);
+        }
+    } else if (save) {
+        // Assure que nbest = nbest_global dans tous les cas
+        unsigned long nbest_global  = schur_number_save_get_best_global(save);
+        if (nbest_global > action->nbest) {
             //action->func(NULL, nbest_global, action);
             action->nbest = nbest_global;
-            action->count_max = 0;
-        }
-    } else {
-        if (n > nbest) {
-            //action->func(NULL, n, action);
-            action->nbest = n;
             action->count_max = 0;
         }
     }
@@ -168,27 +169,31 @@ unsigned long schur_number_save_best_partition(mp_limb_t **partition, unsigned l
         }
     }
     
-    unsigned long nbest = action->nbest;
-    
-    if (save) {
-        unsigned long nbest_global  = schur_number_save_best_upgrade(save, n, partition);
-        if (nbest_global > nbest) {
-            action->nbest = nbest_global;
-            action->count_max = 0;
+    // Regarder si nbest doit être modifié
+    if (n > action->nbest) {
+        action->nbest = n;
+        if (save) {
+            action->nbest = schur_number_save_best_upgrade(save, n, partition);
         }
-    } else {
-        if (n > nbest) {
-            action->nbest = n;
-            action->count_max = 0;
-        }
-    }
-    
-    if (action->nbest > nbest) {
+        
         /*Vider partitions*/
         rewind(limbsize_stream);
         rewind(partition_stream);
         action->count = 0;
         action->count_max = 0;
+        
+    } else if (save) {
+        // Assure que nbest = nbest_global dans tous les cas
+        unsigned long nbest_global  = schur_number_save_get_best_global(save);
+        if (nbest_global > action->nbest) {
+            action->nbest = nbest_global;
+            
+            /*Vider partitions*/
+            rewind(limbsize_stream);
+            rewind(partition_stream);
+            action->count = 0;
+            action->count_max = 0;
+        }
     }
     
     if (n == action->nbest && partition) {
@@ -215,17 +220,18 @@ unsigned long schur_number_save_all_partition(mp_limb_t **partition, unsigned lo
     
     schur_number_intermediate_save_t *save = action->save;
     
-    unsigned long nbest = action->nbest;
-    
-    if (save) {
-        unsigned long nbest_global  = schur_number_save_best_upgrade(save, n, partition);
-        if (nbest_global > nbest) {
-            action->nbest = nbest_global;
-            action->count_max = 0;
+    // Regarder si nbest doit être modifié
+    if (n > action->nbest) {
+        action->nbest = n;
+        if (save) {
+            action->nbest = schur_number_save_best_upgrade(save, n, partition);
         }
-    } else {
-        if (n > nbest) {
-            action->nbest = n;
+        action->count_max = 0;
+    } else if (save) {
+        // Assure que nbest = nbest_global dans tous les cas
+        unsigned long nbest_global  = schur_number_save_get_best_global(save);
+        if (nbest_global > action->nbest) {
+            action->nbest = nbest_global;
             action->count_max = 0;
         }
     }
