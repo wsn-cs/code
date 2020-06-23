@@ -10,7 +10,7 @@
 #include "gmp-impl.h"
 #include "longlong.h"
 
-static unsigned long find_nblocking(unsigned long x, mp_limb_t *sumset, mp_size_t limbsize, unsigned long count) {
+static inline unsigned long find_nblocking(unsigned long x, mp_limb_t *sumset, mp_size_t limbsize, unsigned long count) {
     /* Renvoie le plus petit indice idx tel que x appartienne à sumset[idx], sachant que sumset est un tableau de count grands entiers de taille limbsize. */
     
     if (GET_POINT(sumset, x)) {
@@ -79,8 +79,6 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
     mp_limb_t **sumpartition = calloc(sizeof(mp_limb_t *), pmax);
     mp_limb_t **sums_ptr = calloc(sizeof(mp_limb_t *), pmax);
     
-    unsigned long nmax = nalloc;    // Plus grand entier pouvant être atteint par cette partition
-    
     unsigned long *cardinals = calloc(sizeof(unsigned long), pmax);     // Tableau contenant les cardinaux des ensembles de partition
     
     for (unsigned long j = 0; j < pmax; j++) {
@@ -98,7 +96,16 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
         sum_min += setmin[j];
     }
     //nbest = (n0 << (pmax - p)) + sum_min;
-    nbest = schur_number_sync_action(NULL, (n << (pmax - p)) + sum_min, action);
+    if (pmax > 2) {
+        unsigned long pow3 = 1;
+        unsigned long pdiff = pmax - 2;
+        while (pdiff > 0) {
+            pow3 *= 3;
+            pdiff--;
+        }
+        nbest = action->func(NULL, 7 * pow3 + pmax - 1, action);
+    }
+    //nbest = action->func(NULL, (n << (pmax - p)) + sum_min, action);
     
     // Initialisation du tableau contenant la pile des co-sommes Cj = intersection des Ak + Ak, k ≠ j
     // Pour plus d'efficacité, la co-somme est scindée en deux parties = les k < j  et les k > j
@@ -140,7 +147,7 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
         
         if (p == pmax) {
             // Gérer les contraintes dûes aux co-sommes
-            nmax = nalloc;
+            unsigned long nmax = nalloc;        // Plus grand entier pouvant être atteint par cette partition
             
             char has_improved = 1;
             
@@ -272,7 +279,7 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
                     }
                 }
                 
-                nbest = schur_number_sync_action(NULL, (n << (pmax - p)) + sum_min, action);
+                //nbest = action->func(NULL, (n << (pmax - p)) + sum_min, action);
                 /*if (nbest < (n << (pmax - p)) + sum_min) {
                     nbest = (n << (pmax - p)) + sum_min;
                 }*/
