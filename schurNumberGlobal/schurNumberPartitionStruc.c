@@ -66,6 +66,23 @@ void schur_number_partition_dealloc(schur_number_partition_t *partitionstruc) {
     free(partitioninvert);
 }
 
+void schur_number_partition_set_empty(schur_number_partition_t *partitionstruc) {
+    /* Rend vide tous les ensembles de la partition. */
+    unsigned long p = partitionstruc->pmax;
+    mp_size_t limballoc = partitionstruc->limballoc;
+    mp_limb_t **partitioninvert = partitionstruc->partitioninvert;
+    mp_limb_t **partition = partitionstruc->partition;
+    
+    for (unsigned long i = 0; i < p; i++) {
+        mpn_zero(partitioninvert[i], limballoc);
+    }
+    ADD_POINT(partition[0], 0);
+    
+    partitionstruc->p = 0;
+    partitionstruc->n = 0;
+    partitionstruc->limbsize = 1;
+}
+
 
 void schur_number_sumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work) {
     /* Cette fonction calcule set1 + set2 - x et le place dans r_set, qui doit pouvoir contenir tous les éléments.

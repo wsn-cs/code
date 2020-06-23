@@ -41,6 +41,8 @@ void schur_number_partition_init(schur_number_partition_t *partitionstruc, mp_si
 
 void schur_number_partition_dealloc(schur_number_partition_t *partitionstruc);
 
+void schur_number_partition_set_empty(schur_number_partition_t *partitionstruc);
+
 unsigned long schurNumberPartitionSetString(schur_number_partition_t *partition, char **str, size_t str_size, int format);
 
 void schur_number_sumset(mp_limb_t *r_set, mp_limb_t *set1, mp_limb_t *set2, mp_size_t r_limbsize, mp_size_t limbsize, unsigned long x, mp_limb_t *work);
