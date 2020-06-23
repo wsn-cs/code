@@ -306,8 +306,7 @@ unsigned long schur_number_threads_launch(schur_number_partition_t *partitionstr
     main_arg->nlimit = nlimit;
     main_arg->constraint_size = constraint_size;
     main_arg->constraint_partition = constraint_partition;
-    //main_arg->func = methodfunc;
-    main_arg->func = schur_number_branch_bound;
+    main_arg->func = methodfunc;
     main_arg->waiting_thread_count_ptr = &waiting_thread_count;
     main_arg->mutex = &mutex_s;
     main_arg->cond = &cond_s;
@@ -316,7 +315,6 @@ unsigned long schur_number_threads_launch(schur_number_partition_t *partitionstr
     schur_number_partition_queue_init(&partition_queue_struc);
     schur_partition_queue_add_partition_copy(&partition_queue_struc, partitionstruc, 1);
     size_t count = schur_number_initiate_partition_queue(main_arg); // Nombre de partitions dans partitionstruc_array
-    main_arg->func = methodfunc;
     
     // Répercussion dans la sauvegarde
     schur_number_intermediate_save_t *save = action->save;
