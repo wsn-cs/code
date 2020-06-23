@@ -10,7 +10,7 @@
 #include "gmp-impl.h"
 #include "longlong.h"
 
-static unsigned long find_nblocking(unsigned long x, mp_limb_t *sumset, mp_size_t limbsize, unsigned long count) {
+static inline unsigned long find_nblocking(unsigned long x, mp_limb_t *sumset, mp_size_t limbsize, unsigned long count) {
     /* Renvoie le plus petit indice idx tel que x appartienne à sumset[idx], sachant que sumset est un tableau de count grands entiers de taille limbsize. */
     
     if (GET_POINT(sumset, x)) {
@@ -81,18 +81,17 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
         pow3 *= 3;
         pdiff--;
     }
-    nbest = n0 * pow3;
+    //nbest = n0 * pow3;
+    nbest = action->func(NULL, pow3 * (n-1) + 1, action);
     
     // Initialisation du tableau contenant la pile des sommes restreintes de la partition
     mp_limb_t **sumpartition = calloc(sizeof(mp_limb_t *), pmax);
     mp_limb_t **sums_ptr = calloc(sizeof(mp_limb_t *), pmax);
     
-    unsigned long nmax = nalloc;    // Plus grand entier pouvant être atteint par cette partition
-    
-    unsigned long *cardinals = calloc(sizeof(unsigned long), pmax);     // Tableau contenant les cardinaux des ensembles de partition
+    unsigned long *cardinals = calloc(pmax, sizeof(unsigned long));     // Tableau contenant les cardinaux des ensembles de partition
     
     for (unsigned long j = 0; j < pmax; j++) {
-        sumpartition[j] = calloc(sizeof(mp_limb_t) * limballoc, nlimit);    // Tableau contenant la pile des sommes de l'ensembles j
+        sumpartition[j] = calloc(nlimit, sizeof(mp_limb_t) * limballoc);    // Tableau contenant la pile des sommes de l'ensembles j
         sums_ptr[j] = sumpartition[j];                                      // Pointeur vers le sommet de la pile des sommes de l'ensembles j
         schur_number_sumset(sums_ptr[j], partition[j], partition[j], limballoc, limballoc, 0, work1);
         
@@ -106,18 +105,18 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
     
     // Initialisation du tableau contenant la pile des co-sommes Cj = intersection des Ak + Ak, k ≠ j
     // Pour plus d'efficacité, la co-somme est scindée en deux parties = les k < j  et les k > j
-    mp_limb_t **cosumpartition_inf = calloc(sizeof(mp_limb_t *), 2 * pmax);
+    mp_limb_t **cosumpartition_inf = calloc(2 * pmax, sizeof(mp_limb_t *));
     mp_limb_t **cosumpartition_sup = cosumpartition_inf + pmax;
-    mp_limb_t **cosums_inf_ptr = calloc(sizeof(mp_limb_t *), 2 * pmax);
+    mp_limb_t **cosums_inf_ptr = calloc(2 * pmax, sizeof(mp_limb_t *));
     mp_limb_t **cosums_sup_ptr = cosums_inf_ptr + pmax;
     
     // Construction initale des co-sommes inférieures
-    cosumpartition_inf[0] = calloc(sizeof(mp_limb_t) * limballoc, 1);
+    cosumpartition_inf[0] = calloc(1, sizeof(mp_limb_t) * limballoc);
     cosums_inf_ptr[0] = cosumpartition_inf[0];
     mpn_com(cosums_inf_ptr[0], cosums_inf_ptr[0], limballoc);
     
     for (unsigned long j = 1; j < pmax; j++) {
-        cosumpartition_inf[j] = calloc(sizeof(mp_limb_t) * limballoc, nlimit);
+        cosumpartition_inf[j] = calloc(nlimit, sizeof(mp_limb_t) * limballoc);
         cosums_inf_ptr[j] = cosumpartition_inf[j];
         
         mpn_and_n(cosums_inf_ptr[j], cosums_inf_ptr[j - 1], sums_ptr[j - 1], limballoc);
@@ -144,7 +143,8 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
         
         if (p == pmax) {
             // Gérer les contraintes dûes aux co-sommes
-            nmax = nalloc;
+            
+            unsigned long nmax = nalloc;        // Plus grand entier pouvant être atteint par cette partition
             
             char has_improved = 1;
             
@@ -293,10 +293,11 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
                 is_new_branch = 1;
                 nblocking = n0;
                 
-                if (nbest < pow3 * (n-1) + 1) {
+                nbest = action->func(NULL, pow3 * (n-1) + 1, action);
+                /*if (nbest < pow3 * (n-1) + 1) {
                     //nbest = schur_number_sync_action(NULL, pow3 * (n-1) + 1, action);
                     nbest = pow3 * (n-1) + 1;
-                }
+                }*/
                 pow3 /= 3;
                 
             } else {
