@@ -175,7 +175,7 @@ char schur_partition_queue_get_partition(schur_number_partition_queue_t *partiti
     mp_limb_t *set = partition_queue->partition_ptr;
     mp_limb_t *set0 = set;
     
-    while (i < pmax && !mpn_zero_p(set, limballoc)) {
+    while (i < pmax && !mpn_zero_p(set, limbsize)) {
         mpn_copyd(partition->partition[i], set, limbsize);
         schur_number_set_revert(partition->partitioninvert[i], set, limballoc);
         mpn_ior_n(set0, set0, set, limbsize);  // Réaliser l'union des ensembles pour déterminer n
