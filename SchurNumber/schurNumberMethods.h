@@ -35,4 +35,6 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
 
 unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
 
+#define IS_WEAK_METHOD(func) ((func) == schur_number_weak_exhaustive || (func) == schur_number_weak_branch_bound || (func) == schur_number_weak_stacked_branch_bound || (func) == schur_number_weak_superstacked_branch_bound)
+
 #endif /* schurNumberMethods_h */
