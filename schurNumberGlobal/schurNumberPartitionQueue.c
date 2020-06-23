@@ -7,7 +7,6 @@
 //
 
 #include "schurNumberPartitionQueue.h"
-//#include "schurNumberIO.h"
 
 void schur_number_partition_queue_init(schur_number_partition_queue_t *partition_queue) {
     partition_queue->pmax = 0;
@@ -193,10 +192,6 @@ char schur_partition_queue_get_partition(schur_number_partition_queue_t *partiti
         partition->n = mpn_scan1(set0, 1) - 1;
         partition->limbsize = INTEGER_2_LIMBSIZE(partition->n);
     }
-    
-    /*schur_number_dprint_partition(1, pmax, limballoc * GMP_NUMB_BITS - 1, partition->partition);
-    schur_number_print_set(1, limballoc * GMP_NUMB_BITS - 1, set0);
-    printf("\n%lu\n", partition->n);*/
     
     partition_queue->current_index = index + 1;
     partition_queue->limbsize_ptr ++;

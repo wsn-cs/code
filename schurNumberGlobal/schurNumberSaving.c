@@ -73,7 +73,7 @@ int schur_number_save_alloc(schur_number_intermediate_save_t *save, unsigned lon
     
     save->tick = 7;
     
-    pthread_mutex_init(&save->mutex_s, NULL);
+    pthread_rwlock_init(&save->lock_s, NULL);
     
     return fd;
 }
@@ -101,7 +101,7 @@ void schur_number_save_dealloc(schur_number_intermediate_save_t *save) {
 
     schurNumberSaveFileClose(&save->file);
     
-    pthread_mutex_destroy(&save->mutex_s);
+    pthread_rwlock_destroy(&save->lock_s);
 }
 
 void schur_number_save_thread_register(schur_number_intermediate_save_t *save) {
@@ -162,13 +162,22 @@ void schurNumberEstimatedRemaindingIteration(mpz_t iternum_estimated, unsigned l
     }
 }
 
+unsigned long schur_number_save_get_best_global(schur_number_intermediate_save_t *save) {
+    /* Renvoie le nbest de save, ce qui permet une synchronisation entre threads. */
+    pthread_rwlock_rdlock(&save->lock_s);
+    unsigned long nbest = save->nbest;
+    pthread_rwlock_unlock(&save->lock_s);
+    
+    return nbest;
+}
+
 unsigned long schur_number_save_best_upgrade(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition) {
     /* Met à jour la meilleure partition trouvée si il y a lieu.
      La fonction renvoie le nbest mis à jour, ce qui permet une éventuelle synchronisation entre threads. */
     
     char should_update = 0;
     
-    pthread_mutex_lock(&save->mutex_s);
+    pthread_rwlock_wrlock(&save->lock_s);
     
     unsigned long nbest = save->nbest;
     
@@ -190,8 +199,7 @@ unsigned long schur_number_save_best_upgrade(schur_number_intermediate_save_t *s
         save->nbest = nbest;
         save->toprint = 1;
     }
-    
-    pthread_mutex_unlock(&save->mutex_s);
+    pthread_rwlock_unlock(&save->lock_s);
     
     if (should_update) {
         schur_number_save_progression_update(save, n, partition);
@@ -257,14 +265,14 @@ unsigned long schur_number_save_progression_update(schur_number_intermediate_sav
     // Nombre d'itérations déjà effectuées
     mpz_sub(executed_iternum, executed_iternum, *estimated_branch_iternum_p);
     
-    pthread_mutex_lock(&save->mutex_s);
+    pthread_rwlock_wrlock(&save->lock_s);
     mpz_sub(save->estimated_iternum, save->estimated_iternum, executed_iternum);
     save->tick--;
     save->tick %= 8;
     if (!save->tick) {
         schurNumberSaveToFile(save);
     }
-    pthread_mutex_unlock(&save->mutex_s);
+    pthread_rwlock_unlock(&save->lock_s);
 
     return save->nbest;
 }

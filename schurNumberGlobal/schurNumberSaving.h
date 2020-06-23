@@ -49,7 +49,7 @@ struct schur_number_intermediate_save_struc {
     unsigned char tick;         // Compteur modulo 8 permettant de savoir si une sauvegarde doit être faite dans le fichier temporaire
     
     schur_number_save_file_t file;  // Fichier où effectuer les sauvegardes intermédiaires
-    pthread_mutex_t mutex_s;        // Mutex permettant le multi-threading
+    pthread_rwlock_t lock_s;        // Verrou protégeant l'accès à la variable nbest
 };
 
 typedef struct schur_number_intermediate_save_struc schur_number_intermediate_save_t;
@@ -61,6 +61,7 @@ void schur_number_save_thread_register(schur_number_intermediate_save_t *save);
 void schur_number_save_partition_pool_register(schur_number_intermediate_save_t *save, size_t part_pool_count, unsigned long n0);
 void schur_number_save_newexploration_register(schur_number_intermediate_save_t *save);
 
+unsigned long schur_number_save_get_best_global(schur_number_intermediate_save_t *save);
 unsigned long schur_number_save_best_upgrade(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition);
 
 unsigned long schur_number_save_progression_update(schur_number_intermediate_save_t *save, unsigned long n, mp_limb_t **partition);
