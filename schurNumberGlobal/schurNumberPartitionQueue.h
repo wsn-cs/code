@@ -15,6 +15,7 @@ enum partition_queue_flag_enum {
     NULL_FLAG,              // Drapeau indiquant l'absence de partitions dans la file
     INITIAL_FLAG,
     INTERMEDIATE_FLAG,
+    FINAL_FLAG,
     STOP_FLAG,              // Drapeau demandant l'arrêt des recherches
 };
 

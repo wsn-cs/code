@@ -154,6 +154,7 @@ void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
      */
     
     // Initialisation des variables
+    unsigned long p = arg->p;
     schur_number_partition_queue_t *queue = arg->partition_queue;
     size_t *waiting_thread_count_ptr = arg->waiting_thread_count_ptr;
     schur_number_partition_t *partitionstruc = arg->partition_struc;
@@ -164,7 +165,6 @@ void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
     mp_size_t constraint_size = arg->constraint_size;
     mp_limb_t **constraint_partition = NULL;
     if (arg->constraint_partition) {
-        unsigned long p = arg->p;
         constraint_partition = calloc(sizeof(mp_limb_t *), p);
         
         for (unsigned long j = 0; j < p; j++) {
@@ -173,7 +173,24 @@ void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
         }
     }
     
-    unsigned long nbest = 0;
+    unsigned long nbest;
+    switch (p) {
+        case 1:
+            nbest = 2;
+            break;
+            
+        default:
+        {
+            unsigned long pow3 = 1;
+            unsigned long pdiff = p - 2;
+            while (pdiff > 0) {
+                pow3 *= 3;
+                pdiff--;
+            }
+            nbest = 7 * pow3 + p - 1;
+        }
+            break;
+    }
     
     
     // Enregistrement du thread
@@ -189,19 +206,38 @@ void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
         partition_queue_flag_t flag = schur_partition_queue_get_partition(queue, partitionstruc);
         while (flag == NULL_FLAG) {
             // Plus de partitions dans le file
-            if (old_flag == INITIAL_FLAG && action->count) {
-                // Placer ses propres partitions dans la file au besoin
-                mp_size_t *limbsize_buffer;
-                mp_limb_t *partition_buffer;
-                size_t count = schur_number_action_buffer_detach(action, &limbsize_buffer, &partition_buffer);
-                schur_partition_queue_add_partitionarray_nocopy(queue, partition_buffer, limbsize_buffer, count, INTERMEDIATE_FLAG);
-                // Envoyer un signal aux threads en attente
-                pthread_cond_broadcast(cond);
-            } else if (*waiting_thread_count_ptr < NUM_THREADS - 1) {
+            
+//            if (old_flag == INITIAL_FLAG && action->count) {
+//                // Placer ses propres partitions dans la file au besoin
+//                mp_size_t *limbsize_buffer;
+//                mp_limb_t *partition_buffer;
+//                size_t count = schur_number_action_buffer_detach(action, &limbsize_buffer, &partition_buffer);
+//                schur_partition_queue_add_partitionarray_nocopy(queue, partition_buffer, limbsize_buffer, count, INTERMEDIATE_FLAG);
+//                // Envoyer un signal aux threads en attente
+//                pthread_cond_broadcast(cond);
+//            } else if (*waiting_thread_count_ptr < NUM_THREADS - 1) {
+//                // Attendre le signal pour réessayer de prendre une partition ou s'arrêter
+//                (*waiting_thread_count_ptr)++;
+//                pthread_cond_wait(cond, mutex);
+//                (*waiting_thread_count_ptr)--;
+//            } else {
+//                // Sonner la fin de la traque
+//                schur_partition_queue_add_partitionarray_nocopy(queue, NULL, NULL, 0, STOP_FLAG);
+//                flag = STOP_FLAG;
+//                // Envoyer un signal aux threads en attente
+//                pthread_cond_broadcast(cond);
+//                break;
+//            }
+//            // Ré-essayer d'acquérir une partition
+//            flag = schur_partition_queue_get_partition(queue, partitionstruc);
+            
+            if (*waiting_thread_count_ptr < NUM_THREADS - 1) {
                 // Attendre le signal pour réessayer de prendre une partition ou s'arrêter
                 (*waiting_thread_count_ptr)++;
                 pthread_cond_wait(cond, mutex);
                 (*waiting_thread_count_ptr)--;
+                // Ré-essayer d'acquérir une partition
+                flag = schur_partition_queue_get_partition(queue, partitionstruc);
             } else {
                 // Sonner la fin de la traque
                 schur_partition_queue_add_partitionarray_nocopy(queue, NULL, NULL, 0, STOP_FLAG);
@@ -210,8 +246,6 @@ void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
                 pthread_cond_broadcast(cond);
                 break;
             }
-            // Ré-essayer d'acquérir une partition
-            flag = schur_partition_queue_get_partition(queue, partitionstruc);
         }
         pthread_mutex_unlock(mutex);
         
@@ -221,13 +255,19 @@ void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
         schur_number_action_func_t action_func = action->func;
         switch (flag) {
             case INITIAL_FLAG:
+                // Effectuer une recherche limitée à nbest * 2/3
+                nlimit = ((2 * nbest) / 3) + 1;
+                
+            case INTERMEDIATE_FLAG:
                 // Effectuer une recherche limitée à nbest * 5/6
-                nlimit = 5 * (nbest / 6);
+                nlimit = ((2 * nbest) / 3) + ((2 * (nbest - ((2 * nbest) / 3))) / 3);
                 action->nthreshold = nlimit;
                 action->func = schur_number_save_threshold_partition;
                 
-            case INTERMEDIATE_FLAG:
-            {   // Effectuer une recherche illimitée
+            case FINAL_FLAG:
+            {
+                size_t count = action->count;
+                // Effectuer une recherche illimitée
                 unsigned long n = arg->func(partitionstruc, action, nlimit, constraint_partition, constraint_size);
                 
                 if (n == partitionstruc->n) {
@@ -239,7 +279,19 @@ void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
                     nbest = n;
                 }
                 
-                action->func = action_func;
+                if (flag != FINAL_FLAG) {
+                    action->func = action_func;
+                    action->count_all -= (action->count - count);
+                    mp_size_t *limbsize_buffer;
+                    mp_limb_t *partition_buffer;
+                    count = schur_number_action_buffer_detach(action, &limbsize_buffer, &partition_buffer);
+                    pthread_mutex_lock(mutex);
+                    partition_queue_flag_t new_flag = (flag == INITIAL_FLAG) ? INTERMEDIATE_FLAG : FINAL_FLAG;
+                    schur_partition_queue_add_partitionarray_nocopy(queue, partition_buffer, limbsize_buffer, count, new_flag);
+                    // Envoyer un signal aux threads en attente
+                    pthread_cond_broadcast(cond);
+                    pthread_mutex_unlock(mutex);
+                }
             }
                 break;
                 
@@ -278,7 +330,11 @@ unsigned long schur_number_threads_launch(schur_number_partition_t *partitionstr
     
     // Création de la mutex associée
     pthread_mutex_t mutex_s;
-    pthread_mutex_init(&mutex_s, NULL);
+    pthread_mutexattr_t attr_s;
+    pthread_mutexattr_init(&attr_s);
+    pthread_mutexattr_settype(&attr_s, PTHREAD_MUTEX_ERRORCHECK);
+    pthread_mutex_init(&mutex_s, &attr_s);
+    pthread_mutexattr_destroy(&attr_s);
     
     // Création de la condition associée à la vacuité de la file
     pthread_cond_t cond_s;
