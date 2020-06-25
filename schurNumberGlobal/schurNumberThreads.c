@@ -59,7 +59,7 @@ size_t schur_number_initiate_partition_queue(schur_number_task_arg_t *arg) {
         mp_size_t *limbsize_buffer;
         mp_limb_t *partition_buffer;
         count = schur_number_action_buffer_detach(action, &limbsize_buffer, &partition_buffer);
-        count = schur_partition_queue_add_partitionarray_nocopy(partition_queue, partition_buffer, limbsize_buffer, count, 1);
+        count = schur_partition_queue_add_partitionarray_nocopy(partition_queue, partition_buffer, limbsize_buffer, count, INITIAL_FLAG);
     }
     // Rétablir l'action
     action->func = action_func;
@@ -76,109 +76,6 @@ size_t schur_number_initiate_partition_queue(schur_number_task_arg_t *arg) {
     }
     
     return count;
-}
-
-void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
-    /* La procédure se déroule en trois phases.
-     */
-    
-    // Initialisation des variables
-    schur_number_partition_queue_t *queue = arg->partition_queue;
-    size_t *waiting_thread_count_ptr = arg->waiting_thread_count_ptr;
-    schur_number_partition_t *partitionstruc = arg->partition_struc;
-    schur_number_action_t *action = arg->action;
-    pthread_mutex_t *mutex = arg->mutex;
-    pthread_cond_t *cond = arg->cond;
-    
-    mp_size_t constraint_size = arg->constraint_size;
-    mp_limb_t **constraint_partition = NULL;
-    if (arg->constraint_partition) {
-        unsigned long p = arg->p;
-        constraint_partition = calloc(sizeof(mp_limb_t *), p);
-        
-        for (unsigned long j = 0; j < p; j++) {
-            constraint_partition[j] = calloc(sizeof(mp_limb_t), constraint_size);
-            mpn_copyd(constraint_partition[j], arg->constraint_partition[j], constraint_size);
-        }
-    }
-    
-    unsigned long nbest = 0;
-    
-    
-    // Enregistrement du thread
-    schur_number_intermediate_save_t *save = action->save;
-    schur_number_save_thread_register(save);
-    
-    char should_continue = 1;
-    char old_flag = 1;
-    
-    while (should_continue) {
-        // Obtenir une partition de la file
-        pthread_mutex_lock(mutex);
-        char flag = schur_partition_queue_get_partition(queue, partitionstruc);
-        while (!flag) {
-            // Plus de partitions dans le file
-            if (*waiting_thread_count_ptr < NUM_THREADS - 1) {
-                // Attendre le signal pour réessayer de prendre une partition ou s'arrêter
-                (*waiting_thread_count_ptr)++;
-                pthread_cond_wait(cond, mutex);
-                (*waiting_thread_count_ptr)--;
-                flag = schur_partition_queue_get_partition(queue, partitionstruc);
-            } else {
-                // Placer ses propres partitions dans la file au besoin
-                if (old_flag == 1 && action->count) {
-                    mp_size_t *limbsize_buffer;
-                    mp_limb_t *partition_buffer;
-                    size_t count = schur_number_action_buffer_detach(action, &limbsize_buffer, &partition_buffer);
-                    schur_partition_queue_add_partitionarray_nocopy(queue, partition_buffer, limbsize_buffer, count, 2);
-                } else {
-                    schur_partition_queue_add_partitionarray_nocopy(queue, NULL, NULL, 0, -1);
-                }
-                // Envoyer un signal aux threads en attente
-                pthread_cond_broadcast(cond);
-            }
-        }
-        pthread_mutex_unlock(mutex);
-        
-        old_flag = flag;
-        
-        unsigned long nlimit = arg->nlimit;
-        switch (flag) {
-            case 1:
-                // Effectuer une recherche limitée à nbest * 5/6
-                nlimit = 5 * (nbest / 6);
-                
-            case 2:
-            {   // Effectuer une recherche illimitée
-                unsigned long n = arg->func(partitionstruc, action, nlimit, constraint_partition, constraint_size);
-                
-                if (n == partitionstruc->n) {
-                    // La partition n'est pas prolongeable
-                    action->func(partitionstruc->partition, n, action);
-                }
-                
-                if (n > nbest) {
-                    nbest = n;
-                }
-            }
-                break;
-                
-            default:
-                // Drapeau d'arrêt
-                should_continue = 0;
-                break;
-        }
-    }
-    
-    if (arg->constraint_partition) {
-        unsigned long p = arg->p;
-        
-        for (unsigned long j = 0; j < p; j++) {
-            free(constraint_partition[j]);
-        }
-        
-        free(constraint_partition);
-    }
 }
 
 void schur_number_thread_task(schur_number_task_arg_t *arg) {
@@ -213,34 +110,12 @@ void schur_number_thread_task(schur_number_task_arg_t *arg) {
     while (should_continue) {
         // Obtenir une partition de la file
         pthread_mutex_lock(mutex);
-        char flag = schur_partition_queue_get_partition(queue, partitionstruc);
-        /*while (!(flag = schur_partition_queue_get_partition(queue, partitionstruc))) {
-            // Plus de partitions dans le file
-            if (*waiting_thread_count_ptr < NUM_THREADS - 1) {
-                // Attendre le signal pour réessayer de prendre une partition ou s'arrêter
-                (*waiting_thread_count_ptr)++;
-                pthread_cond_wait(cond, mutex);
-                (*waiting_thread_count_ptr)--;
-                flag = schur_partition_queue_get_partition(queue, partitionstruc);
-            } else {
-                // Placer ses propres partitions dans la file au besoin
-                if (old_flag == 1 && action->count) {
-                    mp_size_t *limbsize_buffer;
-                    mp_limb_t *partition_buffer;
-                    size_t count = schur_number_action_buffer_detach(action, &limbsize_buffer, &partition_buffer);
-                    schur_partition_queue_add_partitionarray_nocopy(queue, partition_buffer, limbsize_buffer, count, 1);
-                } else {
-                    schur_partition_queue_add_partitionarray_nocopy(queue, NULL, NULL, 0, -1);
-                }
-                // Envoyer un signal aux threads en attente
-                pthread_cond_broadcast(cond);
-            }
-        }*/
+        partition_queue_flag_t flag = schur_partition_queue_get_partition(queue, partitionstruc);
         pthread_mutex_unlock(mutex);
         
         unsigned long nlimit = arg->nlimit;
         switch (flag) {
-            case 1:
+            case INITIAL_FLAG:
             {   // Effectuer une recherche illimitée
                 unsigned long n = arg->func(partitionstruc, action, nlimit, constraint_partition, constraint_size);
                 
@@ -252,6 +127,118 @@ void schur_number_thread_task(schur_number_task_arg_t *arg) {
                 if (n > nbest) {
                     nbest = n;
                 }
+            }
+                break;
+                
+            default:
+                // Drapeau d'arrêt
+                should_continue = 0;
+                break;
+        }
+    }
+    
+    if (arg->constraint_partition) {
+        unsigned long p = arg->p;
+        
+        for (unsigned long j = 0; j < p; j++) {
+            free(constraint_partition[j]);
+        }
+        
+        free(constraint_partition);
+    }
+}
+
+void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
+    /* La procédure se déroule en trois phases.
+     */
+    
+    // Initialisation des variables
+    schur_number_partition_queue_t *queue = arg->partition_queue;
+    size_t *waiting_thread_count_ptr = arg->waiting_thread_count_ptr;
+    schur_number_partition_t *partitionstruc = arg->partition_struc;
+    schur_number_action_t *action = arg->action;
+    pthread_mutex_t *mutex = arg->mutex;
+    pthread_cond_t *cond = arg->cond;
+    
+    mp_size_t constraint_size = arg->constraint_size;
+    mp_limb_t **constraint_partition = NULL;
+    if (arg->constraint_partition) {
+        unsigned long p = arg->p;
+        constraint_partition = calloc(sizeof(mp_limb_t *), p);
+        
+        for (unsigned long j = 0; j < p; j++) {
+            constraint_partition[j] = calloc(sizeof(mp_limb_t), constraint_size);
+            mpn_copyd(constraint_partition[j], arg->constraint_partition[j], constraint_size);
+        }
+    }
+    
+    unsigned long nbest = 0;
+    
+    
+    // Enregistrement du thread
+    schur_number_intermediate_save_t *save = action->save;
+    schur_number_save_thread_register(save);
+    
+    char should_continue = 1;
+    partition_queue_flag_t old_flag = INITIAL_FLAG;
+    
+    while (should_continue) {
+        // Obtenir une partition de la file
+        pthread_mutex_lock(mutex);
+        partition_queue_flag_t flag = schur_partition_queue_get_partition(queue, partitionstruc);
+        while (flag == NULL_FLAG) {
+            // Plus de partitions dans le file
+            if (old_flag == INITIAL_FLAG && action->count) {
+                // Placer ses propres partitions dans la file au besoin
+                mp_size_t *limbsize_buffer;
+                mp_limb_t *partition_buffer;
+                size_t count = schur_number_action_buffer_detach(action, &limbsize_buffer, &partition_buffer);
+                schur_partition_queue_add_partitionarray_nocopy(queue, partition_buffer, limbsize_buffer, count, INTERMEDIATE_FLAG);
+                // Envoyer un signal aux threads en attente
+                pthread_cond_broadcast(cond);
+            } else if (*waiting_thread_count_ptr < NUM_THREADS - 1) {
+                // Attendre le signal pour réessayer de prendre une partition ou s'arrêter
+                (*waiting_thread_count_ptr)++;
+                pthread_cond_wait(cond, mutex);
+                (*waiting_thread_count_ptr)--;
+            } else {
+                // Sonner la fin de la traque
+                schur_partition_queue_add_partitionarray_nocopy(queue, NULL, NULL, 0, STOP_FLAG);
+                flag = STOP_FLAG;
+                // Envoyer un signal aux threads en attente
+                pthread_cond_broadcast(cond);
+                break;
+            }
+            // Ré-essayer d'acquérir une partition
+            flag = schur_partition_queue_get_partition(queue, partitionstruc);
+        }
+        pthread_mutex_unlock(mutex);
+        
+        old_flag = flag;
+        
+        unsigned long nlimit = arg->nlimit;
+        schur_number_action_func_t action_func = action->func;
+        switch (flag) {
+            case INITIAL_FLAG:
+                // Effectuer une recherche limitée à nbest * 5/6
+                nlimit = 5 * (nbest / 6);
+                action->nthreshold = nlimit;
+                action->func = schur_number_save_threshold_partition;
+                
+            case INTERMEDIATE_FLAG:
+            {   // Effectuer une recherche illimitée
+                unsigned long n = arg->func(partitionstruc, action, nlimit, constraint_partition, constraint_size);
+                
+                if (n == partitionstruc->n) {
+                    // La partition n'est pas prolongeable
+                    action->func(partitionstruc->partition, n, action);
+                }
+                
+                if (n > nbest) {
+                    nbest = n;
+                }
+                
+                action->func = action_func;
             }
                 break;
                 
@@ -313,7 +300,7 @@ unsigned long schur_number_threads_launch(schur_number_partition_t *partitionstr
     
     // Création des partitions initiales
     schur_number_partition_queue_init(&partition_queue_struc);
-    schur_partition_queue_add_partition_copy(&partition_queue_struc, partitionstruc, 1);
+    schur_partition_queue_add_partition_copy(&partition_queue_struc, partitionstruc, INITIAL_FLAG);
     size_t count = schur_number_initiate_partition_queue(main_arg); // Nombre de partitions dans partitionstruc_array
     
     // Répercussion dans la sauvegarde
