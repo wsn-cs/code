@@ -64,6 +64,7 @@ size_t schur_number_initiate_partition_queue(schur_number_task_arg_t *arg) {
     // Rétablir l'action
     action->func = action_func;
     action->save = save;
+    action->count_all -= count;
     
     if (arg->constraint_partition) {
         unsigned long p = arg->p;

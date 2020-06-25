@@ -24,7 +24,7 @@
 
 #define schur_number_launch(methodfunc, partitionstruc, action, nlimit) do {\
     schur_number_save_thread_register((action)->save);\
-    methodfunc(partitionstruc, action, nlimit);\
+    methodfunc(partitionstruc, action, nlimit, NULL, NULL);\
     } while(0)
 
 #endif
@@ -76,7 +76,7 @@ int main(int argc, const char * argv[]) {
                 bestSfPartitionNumbersOption = 1;
                 unprolongeableSfPartitionNumbersOption = 1;
                 testedPartitionNumberOption = 1;
-                threadPartitionNumberOption = 1;
+                threadPartitionNumberOption = ALLOW_MULTITHREADING;
                 break;
                 
             case 'b':

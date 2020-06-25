@@ -45,6 +45,8 @@ void schur_number_action_alloc(schur_number_action_t *action, unsigned long p, u
     action->count_limit = 0;
     set_size_limit(&(action->size_limit));
     
+    action->nthreshold = 0;
+    
     action->limbsize_buffer = NULL;
     action->limbsize_size = 0;
     action->limbsize_stream = open_memstream(&(action->limbsize_buffer), &(action->limbsize_size));

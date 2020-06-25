@@ -22,6 +22,8 @@ struct schurNumberIOAction {
     size_t count_max;       // Nombre de partitions de taille maximales
     size_t count_all;       // Nombre de partitions non prolongeables
     
+    unsigned long nthreshold;   // Taille seuil pour l'action save_threshold_partition
+    
     size_t count;           // Nombre de partitions contenues dans le tampon
     size_t count_limit;     // Nombre limite de partitions pouvant être contenues dans le tampon
     size_t size_limit;
@@ -79,6 +81,7 @@ unsigned long schur_number_default_action_sync(mp_limb_t **partition, unsigned l
 unsigned long schur_number_sync_action(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 unsigned long schur_number_save_some_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 unsigned long schur_number_save_best_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schur_number_save_threshold_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 unsigned long schur_number_save_all_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 
 unsigned long schur_number_save_distinct_sum_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
