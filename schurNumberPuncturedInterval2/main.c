@@ -13,9 +13,11 @@
 
 #include "schurNumberWeakPuncturedInterval.h"
 #include "../schurNumberGlobal/schurNumberIOAction.h"
-//#include "../schurNumberGlobal/schurNumberThreads.h"
+#include "../schurNumberGlobal/schurNumberThreads.h"
 
-#ifdef schurNumberThreads_h
+#define ALLOW_MULTITHREADING 1
+
+#if ALLOW_MULTITHREADING
 
 #define schur_number_launch(methodfunc, partitionstruc, action, nlimit) schur_number_threads_launch(partitionstruc, methodfunc, action, NULL, 0)
 

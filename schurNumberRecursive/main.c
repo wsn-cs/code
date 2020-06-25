@@ -15,7 +15,9 @@
 #include "schurNumberConstrainedBuild.h"
 #include "../schurNumberGlobal/schurNumberThreads.h"
 
-#ifdef schurNumberThreads_h
+#define ALLOW_MULTITHREADING 1
+
+#if ALLOW_MULTITHREADING
     #define schur_number_launch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit) schur_number_threads_launch(partitionstruc, methodfunc, action, nlimit, constraint_partition, constraint_size)
 #else
     #define schur_number_launch(methodfunc, partitionstruc, action, constraint_partition, constraint_size, nlimit, load_balancing_opt) do {\
