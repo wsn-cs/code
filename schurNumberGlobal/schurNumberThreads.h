@@ -43,7 +43,13 @@ struct schur_number_task_arg_struc {
 
 typedef struct schur_number_task_arg_struc schur_number_task_arg_t;
 
+typedef void (*schur_number_task_t)(schur_number_task_arg_t *arg);
+
 schur_number_method_t initial_build_method(schur_number_method_t func);
+schur_number_task_t select_thread_task(schur_number_method_t func);
+
+void schur_number_thread_task(schur_number_task_arg_t *arg);
+void schur_number_thread_task_weak(schur_number_task_arg_t *arg);
 
 unsigned long schur_number_threads_launch(schur_number_partition_t *partitionstruc, schur_number_method_t methodfunc, schur_number_action_t *action, unsigned long nlimit, mp_limb_t **constraint_partition, mp_size_t constraint_size);
 

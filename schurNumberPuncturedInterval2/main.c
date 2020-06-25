@@ -23,7 +23,6 @@
 
 #else
 
-typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit);
 #define schur_number_launch(methodfunc, partitionstruc, action, nlimit) do {\
     schur_number_save_thread_register((action)->save);\
     methodfunc(partitionstruc, action, nlimit);\
@@ -33,6 +32,10 @@ typedef unsigned long (*schur_number_method_t)(schur_number_partition_t *partiti
 
 inline schur_number_method_t initial_build_method(schur_number_method_t func) {
     return func;
+}
+
+inline schur_number_task_t select_thread_task(schur_number_method_t func) {
+    return schur_number_thread_task;
 }
 
 void usage(char *cmdname) {

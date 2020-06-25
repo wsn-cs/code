@@ -335,11 +335,11 @@ unsigned long schur_number_threads_launch(schur_number_partition_t *partitionstr
         actions[i]->save = save;
         
         // Création du thread
-        pthread_create(&threads[i], NULL, schur_number_thread_task, arg);
+        pthread_create(&threads[i], NULL, select_thread_task(methodfunc), arg);
     }
     
     // Exécution de la fonction
-    schur_number_thread_task(main_arg);
+    select_thread_task(methodfunc)(main_arg);
     
     // Regroupement
     for (unsigned int i = 0; i < NUM_THREADS - 1; i++) {
