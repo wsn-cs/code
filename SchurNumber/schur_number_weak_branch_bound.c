@@ -34,8 +34,8 @@ unsigned long schur_number_weak_branch_bound(schur_number_partition_t *partition
     unsigned long nalloc = GMP_NUMB_BITS * limballoc - 1;    // Plus grand entier pouvant être contenu dans limballoc limbes
     
     // Initialisation des ensembles intermédiaires
-    mp_limb_t *work1 = calloc(sizeof(mp_limb_t), limballoc);
-    mp_limb_t *work2 = calloc(sizeof(mp_limb_t), limballoc);
+    mp_limb_t *work1 = calloc(sizeof(mp_limb_t), 2 * limballoc);
+    mp_limb_t *work2 = work1 + limballoc;
     
     // Initialisation des variables
     unsigned long n0 = partitionstruc->n;   // Taille de la partition initiale
@@ -64,28 +64,16 @@ unsigned long schur_number_weak_branch_bound(schur_number_partition_t *partition
                 DELETE_POINT(work1, nsize - (n >> 1));
             }
             
-            // Calculer (n+1) - huche i = (nsize + 1 - wsfpartitioninvert[i]) - (nsize - n) en effectuant une succession de décalage vers la droite
-            schur_number_ntranslation(work1, work1, limbsize, nsize - n);
+            // Calculer (n+1) - huche i = (nsize + 1 - partition[i]) - (nsize - n) = partitioninvert[i] - (nsize - n) en effectuant une succession de décalage vers la droite
+            schur_number_ntranslation(work2, work1, limbsize, nsize - n);
             
             // Intersecter la somme avec la huche initiale
-            mpn_and_n(work2, work1, partition[i], limbsize);
-            notSumFree = !mpn_zero_p(work2, limbsize);
+            mpn_and_n(work1, work2, partition[i], limbsize);
+            notSumFree = !mpn_zero_p(work1, limbsize);
             
             if (notSumFree) {
                 // Déterminer nblocking en cas de blocage
-                /*printf("Ensembles : ");
-                schurNumberPrintSet(n, partition[i]);
-                printf("\n");
-                schurNumberPrintSet(nsize, work2);
-                printf("\n");*/
-                unsigned long j = mpn_rscan1(work2, nsize) - 1;
-                //printf("Blocage %lu pour %lu\n", j, n+1);
-                /*if (j > nsize) {
-                    unsigned long jj = mpn_rscan1(work2, nsize);
-                    jj = mpn_rscan1(work2, nsize);
-                    jj--;
-                    printf("Blocage %lu pour %lu\n", jj, n+1);
-                }*/
+                unsigned long j = mpn_rscan1(work1, nsize) - 1;
                 if (j > nblocking) {
                     nblocking = j;
                 }
@@ -137,18 +125,14 @@ unsigned long schur_number_weak_branch_bound(schur_number_partition_t *partition
                 // Revenir à une partition de [1, nblocking-1] grâce à deux masques
                 
                 mp_size_t blockinglimbsize = (n >> 6) + 1;          // Nombre de limbes nécessaires pour contenir nblocking
-                
+                /*unsigned long nblockinginvert = nalloc - nblocking + 2;
+                mp_size_t invert_blockinglimbsize = (nblockinginvert / GMP_NUMB_BITS) + 1;
+                for (unsigned long i = 0; i < p; i++) {
+                    schur_number_intersect_interval_n(partitioninvert[i], limballoc, invert_blockinglimbsize, nblockinginvert);
+                    schur_number_intersect_interval_0(partition[i], limballoc, blockinglimbsize, nblocking - 1);
+                }*/
                 schur_number_setinterval_1(work1, limbsize, blockinglimbsize, nblocking); // work1 = [1, nblocking-1]
                 schur_number_setinterval_s(work2, limbsize, blockinglimbsize, nblocking); // work2 = [nsize - nblocking, nsize]
-                
-                /*printf("Masques : ");
-                schurNumberPrintSet(STDOUT_FILENO, nsize, work1);
-                printf("\n");
-                schurNumberPrintSet(STDOUT_FILENO, nalloc, work2);
-                printf("\n");*/
-                
-                //schurNumberPrintPartition(p, n, partition);
-                //schurNumberPrintPartition(p, nalloc, partitioninvert);
                 
                 // Appliquer le masque
                 for (unsigned long i = 0; i < p; i++) {
@@ -176,7 +160,7 @@ unsigned long schur_number_weak_branch_bound(schur_number_partition_t *partition
             n++;
             ADD_POINT(partition[i], n);
             i = 0;
-            if (n > nsize) {
+            if (n >= nsize) {
                 limbsize++;
                 nsize += GMP_NUMB_BITS;
             }
@@ -188,7 +172,6 @@ unsigned long schur_number_weak_branch_bound(schur_number_partition_t *partition
     
     // Nettoyage
     free(work1);
-    free(work2);
     
     action->iter_num = iter_num;
     
