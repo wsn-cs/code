@@ -60,7 +60,7 @@ size_t schur_partition_queue_add_partition_copy(schur_number_partition_queue_t *
     schur_number_partition_queue_t *child = calloc(1, sizeof(schur_number_partition_queue_t));
     
     unsigned long pmax = partition_struc->pmax;
-    mp_size_t limballoc = partition_struc->limballoc;
+    mp_size_t limbsize = partition_struc->limbsize;
     
     child->pmax = pmax;
     child->n = partition_struc->n;
@@ -70,13 +70,13 @@ size_t schur_partition_queue_add_partition_copy(schur_number_partition_queue_t *
     child->total_count = 1;
     
     mp_size_t *limbsize_ptr = calloc(1, sizeof(mp_size_t));
-    *limbsize_ptr = partition_struc->limbsize;
+    *limbsize_ptr = limbsize;
     child->limbsize_array = limbsize_ptr;
     child->limbsize_ptr = child->limbsize_array;
     
-    mp_limb_t *partition = calloc(pmax, limballoc * sizeof(mp_limb_t));
+    mp_limb_t *partition = calloc(pmax, limbsize * sizeof(mp_limb_t));
     for (unsigned long i = 0; i < partition_struc->p; i++) {
-        mpn_copyd(&partition[i * limballoc], partition_struc->partition[i], *limbsize_ptr);
+        mpn_copyd(&partition[i * limbsize], partition_struc->partition[i], limbsize);
     }
     child->partition_array = partition;
     child->partition_ptr = child->partition_array;
@@ -90,7 +90,7 @@ size_t schur_partition_queue_add_partition_copy(schur_number_partition_queue_t *
     return total_count;
 }
 
-size_t schur_partition_queue_add_partitionarray_nocopy(schur_number_partition_queue_t *partition_queue, mp_limb_t *partition_array, mp_size_t *limbsize_array, size_t count, partition_queue_flag_t flag) {
+size_t schur_partition_queue_add_partitionarray_nocopy(schur_number_partition_queue_t *partition_queue, mp_limb_t *partition_array, mp_size_t *limbsize_array, size_t count, unsigned long n, partition_queue_flag_t flag) {
     /* Ajoute les count partitions contenues dans partition_array à la file. Celle-ci en devient propriétaire et est responsable de leur libération.
      Cette fonction renvoie le nouveau nombre total de partitions dans la file. */
     
@@ -105,7 +105,7 @@ size_t schur_partition_queue_add_partitionarray_nocopy(schur_number_partition_qu
     schur_number_partition_queue_t *child = calloc(1, sizeof(schur_number_partition_queue_t));
     
     child->pmax = partition_queue->pmax;
-    child->n = partition_queue->n;
+    child->n = n;
     
     child->count = count;
     child->current_index = 0;
@@ -148,11 +148,15 @@ partition_queue_flag_t schur_partition_queue_get_partition(schur_number_partitio
         partition_queue->current_index = child->current_index;
         partition_queue->total_count = child->total_count;
         
-        free(partition_queue->limbsize_array);
+        if (partition_queue->limbsize_array) {
+            free(partition_queue->limbsize_array);
+        }
         partition_queue->limbsize_array = child->limbsize_array;
         partition_queue->limbsize_ptr = child->limbsize_ptr;
         
-        free(partition_queue->partition_array);
+        if (partition_queue->partition_array) {
+            free(partition_queue->partition_array);
+        }
         partition_queue->partition_array = child->partition_array;
         partition_queue->partition_ptr = child->partition_ptr;
         
@@ -189,7 +193,7 @@ partition_queue_flag_t schur_partition_queue_get_partition(schur_number_partitio
         partition->n = limbsize * GMP_NUMB_BITS - 1;
         partition->limbsize = limbsize;
     } else {
-        partition->n = mpn_scan1(set0, 1) - 1;
+        partition->n = mpn_scan1(set0, partition_queue->n) - 1;
         partition->limbsize = INTEGER_2_LIMBSIZE(partition->n);
     }
     
