@@ -36,8 +36,9 @@ void schur_number_partition_init(schur_number_partition_t *partitionstruc, mp_si
     mp_limb_t **partition = partitionstruc->partition;
     mp_limb_t **partitioninvert = partitionstruc->partitioninvert;
     
+    mp_limb_t *memory = calloc(p, 2 * limballoc * sizeof(mp_limb_t));
     for (unsigned long j = 0; j < p; j++) {
-        partitioninvert[j] = calloc(2 * limballoc, sizeof(mp_limb_t));
+        partitioninvert[j] = memory + 2 * j * limballoc;
         partition[j] = partitioninvert[j] + limballoc;
     }
     
@@ -52,30 +53,25 @@ void schur_number_partition_init(schur_number_partition_t *partitionstruc, mp_si
 
 void schur_number_partition_dealloc(schur_number_partition_t *partitionstruc) {
     /*Libère partitionstruc.*/
-    unsigned long p = partitionstruc->pmax;
-    
     mp_limb_t **partition = partitionstruc->partition;
     mp_limb_t **partitioninvert = partitionstruc->partitioninvert;
     
-    for (unsigned long j = 0; j < p; j++) {
-        if (partitioninvert[j]) {
-            free(partitioninvert[j]);
-        }
+    if (*partitioninvert) {
+        free(*partitioninvert);
     }
+    
     free(partition);
     free(partitioninvert);
 }
 
 void schur_number_partition_set_empty(schur_number_partition_t *partitionstruc) {
-    /* Rend vide tous les ensembles de la partition. */
+    /* Rend vide tous les ensembles de la partition, puis adjoint 0 au premier ensemble. */
     unsigned long p = partitionstruc->pmax;
     mp_size_t limballoc = partitionstruc->limballoc;
     mp_limb_t **partitioninvert = partitionstruc->partitioninvert;
     mp_limb_t **partition = partitionstruc->partition;
     
-    for (unsigned long i = 0; i < p; i++) {
-        mpn_zero(partitioninvert[i], limballoc);
-    }
+    mpn_zero(*partitioninvert, 2 * p * limballoc);
     ADD_POINT(partition[0], 0);
     
     partitionstruc->p = 0;
