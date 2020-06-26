@@ -61,8 +61,8 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
     unsigned long nalloc = GMP_NUMB_BITS * limballoc - 1;    // Plus grand entier pouvant être contenu dans limballoc limbes
     
     // Initialisation des ensembles intermédiaires
-    mp_limb_t *work1 = calloc(sizeof(mp_limb_t), limballoc);
-    mp_limb_t *work2 = calloc(sizeof(mp_limb_t), limballoc);
+    mp_limb_t *work1 = calloc(2, limballoc * sizeof(mp_limb_t));
+    mp_limb_t *work2 = work1 + limballoc;
     
     // Initialisation des variables
     const unsigned long n0 = partitionstruc->n;       // Taille de la partition initiale
@@ -157,19 +157,23 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
                 for (unsigned long j = 0; j < p; j++) {
                     mpn_and_n(work1, cosums_inf_ptr[j], cosums_sup_ptr[j], limballoc);
                     
-                    mpn_zero(work2, limballoc);
+                    // Supprimer les entiers de [1, n]
+                    /*mpn_zero(work2, limballoc);
                     schur_number_setinterval_1(work2, limballoc, ((n+1) / GMP_NUMB_BITS) + 1, n+1);
-                    mpn_andn_n(work1, work1, work2, limballoc);
+                    mpn_andn_n(work1, work1, work2, limballoc);*/
+                    schur_number_intersect_interval_n(work1, limballoc, limbsize, n + 1);
                     
+                    // Supprimer les entiers de [nbest, +∞[
                     //schur_number_setinterval_s(work2, limballoc, (nbest / GMP_NUMB_BITS) + 1, nbest);
-                    mpn_zero(work2, limballoc);
+                    /*mpn_zero(work2, limballoc);
                     ADD_POINT(work2, nbest);
                     mpn_neg(work2, work2, limballoc);
-                    mpn_andn_n(work1, work1, work2, limballoc);
+                    mpn_andn_n(work1, work1, work2, limballoc);*/
+                    schur_number_intersect_interval_0(work1, limballoc, INTEGER_2_LIMBSIZE(nbest - 1), nbest + 1);
                     
                     if (!mpn_zero_p(work1, limballoc)) {
                         while (!mpn_zero_p(work1, limballoc)) {
-                            unsigned long x = mpn_scan1(work1, n);
+                            unsigned long x = mpn_scan1(work1, n + 1);
                             
                             // Regarder si x peut être ajouté
                             if (GET_POINT(sums_ptr[j], x)) {
@@ -298,6 +302,10 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
                 
                 if (is_new_branch) {
                     // Agir sur la partition
+                    action->work = work1;
+                    action->sumset = sums_ptr[pmax - 1];
+                    action->setmin = setmin[pmax - 1];
+                    action->limballoc = limballoc;
                     nbest = action->func(partition, n, action);
                     if (n >= nlimit) {
                         nblocking = n;
@@ -313,16 +321,13 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
                 
                 // Revenir à une partition de [1, nblocking-1]
                 
-                // Masquer tous les bits au-delà de nblocking en construisant un masque
-                
-                mp_size_t blockinglimbsize = (nblocking / GMP_NUMB_BITS) + 1;    // Nombre de limbes nécessaires pour contenir nblocking
-                schur_number_setinterval_1(work1, limballoc, blockinglimbsize, nblocking); // work1 = [1, nblocking-1]
-                schur_number_setinterval_s(work2, limballoc, blockinglimbsize, nblocking); // work2 = [nalloc - nblocking, nalloc]
-                
-                // Appliquer le masque
+                // Intersecter partition et partitioninvert
+                mp_size_t blockinglimbsize = ((nblocking - 1) / GMP_NUMB_BITS) + 1;    // Nombre de limbes nécessaires pour contenir nblocking-1
+                unsigned long nblockinginvert = nalloc - nblocking + 2;
+                mp_size_t invert_blockinglimbsize = (nblockinginvert / GMP_NUMB_BITS) + 1;
                 for (unsigned long i = 0; i < p; i++) {
-                    mpn_and_n(partition[i], work1, partition[i], limballoc);
-                    mpn_and_n(partitioninvert[i], work2, partitioninvert[i], limballoc);
+                    schur_number_intersect_interval_n(partitioninvert[i], limballoc, invert_blockinglimbsize, nblockinginvert);
+                    schur_number_intersect_interval_0(partition[i], limballoc, blockinglimbsize, nblocking - 1);
                 }
                 
                 if (p == pmax) {
@@ -345,7 +350,7 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
                     }
                 }
                 
-                // Dépiler les variables
+                // Dépiler les sommes et co-sommes
                 for (unsigned long i = 0; i < p; i++) {
                     // Il faut déterminer le nombre d'éléments de [nblocking, n] contenu dans l'ensemble i
                     mp_bitcnt_t cardinal = mpn_popcount(partition[i], blockinglimbsize);    // Nombre d'éléments dans A_i ∩ [1, nblocking-1]
@@ -451,7 +456,6 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
     
     // Nettoyage
     free(work1);
-    free(work2);
     
     free(cardinals);
     free(setmin);

@@ -154,15 +154,11 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
                 for (unsigned long j = 0; j < p; j++) {
                     mpn_and_n(work1, cosums_inf_ptr[j], cosums_sup_ptr[j], limballoc);
                     
-                    mpn_zero(work2, limballoc);
-                    schur_number_setinterval_1(work2, limballoc, (n / GMP_NUMB_BITS) + 1, n);
-                    mpn_andn_n(work1, work1, work2, limballoc);
+                    // Supprimer les entiers de [1, n]
+                    schur_number_intersect_interval_n(work1, limballoc, limbsize, n + 1);
                     
-                    //schur_number_setinterval_s(work2, limballoc, (nbest / GMP_NUMB_BITS) + 1, nbest);
-                    mpn_zero(work2, limballoc);
-                    ADD_POINT(work2, nbest);
-                    mpn_neg(work2, work2, limballoc);
-                    mpn_andn_n(work1, work1, work2, limballoc);
+                    // Supprimer les entiers de [nbest, +∞[
+                    schur_number_intersect_interval_0(work1, limballoc, INTEGER_2_LIMBSIZE(nbest - 1), nbest + 1);
                     
                     if (!mpn_zero_p(work1, limballoc)) {
                         while (!mpn_zero_p(work1, limballoc)) {
@@ -318,17 +314,14 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
                 }
                 
                 // Revenir à une partition de [1, nblocking-1]
-                
-                // Masquer tous les bits au-delà de nblocking en construisant un masque
-                
-                mp_size_t blockinglimbsize = (nblocking / GMP_NUMB_BITS) + 1;    // Nombre de limbes nécessaires pour contenir nblocking
-                schur_number_setinterval_1(work1, limballoc, blockinglimbsize, nblocking); // work1 = [1, nblocking-1]
-                schur_number_setinterval_s(work2, limballoc, blockinglimbsize, nblocking); // work2 = [nalloc - nblocking, nalloc]
-                
-                // Appliquer le masque
+
+                // Intersecter partition et partitioninvert
+                mp_size_t blockinglimbsize = ((nblocking - 1) / GMP_NUMB_BITS) + 1;    // Nombre de limbes nécessaires pour contenir nblocking-1
+                unsigned long nblockinginvert = nalloc - nblocking + 2;
+                mp_size_t invert_blockinglimbsize = (nblockinginvert / GMP_NUMB_BITS) + 1;
                 for (unsigned long i = 0; i < p; i++) {
-                    mpn_and_n(partition[i], work1, partition[i], limballoc);
-                    mpn_and_n(partitioninvert[i], work2, partitioninvert[i], limballoc);
+                    schur_number_intersect_interval_n(partitioninvert[i], limballoc, invert_blockinglimbsize, nblockinginvert);
+                    schur_number_intersect_interval_0(partition[i], limballoc, blockinglimbsize, nblocking - 1);
                 }
                 
                 if (p == pmax) {

@@ -89,6 +89,24 @@ static inline void schur_number_setinterval_1(mp_limb_t *set, mp_size_t limbsize
     set[blockingsize - 1] = ((mp_limb_t)1 << (n % GMP_NUMB_BITS)) - 1;
 }
 
+static inline void schur_number_intersect_interval_0(mp_limb_t *set, mp_size_t limbsize, mp_size_t blockingsize, unsigned long n) {
+    /* Intersecte set avec l'intervalle [0, n], sous l'hypothèse que blockingsize <= limbsize. */
+    //mp_size_t blockingsize = (n >> 6) + 1;
+    if (blockingsize < limbsize) {
+        mpn_zero(set + blockingsize, limbsize - blockingsize);
+    }
+    set[blockingsize - 1] &= (GMP_NUMB_MAX >> ((GMP_NUMB_BITS - n - 1) % GMP_NUMB_BITS));
+}
+
+static inline void schur_number_intersect_interval_n(mp_limb_t *set, mp_size_t limbsize, mp_size_t blockingsize, unsigned long n) {
+    /* Intersecte set avec l'intervalle [n, +∞[. */
+    //mp_size_t blockingsize = (n >> 6) + 1;
+    if (blockingsize > 1) {
+        mpn_zero(set, blockingsize - 1);
+    }
+    set[blockingsize - 1] &= (GMP_NUMB_MAX << (n % GMP_NUMB_BITS));
+}
+
 static inline void schur_number_setinterval_s(mp_limb_t *set, mp_size_t limbsize, mp_size_t blockingsize, unsigned long n) {
     /* Place l'intervalle [n+1, limbsize * GMP_NUMB_BITS - 1] = -2^n dans set. Cette fonction ne marche pas si n = 1. */
     //mp_size_t blockingsize = (n >> 6) + 1;

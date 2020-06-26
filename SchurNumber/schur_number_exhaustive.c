@@ -32,8 +32,8 @@ unsigned long schur_number_exhaustive(schur_number_partition_t *partitionstruc, 
     unsigned long nalloc = GMP_NUMB_BITS * limballoc - 1;    // Plus grand entier pouvant être contenu dans limballoc limbes
     
     // Initialisation des ensembles intermédiaires
-    mp_limb_t *work1 = calloc(sizeof(mp_limb_t), limballoc);
-    mp_limb_t *work2 = calloc(sizeof(mp_limb_t), limballoc);
+    mp_limb_t *work1 = calloc(sizeof(mp_limb_t), 2 * limballoc);
+    mp_limb_t *work2 = work1 + limballoc;
     
     // Initialisation des variables
     unsigned long n0 = partitionstruc->n;       // Taille de la partition initiale
@@ -130,7 +130,6 @@ unsigned long schur_number_exhaustive(schur_number_partition_t *partitionstruc, 
     
     // Nettoyage
     free(work1);
-    free(work2);
     
     action->iter_num = iter_num;
     

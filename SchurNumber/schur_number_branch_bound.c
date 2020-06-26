@@ -34,8 +34,8 @@ unsigned long schur_number_branch_bound(schur_number_partition_t *partitionstruc
     unsigned long nalloc = GMP_NUMB_BITS * limballoc - 1;    // Plus grand entier pouvant être contenu dans limballoc limbes
     
     // Initialisation des ensembles intermédiaires
-    mp_limb_t *work1 = calloc(sizeof(mp_limb_t), limballoc);
-    mp_limb_t *work2 = calloc(sizeof(mp_limb_t), limballoc);
+    mp_limb_t *work1 = calloc(sizeof(mp_limb_t), 2 * limballoc);
+    mp_limb_t *work2 = work1 + limballoc;
     
     // Initialisation des variables
     unsigned long n0 = partitionstruc->n;       // Taille de la partition initiale
@@ -112,16 +112,11 @@ unsigned long schur_number_branch_bound(schur_number_partition_t *partitionstruc
                 }
                 
                 // Revenir à une partition de [1, nblocking-1]
-                
-                mp_size_t blockinglimbsize = (nblocking / GMP_NUMB_BITS) + 1;    // Nombre de limbes nécessaires pour contenir nblocking
-                
-                schur_number_setinterval_1(work1, limbsize, blockinglimbsize, nblocking); // work1 = [1, nblocking-1]
-                schur_number_setinterval_s(work2, limbsize, blockinglimbsize, nblocking); // work2 = [nsize - nblocking, nsize]
-                
-                // Appliquer le masque
+                mp_size_t blockinglimbsize = ((nblocking-1) / GMP_NUMB_BITS) + 1;    // Nombre de limbes nécessaires pour contenir nblocking
+                unsigned long nblockinginvert = nalloc - nblocking + 2;
                 for (unsigned long i = 0; i < p; i++) {
-                    mpn_and_n(partition[i], work1, partition[i], limbsize);
-                    mpn_and_n(partitioninvert[i] + (limballoc - limbsize), work2, partitioninvert[i] + (limballoc - limbsize), limbsize);
+                    schur_number_intersect_interval_n(partitioninvert[i] + (limballoc - limbsize), limbsize, limbsize, nblockinginvert);
+                    schur_number_intersect_interval_0(partition[i], limbsize, blockinglimbsize, nblocking - 1);
                 }
                 
                 while (0 < p && mpn_zero_p(partition[p - 1], limbsize)) {
@@ -154,7 +149,6 @@ unsigned long schur_number_branch_bound(schur_number_partition_t *partitionstruc
     
     // Nettoyage
     free(work1);
-    free(work2);
     
     action->iter_num = iter_num;
     

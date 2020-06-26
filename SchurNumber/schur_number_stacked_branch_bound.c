@@ -185,15 +185,9 @@ unsigned long schur_number_stacked_branch_bound(schur_number_partition_t *partit
                 }
                 
                 // Revenir à une partition de [1, nblocking-1]
-                
-                // Masquer tous les bits au-delà de nblocking en construisant un masque
-                
-                mp_size_t blockinglimbsize = (nblocking / GMP_NUMB_BITS) + 1;    // Nombre de limbes nécessaires pour contenir nblocking
-                schur_number_setinterval_1(work1, limbsize, blockinglimbsize, nblocking); // work1 = [1, nblocking-1]
-                
-                // Appliquer le masque
+                mp_size_t blockinglimbsize = ((nblocking - 1) / GMP_NUMB_BITS) + 1;    // Nombre de limbes nécessaires pour contenir nblocking - 1
                 for (unsigned long i = 0; i < p; i++) {
-                    mpn_and_n(partition[i], work1, partition[i], limbsize);
+                    schur_number_intersect_interval_0(partition[i], limbsize, blockinglimbsize, nblocking - 1);
                 }
                 
                 // Dépiler les sommes

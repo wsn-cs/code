@@ -122,25 +122,14 @@ unsigned long schur_number_weak_branch_bound(schur_number_partition_t *partition
                     iblocking++;
                 }
                 
-                // Revenir à une partition de [1, nblocking-1] grâce à deux masques
-                
-                mp_size_t blockinglimbsize = (n >> 6) + 1;          // Nombre de limbes nécessaires pour contenir nblocking
-                /*unsigned long nblockinginvert = nalloc - nblocking + 2;
+                // Revenir à une partition de [1, nblocking-1] par intersection
+                mp_size_t blockinglimbsize = ((nblocking - 1) >> 6) + 1;        // Nombre de limbes nécessaires pour contenir nblocking
+                unsigned long nblockinginvert = nalloc - nblocking + 2;
                 mp_size_t invert_blockinglimbsize = (nblockinginvert / GMP_NUMB_BITS) + 1;
                 for (unsigned long i = 0; i < p; i++) {
                     schur_number_intersect_interval_n(partitioninvert[i], limballoc, invert_blockinglimbsize, nblockinginvert);
                     schur_number_intersect_interval_0(partition[i], limballoc, blockinglimbsize, nblocking - 1);
-                }*/
-                schur_number_setinterval_1(work1, limbsize, blockinglimbsize, nblocking); // work1 = [1, nblocking-1]
-                schur_number_setinterval_s(work2, limbsize, blockinglimbsize, nblocking); // work2 = [nsize - nblocking, nsize]
-                
-                // Appliquer le masque
-                for (unsigned long i = 0; i < p; i++) {
-                    mpn_and_n(partition[i], work1, partition[i], limbsize);
-                    mpn_and_n(partitioninvert[i] + (limballoc - limbsize), work2, partitioninvert[i] + (limballoc - limbsize), limbsize);
                 }
-                /*schurNumberPrintPartition(p, n, partition);
-                schurNumberPrintPartition(p, nalloc, partitioninvert);*/
                 
                 while (0 < p && mpn_zero_p(partition[p - 1], limbsize)) {
                     // Supprimer la dernière huche
