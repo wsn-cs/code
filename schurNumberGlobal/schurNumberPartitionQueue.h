@@ -37,6 +37,7 @@ struct schur_number_partition_queue_struc {
     partition_queue_flag_t flag;// Drapeau permettant de distinguer les phases d'une procédure
     
     struct schur_number_partition_queue_struc *child_queue; // Pointeur vers une file-fille
+    struct schur_number_partition_queue_struc *leaf_queue;  // Pointeur vers la plus petite file-fille
 };
 
 typedef struct schur_number_partition_queue_struc schur_number_partition_queue_t;

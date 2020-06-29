@@ -22,6 +22,7 @@ void schur_number_partition_queue_init(schur_number_partition_queue_t *partition
     partition_queue->flag = NULL_FLAG;
     
     partition_queue->child_queue = NULL;
+    partition_queue->leaf_queue = partition_queue;
 }
 
 void schur_number_partition_queue_dealloc(schur_number_partition_queue_t *partition_queue) {
@@ -52,12 +53,16 @@ size_t schur_partition_queue_add_partition_copy(schur_number_partition_queue_t *
     schur_number_partition_queue_t *queue = partition_queue;
     size_t total_count = queue->total_count + 1;
     queue->total_count = total_count;
-    while (queue->child_queue) {
+    /*while (queue->child_queue) {
         queue = queue->child_queue; // Récupérer le plus petit descendant de partition_queue
         queue->total_count ++;
-    }
-    
+    }*/
     schur_number_partition_queue_t *child = calloc(1, sizeof(schur_number_partition_queue_t));
+    
+    schur_number_partition_queue_t *leaf = queue->leaf_queue;
+    queue->leaf_queue = child;
+    queue = leaf;
+    queue->leaf_queue = child;
     
     unsigned long pmax = partition_struc->pmax;
     mp_size_t limbsize = partition_struc->limbsize;
@@ -84,6 +89,7 @@ size_t schur_partition_queue_add_partition_copy(schur_number_partition_queue_t *
     child->flag = flag;
     
     child->child_queue = NULL;
+    child->leaf_queue = child;
     
     queue->child_queue = child;
     
@@ -97,12 +103,17 @@ size_t schur_partition_queue_add_partitionarray_nocopy(schur_number_partition_qu
     schur_number_partition_queue_t *queue = partition_queue;
     size_t total_count = queue->total_count + count;
     queue->total_count = total_count;
-    while (queue->child_queue) {
+    /*while (queue->child_queue) {
         queue = queue->child_queue; // Récupérer le plus petit descendant de partition_queue
         queue->total_count += count;
-    }
+    }*/
     
     schur_number_partition_queue_t *child = calloc(1, sizeof(schur_number_partition_queue_t));
+    
+    schur_number_partition_queue_t *leaf = queue->leaf_queue;
+    queue->leaf_queue = child;
+    queue = leaf;
+    queue->leaf_queue = child;
     
     child->pmax = partition_queue->pmax;
     child->n = n;
@@ -120,6 +131,7 @@ size_t schur_partition_queue_add_partitionarray_nocopy(schur_number_partition_qu
     child->flag = flag;
     
     child->child_queue = NULL;
+    child->leaf_queue = child;
     
     queue->child_queue = child;
     
@@ -164,6 +176,9 @@ partition_queue_flag_t schur_partition_queue_get_partition(schur_number_partitio
         
         partition_queue->child_queue = child->child_queue;
         
+        if (partition_queue->leaf_queue == child) {
+            partition_queue->leaf_queue = partition_queue;
+        }
         free(child);
         
         index = partition_queue->current_index;
