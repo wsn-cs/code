@@ -39,7 +39,7 @@ inline schur_number_task_t select_thread_task(schur_number_method_t func) {
 
 void usage(char *cmdname) {
     fprintf(stderr,
-           "usage: %s [-abcehtu] [-p (a|b|s|r|num)] [-m method] set_number [begin_partition]\n"\
+           "usage: %s [-abcehtu] [-p (a|b|s|num)] [-m method] set_number [begin_partition]\n"\
             "\t-a: Equivalent to -bucet\n"\
             "\t-b: Print number of sum-free partitions of [1, S(p)]\n"\
             "\t-u: Print number of sum-free partitions which are not prolongeable\n"\
@@ -159,10 +159,6 @@ int main(int argc, const char * argv[]) {
                 case 's':
                     //actionfunc = schur_number_save_distinct_sum_partition;
                     actionfunc = schur_number_save_distinct_begin_partition;
-                    break;
-                    
-                case 'r':
-                    actionfunc = schur_number_save_distinct_restrictedsum_partition;
                     break;
                     
                 default:
