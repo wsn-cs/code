@@ -9,6 +9,7 @@
 #include "schurNumberPartitionQueue.h"
 
 void schur_number_partition_queue_init(schur_number_partition_queue_t *partition_queue) {
+    /* Initialise la file. */
     partition_queue->pmax = 0;
     partition_queue->count = 0;
     partition_queue->current_index = 0;
@@ -26,7 +27,7 @@ void schur_number_partition_queue_init(schur_number_partition_queue_t *partition
 }
 
 void schur_number_partition_queue_dealloc(schur_number_partition_queue_t *partition_queue) {
-    /*Libère la mémoire associée à partitionstruc_array_ptr, qui contient count partitionstruc à libérer.*/
+    /* Libère la mémoire associée aux éléments de la file, et nettoie recursivement ses enfants. */
     mp_size_t *limbsize_array = partition_queue->limbsize_array;
     mp_limb_t *partition_array = partition_queue->partition_array;
     
@@ -44,6 +45,7 @@ void schur_number_partition_queue_dealloc(schur_number_partition_queue_t *partit
     
     if (partition_queue->child_queue) {
         schur_number_partition_queue_dealloc(partition_queue->child_queue);
+        free(partition_queue->child_queue);
         partition_queue->child_queue = NULL;
     }
 }
@@ -192,23 +194,30 @@ partition_queue_flag_t schur_partition_queue_get_partition(schur_number_partitio
     unsigned long i = 0;
     mp_size_t limbsize = *partition_queue->limbsize_ptr;
     mp_limb_t *set = partition_queue->partition_ptr;
-    mp_limb_t *set0 = set;
+    mp_limb_t *set0 = set;      // set0 contiendra l'union des ensembles de la partition
     
+    // Copier tous les ensembles dans la structure partition
     while (i < pmax && !mpn_zero_p(set, limbsize)) {
         mpn_copyd(partition->partition[i], set, limbsize);
-        schur_number_set_revert(partition->partitioninvert[i], set, limballoc);
+        schur_number_set_revert(partition->partitioninvert[i], partition->partition[i], limballoc);
         mpn_ior_n(set0, set0, set, limbsize);  // Réaliser l'union des ensembles pour déterminer n
         i++;
         set += limbsize;
     }
     
     partition->p = i;
-    mpn_com(set0, set0, limbsize);
-    if (mpn_zero_p(set0, limbsize)) {
+    unsigned long n0 = partition_queue->n;
+    // Déterminer le plus grand entier n tel que [n0, n] soit recouvert
+    mp_size_t q0 = n0 / GMP_NUMB_BITS;
+    //schur_number_intersect_interval_n(set0, limbsize, limbsize0, n0 + 1);
+    set0 += q0;
+    mpn_com(set0, set0, limbsize - q0);
+    *set0 &= (GMP_NUMB_MAX << (n0 % GMP_NUMB_BITS));
+    if (mpn_zero_p(set0, limbsize - q0)) {
         partition->n = limbsize * GMP_NUMB_BITS - 1;
         partition->limbsize = limbsize;
     } else {
-        partition->n = mpn_scan1(set0, partition_queue->n) - 1;
+        partition->n = mpn_scan1(set0, n0 % GMP_NUMB_BITS) + q0 * GMP_NUMB_BITS - 1;
         partition->limbsize = INTEGER_2_LIMBSIZE(partition->n);
     }
     
