@@ -57,7 +57,7 @@ void schur_number_action_alloc(schur_number_action_t *action, unsigned long p, u
     
     action->action_flag = SCHUR_NUMBER_DEFAULT;
     
-    if ((func == schur_number_save_distinct_sum_partition) || (func == schur_number_save_distinct_restrictedsum_partition) || (func == schur_number_save_distinct_begin_partition)) {
+    if ((func == schur_number_save_distinct_sum_partition) || (func == schur_number_save_distinct_begin_partition)) {
         action->auxiliary_stream = open_memstream(&(action->auxiliary_buffer), &(action->auxiliary_size));
         action->sorted_index_sum_partition_stream = open_memstream(&(action->sorted_index_sum_partition_buffer), &(action->sorted_index_sum_partition_size));
         //action->work = calloc(PARTITION_2_LIMBSIZE(p), 4 * sizeof(mp_limb_t));
