@@ -49,6 +49,7 @@ unsigned long schur_number_weak_branch_bound(schur_number_partition_t *partition
     char is_new_branch = 1;
     
     unsigned long iter_num = action->iter_num;  // Nombre d'itérations
+    action->limballoc = limballoc;
     
     // Itération jusqu'à énumérer toutes les partions sans-somme à au plus pmax huches
     while (n >= n0) {

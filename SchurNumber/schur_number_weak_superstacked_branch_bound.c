@@ -7,8 +7,6 @@
 //
 
 #include "schurNumberMethods.h"
-#include "gmp-impl.h"
-#include "longlong.h"
 
 static inline unsigned long find_nblocking(unsigned long x, mp_limb_t *sumset, mp_size_t limbsize, unsigned long count) {
     /* Renvoie le plus petit indice idx tel que x appartienne à sumset[idx], sachant que sumset est un tableau de count grands entiers de taille limbsize. */
@@ -158,17 +156,9 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
                     mpn_and_n(work1, cosums_inf_ptr[j], cosums_sup_ptr[j], limballoc);
                     
                     // Supprimer les entiers de [1, n]
-                    /*mpn_zero(work2, limballoc);
-                    schur_number_setinterval_1(work2, limballoc, ((n+1) / GMP_NUMB_BITS) + 1, n+1);
-                    mpn_andn_n(work1, work1, work2, limballoc);*/
                     schur_number_intersect_interval_n(work1, limballoc, limbsize, n + 1);
                     
                     // Supprimer les entiers de [nbest, +∞[
-                    //schur_number_setinterval_s(work2, limballoc, (nbest / GMP_NUMB_BITS) + 1, nbest);
-                    /*mpn_zero(work2, limballoc);
-                    ADD_POINT(work2, nbest);
-                    mpn_neg(work2, work2, limballoc);
-                    mpn_andn_n(work1, work1, work2, limballoc);*/
                     schur_number_intersect_interval_0(work1, limballoc, INTEGER_2_LIMBSIZE(nbest - 1), nbest + 1);
                     
                     if (!mpn_zero_p(work1, limballoc)) {
