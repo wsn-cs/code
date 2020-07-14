@@ -157,7 +157,8 @@ int main(int argc, const char * argv[]) {
                     break;
                     
                 case 's':
-                    actionfunc = schur_number_save_distinct_sum_partition;
+                    //actionfunc = schur_number_save_distinct_sum_partition;
+                    actionfunc = schur_number_save_distinct_begin_partition;
                     break;
                     
                 case 'r':
