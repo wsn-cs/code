@@ -89,7 +89,7 @@ unsigned long schur_number_save_threshold_partition(mp_limb_t **partition, unsig
 unsigned long schur_number_save_all_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 
 unsigned long schur_number_save_distinct_sum_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
-unsigned long schur_number_save_distinct_restrictedsum_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+//unsigned long schur_number_save_distinct_restrictedsum_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 unsigned long schur_number_save_distinct_begin_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 
 void schur_number_sum_action_alloc(schur_number_action_t *action);
