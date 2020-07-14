@@ -459,7 +459,6 @@ void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
     unsigned long iternum1 = 0;
     unsigned long iternum2 = 0;
     unsigned long iternum3 = 0;
-    unsigned long iternum4 = 0;
     
     while (should_continue) {
         // Obtenir une partition de la file
@@ -497,8 +496,8 @@ void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
                 //nlimit = (nbest / 3) + (nbest / 6) + 4;
                 nlimit = 12;
                 action->nthreshold = nlimit;
-                action->func = schur_number_save_distinct_sum_partition;
-                //action->func = schur_number_save_threshold_partition;
+                //action->func = schur_number_save_distinct_sum_partition;
+                action->func = schur_number_save_threshold_partition;
                 //action->func = schur_number_save_distinct_begin_partition;
                 
                 // Effectuer une recherche illimitée
@@ -613,7 +612,7 @@ void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
                 // Effectuer une recherche illimitée
                 nlimit = arg->nlimit;
                 unsigned long n = arg->func(partitionstruc, action, nlimit, constraint_partition, constraint_size);
-                iternum4 += action->iter_num - iternum0;
+                iternum3 += action->iter_num - iternum0;
                 
                 if (n == partitionstruc->n) {
                     // La partition n'est pas prolongeable
@@ -644,7 +643,7 @@ void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
     }
     
     pthread_mutex_lock(mutex);
-    printf("Thread %p:\n\tPhase 1: %lu test\n\tPhase 2: %lu test\n\tPhase 3: %lu test\n\tPhase 4: %lu test\n", pthread_self(), iternum1, iternum2, iternum3, iternum4);
+    printf("Thread %p:\n\tPhase 1: %lu test\n\tPhase 2: %lu test\n\tPhase 3: %lu test\n", pthread_self(), iternum1, iternum2, iternum3);
     pthread_mutex_unlock(mutex);
     
 }
