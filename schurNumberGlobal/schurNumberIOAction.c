@@ -57,14 +57,14 @@ void schur_number_action_alloc(schur_number_action_t *action, unsigned long p, u
     
     action->action_flag = SCHUR_NUMBER_DEFAULT;
     
-    if ((func == schur_number_save_distinct_sum_partition) || (func == schur_number_save_distinct_restrictedsum_partition)) {
-        action->sum_partition_stream = open_memstream(&(action->sum_partition_buffer), &(action->sum_partition_size));
+    if ((func == schur_number_save_distinct_sum_partition) || (func == schur_number_save_distinct_restrictedsum_partition) || (func == schur_number_save_distinct_begin_partition)) {
+        action->auxiliary_stream = open_memstream(&(action->auxiliary_buffer), &(action->auxiliary_size));
         action->sorted_index_sum_partition_stream = open_memstream(&(action->sorted_index_sum_partition_buffer), &(action->sorted_index_sum_partition_size));
-        action->work = calloc(PARTITION_2_LIMBSIZE(p), 4 * sizeof(mp_limb_t));
+        //action->work = calloc(PARTITION_2_LIMBSIZE(p), 4 * sizeof(mp_limb_t));
         action->limbsize = PARTITION_2_LIMBSIZE(p);
     } else {
-        action->sum_partition_buffer = NULL;
-        action->sum_partition_size = 0;
+        action->auxiliary_buffer = NULL;
+        action->auxiliary_size = 0;
         action->sorted_index_sum_partition_buffer = NULL;
         action->sorted_index_sum_partition_size = 0;
         action->work = NULL;
@@ -86,12 +86,12 @@ void schur_number_action_dealloc(schur_number_action_t *action) {
     free(action->limbsize_buffer);
     free(action->partition_buffer);
     
-    if (action->sum_partition_buffer) {
-        fclose(action->sum_partition_stream);
-        free(action->sum_partition_buffer);
+    if (action->auxiliary_buffer) {
+        fclose(action->auxiliary_stream);
+        free(action->auxiliary_buffer);
         fclose(action->sorted_index_sum_partition_stream);
         free(action->sorted_index_sum_partition_buffer);
-        free(action->work);
+        //free(action->work);
     }
     
     schur_number_action_t **actions = action->gathered_actions;
@@ -249,6 +249,13 @@ size_t schur_number_action_buffer_detach(schur_number_action_t *action, mp_size_
     action->partition_stream = open_memstream(&(action->partition_buffer), &(action->partition_size));
     
     action->count = 0;
+    
+    if (action->auxiliary_stream) {
+        rewind(action->auxiliary_stream);
+    }
+    if (action->sorted_index_sum_partition_stream) {
+        rewind(action->sorted_index_sum_partition_stream);
+    }
     
     return count;
 }

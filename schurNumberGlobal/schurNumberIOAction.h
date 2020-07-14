@@ -39,19 +39,23 @@ struct schurNumberIOAction {
     
     enum schur_number_action_flag action_flag;          // Drapeau indiquant si, au cours de l'exécution, les partitions doivent être imprimées
     
-    char *sum_partition_buffer;                 // Tampon contenant les sommes du dernier ensemble des partitions
-    size_t sum_partition_size;                  // Taille du tampon en octet
-    FILE *sum_partition_stream;                 // Flux associé au tampon
+    char *auxiliary_buffer;                 // Tampon contenant des données supplémentaires selon l'action, par exemple les sommes du dernier ensemble des partitions
+    size_t auxiliary_size;                  // Taille du tampon en octet
+    FILE *auxiliary_stream;                 // Flux associé au tampon
     char *sorted_index_sum_partition_buffer;    // Tampon contenant les indices ordonnées des sommes du dernier ensemble des partitions
     size_t sorted_index_sum_partition_size;     // Taille du tampon en octet
     FILE *sorted_index_sum_partition_stream;    // Flux associé au tampon
-    //unsigned long depth;                        // Profondeur de la partition
-    
-    mp_limb_t *work;
     
     unsigned long (*func)(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
     
-    schur_number_intermediate_save_t *save;
+    mp_limb_t *work;                            // Pointeur vers un éventuel paramètre supplémentaire pour func
+    mp_limb_t *sumset;                          // Pointeur vers un éventuel paramètre supplémentaire pour func
+    unsigned long setmin;
+    mp_limb_t limballoc;
+    
+    void *additionnal_data;                     // Données supplémentaires pouvant être stockées
+    
+    schur_number_intermediate_save_t *save;     // Sauvegarde intermédiare
     
     size_t count_gathered_actions;                  // Nombre d'actions issues d'un éventuel regroupement
     struct schurNumberIOAction **gathered_actions;  // Tableau des actions issues d'un éventuel regroupement
@@ -86,5 +90,8 @@ unsigned long schur_number_save_all_partition(mp_limb_t **partition, unsigned lo
 
 unsigned long schur_number_save_distinct_sum_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
 unsigned long schur_number_save_distinct_restrictedsum_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+unsigned long schur_number_save_distinct_begin_partition(mp_limb_t **partition, unsigned long n, struct schurNumberIOAction *action);
+
+void schur_number_sum_action_alloc(schur_number_action_t *action);
 
 #endif /* schurNumberIOAction_h */
