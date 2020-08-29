@@ -241,13 +241,6 @@ unsigned long schur_number_save_threshold_partition(mp_limb_t **partition, unsig
             action->nbest = schur_number_save_best_upgrade(save, n, partition);
         }
         action->count_max = 0;
-    } else if (save) {
-        // Assure que nbest = nbest_global dans tous les cas
-        unsigned long nbest_global  = schur_number_save_get_best_global(save);
-        if (nbest_global > action->nbest) {
-            action->nbest = nbest_global;
-            action->count_max = 0;
-        }
     }
     
     if (n >= action->nthreshold && partition) {
