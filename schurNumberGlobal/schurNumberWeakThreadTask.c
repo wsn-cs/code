@@ -305,22 +305,6 @@ void schur_number_thread_task_weak2(schur_number_task_arg_t *arg) {
             }
             // Ré-essayer d'acquérir une partition
             flag = schur_partition_queue_get_partition(queue, partitionstruc);
-            
-            //            if (*waiting_thread_count_ptr < NUM_THREADS - 1) {
-            //                // Attendre le signal pour réessayer de prendre une partition ou s'arrêter
-            //                (*waiting_thread_count_ptr)++;
-            //                pthread_cond_wait(cond, mutex);
-            //                (*waiting_thread_count_ptr)--;
-            //                // Ré-essayer d'acquérir une partition
-            //                flag = schur_partition_queue_get_partition(queue, partitionstruc);
-            //            } else {
-            //                // Sonner la fin de la traque
-            //                schur_partition_queue_add_partitionarray_nocopy(queue, NULL, NULL, 0, 0, STOP_FLAG);
-            //                flag = STOP_FLAG;
-            //                // Envoyer un signal aux threads en attente
-            //                pthread_cond_broadcast(cond);
-            //                break;
-            //            }
         }
         pthread_mutex_unlock(mutex);
         
@@ -496,8 +480,8 @@ void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
                 //nlimit = (nbest / 3) + (nbest / 6) + 4;
                 nlimit = 12;
                 action->nthreshold = nlimit;
-                //action->func = schur_number_save_distinct_sum_partition;
-                action->func = schur_number_save_threshold_partition;
+                action->func = schur_number_save_distinct_sum_partition;
+                //action->func = schur_number_save_threshold_partition;
                 //action->func = schur_number_save_distinct_begin_partition;
                 
                 // Effectuer une recherche illimitée
@@ -557,55 +541,13 @@ void schur_number_thread_task_weak(schur_number_task_arg_t *arg) {
                 mp_limb_t *partition_buffer;
                 count = schur_number_action_buffer_detach(action, &limbsize_buffer, &partition_buffer);
                 pthread_mutex_lock(mutex);
-                /*printf("Nombre : %lu\n", count);
-                for (int i = 0; i < count; i++) {
-                    mp_limb_t *part[3];
-                    part[0] = partition_buffer + i * p * (*limbsize_buffer);
-                    part[1] = part[0] + *limbsize_buffer;
-                    part[2] = part[1] + *limbsize_buffer;
-                    schur_number_dprint_partition(1, p, 23, part);
-                }*/
+
                 schur_partition_queue_add_partitionarray_nocopy(queue, partition_buffer, limbsize_buffer, count, nlimit+1, FINAL_FLAG);
                 // Envoyer un signal aux threads en attente
                 pthread_cond_broadcast(cond);
                 pthread_mutex_unlock(mutex);
                 break;
             }
-                
-                /*case FLAG_3:
-                 {   // Effectuer une recherche limitée à nbest * 5/6
-                 nlimit = ((2 * nbest) / 3) + ((2 * (nbest - ((2 * nbest) / 3))) / 3);
-                 action->nthreshold = nlimit;
-                 //action->func = schur_number_save_distinct_sum_partition;
-                 //action->func = schur_number_save_threshold_partition;
-                 action->func = schur_number_save_distinct_begin_partition;
-                 
-                 // Effectuer une recherche illimitée
-                 unsigned long n = arg->func(partitionstruc, action, nlimit, constraint_partition, constraint_size);
-                 iternum3 += action->iter_num - iternum0;
-                 
-                 if (n == partitionstruc->n) {
-                 // La partition n'est pas prolongeable
-                 action->func(partitionstruc->partition, n, action);
-                 }
-                 
-                 if (n > nbest) {
-                 nbest = n;
-                 }
-                 
-                 action->func = action_func;
-                 action->count_all -= (action->count - count);
-                 // Ajouter ses propres partitions
-                 mp_size_t *limbsize_buffer;
-                 mp_limb_t *partition_buffer;
-                 count = schur_number_action_buffer_detach(action, &limbsize_buffer, &partition_buffer);
-                 pthread_mutex_lock(mutex);
-                 schur_partition_queue_add_partitionarray_nocopy(queue, partition_buffer, limbsize_buffer, count, nlimit, FINAL_FLAG);
-                 // Envoyer un signal aux threads en attente
-                 pthread_cond_broadcast(cond);
-                 pthread_mutex_unlock(mutex);
-                 break;
-                 }*/
                 
             case FINAL_FLAG:
             {
