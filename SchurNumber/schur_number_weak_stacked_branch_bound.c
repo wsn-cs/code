@@ -26,7 +26,10 @@ unsigned long schur_number_weak_stacked_branch_bound(schur_number_partition_t *p
      Lorsqu'un entier n n'a pu être inséré dans aucune huches, on revient au sup sur les huches
      du plus petit n'≥[n/2]+1 tel que n' et n-n' appartiennent simultanément à cette huche.
      
-     De plus, les sommes faibles de la partition sont conservées en mémoire dans le tableau sumpartition, de sorte qu'à chaque itération, il est possible de réaliser leur intersection pour borner la taille de la partition faiblement sans-somme en construction.
+     De plus, les sommes faibles de la partition sont conservées en mémoire dans le tableau sumpartition,
+     de sorte qu'à chaque itération, il est possible de réaliser leur intersection pour borner la taille
+     de la partition faiblement sans-somme en construction (si m appartient à toutes les sommes,
+     alors il ne pourra jamais être ajouté).
      */
     
     // Initialisation de la partition à calculer

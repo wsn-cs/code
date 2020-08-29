@@ -26,7 +26,10 @@ unsigned long schur_number_stacked_branch_bound(schur_number_partition_t *partit
      Lorsqu'un entier n n'a pu être inséré dans aucune huches, on revient au sup sur les huches
      du plus petit n'≥[n/2]+1 tel que n' et n-n' appartiennent simultanément à cette huche.
      
-     De plus, les sommes de la partition sont conservées en mémoire dans le tableau sumpartition, de sorte qu'à chaque itération, il est possible de réaliser leur intersection pour borner la taille de la partition sans-somme en construction.
+     De plus, les sommes de la partition sont conservées en mémoire dans le tableau sumpartition,
+     de sorte qu'à chaque itération, il est possible de réaliser leur intersection pour borner
+     la taille de la partition sans-somme en construction (si m appartient à toutes les sommes,
+     alors il ne pourra jamais être ajouté).
      */
     
     // Initialisation de la partition à calculer
@@ -151,7 +154,6 @@ unsigned long schur_number_stacked_branch_bound(schur_number_partition_t *partit
                 popcounts[p * limballoc + limbsize - 1] = 1;
                 
                 mp_limb_t *sumptr = sumpartition[p];
-                //mp_limb_t *sumptr = sums_ptr[p];
                 ADD_POINT(sumptr, 2 * n);
                 sums_ptr[p] = sumptr;
                 
@@ -198,14 +200,11 @@ unsigned long schur_number_stacked_branch_bound(schur_number_partition_t *partit
                     if (cardinal < cardinals[i]) {
                         mp_bitcnt_t limb_diff = (cardinals[i] - cardinal - 1) * limballoc;
                         sums_ptr[i] -= limb_diff;
-                        //mpn_zero(sums_ptr[i], limb_diff);
                         mpn_zero(sums_ptr[i], limb_diff + limballoc);
                         sums_ptr[i] -= (!!cardinal) * limballoc;
-                        //sums_ptr[i] -= limballoc;
                         
                         cardinals[i] = cardinal;
                         
-                        //popcounts[i * limballoc + blockinglimbsize - 1] -= cardinals[i] - cardinal;
                         char popcnt;
                         popc_limb(popcnt, partition[i][blockinglimbsize - 1]);
                         popcounts[i * limballoc + blockinglimbsize - 1] = popcnt;

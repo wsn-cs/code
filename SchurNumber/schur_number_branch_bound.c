@@ -22,7 +22,8 @@ unsigned long schur_number_branch_bound(schur_number_partition_t *partitionstruc
      Si le résultat est 0, il est possible d'ajouter n+1.
      
      Lorsqu'un entier n n'a pu être inséré dans aucune huches, on revient au sup sur les huches
-     du plus petit n'≥[n/2]+1 tel que n' et n-n' appartiennent simultanément à cette huche.
+     du plus petit n'≥[n/2]+1 tel que n' et n-n' appartiennent simultanément à cette huche,
+     c'est-à-dire le plus petit couple (n', n - n') empêchant le placement de n dans un des ensembles.
      */
     
     // Initialisation de la partition à calculer

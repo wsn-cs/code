@@ -47,7 +47,12 @@ unsigned long schur_number_weak_superstacked_branch_bound(schur_number_partition
      Lorsqu'un entier n n'a pu être inséré dans aucune huches, on revient au sup sur les huches
      du plus petit n'≥[n/2]+1 tel que n' et n-n' appartiennent simultanément à cette huche.
      
-     De plus, les sommes de la partition sont conservées en mémoire dans le tableau sumpartition, de sorte qu'à chaque itération, il est possible de réaliser leur intersection pour borner la taille de la partition sans-somme en construction.
+     En outre, les "co-sommes" (Cj) sont conservées en mémoire dans une pile.
+     La co-somme Cj est par défintion l'intersection des Ak + Ak, k ≠ j.
+     Ces co-sommes permettent de placer plus rapidement certains entiers :
+     en effet, si x appartient à Cj, cela signifie que seul l'ensemble Aj est susceptible de le contenir.
+     Quand de plus il est connu que WS(k) ≥ x, il convient de placer automatiquement x dans Aj,
+     puisque toute partition faiblement sans-somme de [1, x] contient nécesssairement x dans Aj.
      */
     
     // Initialisation de la partition à calculer

@@ -7,7 +7,7 @@
 //
 
 #include "schurNumberMethods.h"
-//#include "../schurNumberGlobal/schurNumberFindSort.h"
+
 
 static inline unsigned long find_nblocking(unsigned long x, mp_limb_t *sumset, mp_size_t limbsize, unsigned long count) {
     /* Renvoie le plus petit indice idx tel que x appartienne à sumset[idx], sachant que sumset est un tableau de count grands entiers de taille limbsize. */
@@ -32,6 +32,7 @@ static inline unsigned long find_nblocking(unsigned long x, mp_limb_t *sumset, m
     return i1;
 }
 
+
 unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *partitionstruc, schur_number_action_t *action, unsigned long nlimit) {
     /*
      Cette fonction calcule successivement les nombres de Schur S(p) pour p<= pmax, en partant de la partition initiale contenue dans partitionstruc.
@@ -48,7 +49,12 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
      Lorsqu'un entier n n'a pu être inséré dans aucune huches, on revient au sup sur les huches
      du plus petit n'≥[n/2]+1 tel que n' et n-n' appartiennent simultanément à cette huche.
      
-     De plus, les sommes de la partition sont conservées en mémoire dans le tableau sumpartition, de sorte qu'à chaque itération, il est possible de réaliser leur intersection pour borner la taille de la partition sans-somme en construction.
+     En outre, les "co-sommes" (Cj) sont conservées en mémoire dans une pile.
+     La co-somme Cj est par défintion l'intersection des Ak + Ak, k ≠ j.
+     Ces co-sommes permettent de placer plus rapidement certains entiers :
+     en effet, si x appartient à Cj, cela signifie que seul l'ensemble Aj est susceptible de le contenir.
+     Quand de plus il est connu que S(k) ≥ x, il convient de placer automatiquement x dans Aj,
+     puisque toute partition sans-somme de [1, x] contient nécesssairement x dans Aj.
      */
     
     // Initialisation de la partition à calculer
@@ -60,8 +66,8 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
     unsigned long nalloc = GMP_NUMB_BITS * limballoc - 1;    // Plus grand entier pouvant être contenu dans limballoc limbes
     
     // Initialisation des ensembles intermédiaires
-    mp_limb_t *work1 = calloc(sizeof(mp_limb_t), limballoc);
-    mp_limb_t *work2 = calloc(sizeof(mp_limb_t), limballoc);
+    mp_limb_t *work1 = calloc(sizeof(mp_limb_t), 2 * limballoc);
+    mp_limb_t *work2 = work1 + limballoc;
     
     // Initialisation des variables
     const unsigned long n0 = partitionstruc->n;       // Taille de la partition initiale
@@ -448,7 +454,6 @@ unsigned long schur_number_superstacked_branch_bound(schur_number_partition_t *p
     
     // Nettoyage
     free(work1);
-    free(work2);
     
     free(cardinals);
     free(setmin);
