@@ -50,7 +50,8 @@ void usage(char *cmdname) {
             "\t-m method: Select a method\n"\
             "\t-t: Print execution's time\n"\
             "\t-h: Print usage message\n"\
-            "\t-p (a|b|s|r|num): Show num best partitions, all not prolongeable partitions or only best found partitions\n",
+            "\t-p (a|b|s|r|num): Show num best partitions, all not prolongeable partitions or only best found partitions\n"\
+            "\t-w: Specify weak case.",
            basename(cmdname));
 }
 
@@ -69,7 +70,7 @@ int main(int argc, const char * argv[]) {
     struct timespec time0, time1;
     
     // Analyse des options
-    while ((c = getopt(argc, argv, "abcefhl:m:p:tu")) != -1) {
+    while ((c = getopt(argc, argv, "abcefhl:m:p:tuw")) != -1) {
         switch (c) {
             case 'a':
                 timeOption = 1;
@@ -119,6 +120,9 @@ int main(int argc, const char * argv[]) {
                 asprintf(&print_range, "%s", optarg);
                 break;
                 
+            case 'w':
+                is_weak = 1;
+                
             default:
                 fprintf(stderr, "schurNumber: -%c: invalid option\n", c);
                 usage(argv[0]);
@@ -157,8 +161,8 @@ int main(int argc, const char * argv[]) {
                     break;
                     
                 case 's':
-                    //actionfunc = schur_number_save_distinct_sum_partition;
-                    actionfunc = schur_number_save_distinct_begin_partition;
+                    actionfunc = schur_number_save_distinct_sum_partition;
+                    //actionfunc = schur_number_save_distinct_begin_partition;
                     break;
                     
                 default:
@@ -216,35 +220,19 @@ int main(int argc, const char * argv[]) {
     schur_number_method_t methodfunc;
     switch (method) {
         case '1':
-            methodfunc = schur_number_exhaustive;
+            methodfunc = (is_weak ? schur_number_weak_exhaustive : schur_number_exhaustive)
             break;
             
         case '2':
-            methodfunc = schur_number_branch_bound;
+            methodfunc = (is_weak ? schur_number_weak_branch_bound : schur_number_branch_bound);
             break;
             
         case '3':
-            methodfunc = schur_number_stacked_branch_bound;
+            methodfunc = (is_weak ? schur_number_weak_stacked_branch_bound : schur_number_stacked_branch_bound);
             break;
             
         case '4':
-            is_weak = 1;
-            methodfunc = schur_number_weak_exhaustive;
-            break;
-            
-        case '5':
-            is_weak = 1;
-            methodfunc = schur_number_weak_branch_bound;
-            break;
-            
-        case '6':
-            is_weak = 1;
-            methodfunc = schur_number_weak_stacked_branch_bound;
-            break;
-            
-        case 'w':
-            is_weak = 1;
-            methodfunc = schur_number_weak_superstacked_branch_bound;
+            methodfunc = (is_weak ? schur_number_weak_superstacked_branch_bound : schur_number_superstacked_branch_bound);
             break;
             
         default:
