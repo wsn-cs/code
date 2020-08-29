@@ -220,7 +220,7 @@ int main(int argc, const char * argv[]) {
     schur_number_method_t methodfunc;
     switch (method) {
         case '1':
-            methodfunc = (is_weak ? schur_number_weak_exhaustive : schur_number_exhaustive)
+            methodfunc = (is_weak ? schur_number_weak_exhaustive : schur_number_exhaustive);
             break;
             
         case '2':
